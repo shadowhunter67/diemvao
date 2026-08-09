@@ -2,46 +2,69 @@ import { useEffect, useMemo, useState } from 'react';
 import { Header } from './components/Header';
 import { ScoreForm } from './components/ScoreForm';
 import { ScoreResult } from './components/ScoreResult';
+import { TargetSection } from './components/TargetSection';
+import { ScenarioSimulator } from './components/ScenarioSimulator';
 import { FormulaExplanation } from './components/FormulaExplanation';
 import { activeAdmissionConfig } from './config/admission-2026';
 import { calculateAdmissionScore } from './lib/calculator';
-import { validateAdmissionForm, type AdmissionFormErrors } from './lib/validation';
+import { calculateRequiredDgnl } from './lib/targetCalculator';
+import { validateAdmissionForm, validateTargetScore, type AdmissionFormErrors } from './lib/validation';
+import { applySearchParamsToForm, parseTargetFromSearchParams, serializeStateToSearchParams } from './lib/urlState';
 import type { AdmissionInput } from './types/admission';
-import type { AdmissionFormState, BonusFormState, DgnlFormState, ThptFormState, TranscriptFormState } from './types/form';
+import {
+  defaultAdmissionFormState,
+  type AdmissionFormState,
+  type BonusFormState,
+  type DgnlFormState,
+  type ThptFormState,
+  type TranscriptFormState,
+} from './types/form';
 
-const STORAGE_KEY = 'hcmut-score-input-v2';
-
-const defaultFormState: AdmissionFormState = {
-  dgnl: { vietnamese: '', english: '', math: '', scientificThinking: '' },
-  thpt: { math: '', subject2: '', subject3: '' },
-  transcript: {
-    grade10: { math: '', subject2: '', subject3: '' },
-    grade11: { math: '', subject2: '', subject3: '' },
-    grade12: { math: '', subject2: '', subject3: '' },
-  },
-  bonus: { reward: '', considerationReward: '', encouragement: '' },
-  priorityRaw30Scale: '',
-};
+const FORM_STORAGE_KEY = 'hcmut-score-input-v2';
+const TARGET_STORAGE_KEY = 'hcmut-score-target-v1';
 
 function loadStoredFormState(): AdmissionFormState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultFormState;
+    const raw = localStorage.getItem(FORM_STORAGE_KEY);
+    if (!raw) return defaultAdmissionFormState;
     const parsed = JSON.parse(raw) as Partial<AdmissionFormState>;
     return {
-      dgnl: { ...defaultFormState.dgnl, ...parsed.dgnl },
-      thpt: { ...defaultFormState.thpt, ...parsed.thpt },
+      dgnl: { ...defaultAdmissionFormState.dgnl, ...parsed.dgnl },
+      thpt: { ...defaultAdmissionFormState.thpt, ...parsed.thpt },
       transcript: {
-        grade10: { ...defaultFormState.transcript.grade10, ...parsed.transcript?.grade10 },
-        grade11: { ...defaultFormState.transcript.grade11, ...parsed.transcript?.grade11 },
-        grade12: { ...defaultFormState.transcript.grade12, ...parsed.transcript?.grade12 },
+        grade10: { ...defaultAdmissionFormState.transcript.grade10, ...parsed.transcript?.grade10 },
+        grade11: { ...defaultAdmissionFormState.transcript.grade11, ...parsed.transcript?.grade11 },
+        grade12: { ...defaultAdmissionFormState.transcript.grade12, ...parsed.transcript?.grade12 },
       },
-      bonus: { ...defaultFormState.bonus, ...parsed.bonus },
-      priorityRaw30Scale: parsed.priorityRaw30Scale ?? defaultFormState.priorityRaw30Scale,
+      bonus: { ...defaultAdmissionFormState.bonus, ...parsed.bonus },
+      priorityRaw30Scale: parsed.priorityRaw30Scale ?? defaultAdmissionFormState.priorityRaw30Scale,
     };
   } catch {
-    return defaultFormState;
+    return defaultAdmissionFormState;
   }
+}
+
+function loadStoredTarget(): string {
+  try {
+    return localStorage.getItem(TARGET_STORAGE_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+/** URL query params có precedence cao hơn localStorage: field nào URL cung cấp hợp lệ thì ghi đè lên. */
+function loadInitialFormState(): AdmissionFormState {
+  const base = loadStoredFormState();
+  if (typeof window === 'undefined') return base;
+  const params = new URLSearchParams(window.location.search);
+  return applySearchParamsToForm(base, params, activeAdmissionConfig).formState;
+}
+
+function loadInitialTarget(): string {
+  if (typeof window === 'undefined') return loadStoredTarget();
+  const params = new URLSearchParams(window.location.search);
+  const fromUrl = parseTargetFromSearchParams(params, activeAdmissionConfig);
+  return fromUrl ?? loadStoredTarget();
 }
 
 function buildAdmissionInput(errors: AdmissionFormErrors): AdmissionInput {
@@ -84,13 +107,26 @@ function buildAdmissionInput(errors: AdmissionFormErrors): AdmissionInput {
 }
 
 function App() {
-  const [formState, setFormState] = useState<AdmissionFormState>(loadStoredFormState);
+  const [formState, setFormState] = useState<AdmissionFormState>(loadInitialFormState);
+  const [targetScore, setTargetScore] = useState<string>(loadInitialTarget);
+  // Chỉ tăng khi bấm "Đặt lại": buộc ScenarioSimulator remount để đồng bộ lại slider
+  // theo điểm hiện tại (state slider là state riêng, không tự nghe formState mỗi lần gõ phím).
+  const [resetToken, setResetToken] = useState(0);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(formState));
+    localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formState));
   }, [formState]);
 
+  useEffect(() => {
+    if (targetScore.trim() === '') {
+      localStorage.removeItem(TARGET_STORAGE_KEY);
+    } else {
+      localStorage.setItem(TARGET_STORAGE_KEY, targetScore);
+    }
+  }, [targetScore]);
+
   const errors = useMemo(() => validateAdmissionForm(formState, activeAdmissionConfig), [formState]);
+  const targetError = useMemo(() => validateTargetScore(targetScore, activeAdmissionConfig).error, [targetScore]);
 
   const hasCoreInput = useMemo(() => {
     const dgnlTouched = Object.values(errors.dgnl).some((field) => !field.isEmpty);
@@ -101,13 +137,33 @@ function App() {
     return dgnlTouched || thptTouched || transcriptTouched;
   }, [errors]);
 
+  const currentInput = useMemo(() => buildAdmissionInput(errors), [errors]);
+
   // liveResult luôn được tính để các section con hiển thị số liệu chuẩn hóa realtime;
   // result chỉ hiện khi có ít nhất một điểm học lực đã được nhập (tránh cảm giác "0.00" là kết quả thật).
-  const liveResult = useMemo(
-    () => calculateAdmissionScore(buildAdmissionInput(errors), activeAdmissionConfig),
-    [errors]
-  );
+  const liveResult = useMemo(() => calculateAdmissionScore(currentInput, activeAdmissionConfig), [currentInput]);
   const result = hasCoreInput ? liveResult : null;
+
+  const requiredResult = useMemo(() => {
+    if (!hasCoreInput || targetScore.trim() === '' || targetError !== null) return null;
+    return calculateRequiredDgnl(Number(targetScore), currentInput, activeAdmissionConfig);
+  }, [hasCoreInput, targetScore, targetError, currentInput]);
+
+  const simulatorOtherInputs = useMemo(
+    () => ({
+      thpt: currentInput.thpt,
+      transcript: currentInput.transcript,
+      bonus: currentInput.bonus,
+      priorityRaw30Scale: currentInput.priorityRaw30Scale,
+    }),
+    [currentInput]
+  );
+
+  function buildShareUrl(): string {
+    const params = serializeStateToSearchParams(formState, targetScore, activeAdmissionConfig);
+    const query = params.toString();
+    return `${window.location.origin}${window.location.pathname}${query ? `?${query}` : ''}`;
+  }
 
   function handleDgnlChange(key: keyof DgnlFormState, value: string) {
     setFormState((prev) => ({ ...prev, dgnl: { ...prev.dgnl, [key]: value } }));
@@ -139,30 +195,64 @@ function App() {
     setFormState((prev) => ({ ...prev, priorityRaw30Scale: value }));
   }
 
+  function handleTargetChange(value: string) {
+    setTargetScore(value);
+  }
+
   function handleReset() {
-    localStorage.removeItem(STORAGE_KEY);
-    setFormState(defaultFormState);
+    localStorage.removeItem(FORM_STORAGE_KEY);
+    localStorage.removeItem(TARGET_STORAGE_KEY);
+    setFormState(defaultAdmissionFormState);
+    setTargetScore('');
+    setResetToken((token) => token + 1);
+    if (typeof window !== 'undefined' && window.location.search) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
   }
 
   return (
     <div className="min-h-svh bg-slate-50">
       <div className="mx-auto max-w-5xl px-4 pb-16">
         <Header />
-        <main className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_360px] lg:items-start">
-          <ScoreForm
-            config={activeAdmissionConfig}
-            formState={formState}
-            errors={errors}
-            result={liveResult}
-            onDgnlChange={handleDgnlChange}
-            onThptChange={handleThptChange}
-            onTranscriptChange={handleTranscriptChange}
-            onBonusChange={handleBonusChange}
-            onPriorityChange={handlePriorityChange}
-            onReset={handleReset}
-          />
-          <div className="lg:sticky lg:top-5 lg:flex lg:flex-col lg:gap-5">
-            <ScoreResult result={result} config={activeAdmissionConfig} />
+        <main className="admission-layout">
+          <div className="admission-layout-form">
+            <ScoreForm
+              config={activeAdmissionConfig}
+              formState={formState}
+              errors={errors}
+              result={liveResult}
+              onDgnlChange={handleDgnlChange}
+              onThptChange={handleThptChange}
+              onTranscriptChange={handleTranscriptChange}
+              onBonusChange={handleBonusChange}
+              onPriorityChange={handlePriorityChange}
+              onReset={handleReset}
+            />
+          </div>
+
+          <div className="admission-layout-side lg:sticky lg:top-5 flex flex-col gap-5">
+            <ScoreResult result={result} config={activeAdmissionConfig} buildShareUrl={buildShareUrl} />
+            <TargetSection
+              config={activeAdmissionConfig}
+              targetValue={targetScore}
+              targetError={targetError}
+              result={result}
+              requiredResult={requiredResult}
+              onTargetChange={handleTargetChange}
+            />
+          </div>
+
+          <div className="admission-layout-sim">
+            <ScenarioSimulator
+              key={resetToken}
+              config={activeAdmissionConfig}
+              currentWeightedRaw={liveResult.dgnl.weightedScore}
+              otherInputs={simulatorOtherInputs}
+              currentFinalScore={result?.finalScore ?? null}
+            />
+          </div>
+
+          <div className="admission-layout-explain">
             <FormulaExplanation config={activeAdmissionConfig} />
           </div>
         </main>

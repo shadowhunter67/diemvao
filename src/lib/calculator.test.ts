@@ -129,4 +129,10 @@ describe('calculatePriority', () => {
     const result = calculatePriority(2.75, 100, config);
     expect(result.received).toBeGreaterThanOrEqual(0);
   });
+
+  it('yields priorityReceived 0 when baseScoreForPriority exceeds 100 (academic 96 + bonus 10)', () => {
+    // baseScoreForPriority = academic (96) + bonus received (10) = 106
+    const result = calculatePriority(2.75, 106, config);
+    expect(result.received).toBe(0);
+  });
 });

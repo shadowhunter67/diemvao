@@ -50,6 +50,10 @@ export function validatePriorityRaw(raw: string, config: AdmissionConfig): Field
   return validateRange(raw, 0, config.priority.maxRaw30Scale);
 }
 
+export function validateTargetScore(raw: string, config: AdmissionConfig): FieldValidationResult {
+  return validateRange(raw, 0, config.scoreScale);
+}
+
 export interface AdmissionFormErrors {
   dgnl: Record<keyof DgnlFormState, FieldValidationResult>;
   thpt: Record<keyof ThptFormState, FieldValidationResult>;

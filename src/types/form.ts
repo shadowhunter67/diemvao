@@ -37,3 +37,15 @@ export interface AdmissionFormState {
   bonus: BonusFormState;
   priorityRaw30Scale: string;
 }
+
+export const defaultAdmissionFormState: AdmissionFormState = {
+  dgnl: { vietnamese: '', english: '', math: '', scientificThinking: '' },
+  thpt: { math: '', subject2: '', subject3: '' },
+  transcript: {
+    grade10: { math: '', subject2: '', subject3: '' },
+    grade11: { math: '', subject2: '', subject3: '' },
+    grade12: { math: '', subject2: '', subject3: '' },
+  },
+  bonus: { reward: '', considerationReward: '', encouragement: '' },
+  priorityRaw30Scale: '',
+};

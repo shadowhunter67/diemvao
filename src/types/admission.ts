@@ -88,6 +88,20 @@ export interface AdmissionResult {
   finalScore: number;
 }
 
+/** Kết quả tính ngược điểm ĐGNL chuẩn hóa cần đạt để chạm điểm xét tuyển mục tiêu. */
+export interface RequiredDgnlResult {
+  possible: boolean;
+  /** true nếu điểm xét tuyển hiện tại (với DGNL hiện có) đã đạt/vượt mục tiêu. */
+  alreadyReached: boolean;
+  requiredNormalizedScore: number | null;
+  requiredWeightedRawScore: number | null;
+  /** Điểm xét tuyển tối đa có thể đạt nếu DGNL chuẩn hóa = 100, các thành phần khác giữ nguyên. */
+  maxAchievableFinalScore: number;
+  /** target - điểm hiện tại (>= 0 khi chưa đạt mục tiêu). */
+  gap: number;
+  reason?: string;
+}
+
 export interface AdmissionConfig {
   year: number;
   weights: {

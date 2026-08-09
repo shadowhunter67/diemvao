@@ -120,16 +120,18 @@ export function calculateBonus(input: BonusInput, config: AdmissionConfig): Bonu
  */
 export function calculatePriority(
   priorityRaw30Scale: number,
-  baseScore: number,
+  baseScoreForPriority: number,
   config: AdmissionConfig
 ): PriorityResult {
   const { scaleDivisor, scaleMultiplier, reductionThreshold, reductionDivisor } = config.priority;
   const converted = (priorityRaw30Scale / scaleDivisor) * scaleMultiplier;
 
+  // baseScoreForPriority >= scoreScale (100) làm (scoreScale - baseScoreForPriority) âm,
+  // Math.max(0, ...) đảm bảo priorityReceived không bao giờ âm trong trường hợp đó.
   const received =
-    baseScore < reductionThreshold
+    baseScoreForPriority < reductionThreshold
       ? converted
-      : Math.max(0, ((config.scoreScale - baseScore) / reductionDivisor) * converted);
+      : Math.max(0, ((config.scoreScale - baseScoreForPriority) / reductionDivisor) * converted);
 
   return {
     raw30Scale: round2(priorityRaw30Scale),
@@ -146,8 +148,8 @@ export function calculateAdmissionScore(input: AdmissionInput, config: Admission
   const academic = calculateAcademicScore(dgnl.normalizedScore, thpt.normalizedScore, transcript.normalizedScore, config);
   const bonus = calculateBonus(input.bonus, config);
 
-  const baseScore = round2(academic.score + bonus.received);
-  const priority = calculatePriority(input.priorityRaw30Scale, baseScore, config);
+  const baseScoreForPriority = round2(academic.score + bonus.received);
+  const priority = calculatePriority(input.priorityRaw30Scale, baseScoreForPriority, config);
 
   const finalScore = round2(Math.min(config.scoreScale, academic.score + bonus.received + priority.received));
 
@@ -158,7 +160,7 @@ export function calculateAdmissionScore(input: AdmissionInput, config: Admission
     academic,
     bonus,
     priority,
-    baseScore,
+    baseScore: baseScoreForPriority,
     finalScore,
   };
 }

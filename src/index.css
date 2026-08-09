@@ -7,3 +7,43 @@ html {
 body {
   @apply bg-slate-50 text-slate-900 antialiased;
 }
+
+/*
+ * Layout chính: mobile xếp dọc theo đúng thứ tự Form -> Result+Target -> Simulator -> Explain,
+ * desktop chia 2 cột (form/simulator bên trái, result/target sticky bên phải). Dùng
+ * grid-template-areas thay vì Tailwind order/col-start để tránh phải trộn arbitrary value
+ * nhiều dòng khó đọc.
+ */
+.admission-layout {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-areas:
+    'form'
+    'side'
+    'sim'
+    'explain';
+}
+
+@media (min-width: 1024px) {
+  .admission-layout {
+    grid-template-columns: 1fr 360px;
+    align-items: start;
+    grid-template-areas:
+      'form side'
+      'sim side'
+      'explain explain';
+  }
+}
+
+.admission-layout-form {
+  grid-area: form;
+}
+.admission-layout-side {
+  grid-area: side;
+}
+.admission-layout-sim {
+  grid-area: sim;
+}
+.admission-layout-explain {
+  grid-area: explain;
+}

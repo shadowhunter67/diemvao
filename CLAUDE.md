@@ -15,6 +15,8 @@ Web tĩnh tính điểm xét tuyển HCMUT 2026, 100% client-side (không backen
 - Phase 2 (nhập điểm gốc theo phương thức Xét tuyển Tổng hợp HCMUT 2026, có ĐGNL): công thức + tham số nằm ở `src/config/admission-2026.ts`, không hard-code trong component hay `calculator.ts`.
 - localStorage lưu input gần nhất, key `hcmut-score-input-v2` (đã version hóa từ MVP `hcmut-score-calculator:input:v1`, không migrate dữ liệu cũ).
 - Điểm ưu tiên KV/ĐT hiện nhập trực tiếp theo thang 30 (chưa có dropdown Khu vực/Đối tượng vì thiếu bảng mapping đối tượng ưu tiên chính thức).
+- Phase 3 (target calculator + scenario simulator + share URL): `src/lib/targetCalculator.ts` chứa `calculateRequiredDgnl` (binary search, tái sử dụng `calculateAdmissionScore`) và `calculateScoreForWeightedRaw`. `src/lib/urlState.ts` serialize/parse query params (chỉ field hợp lệ). Target lưu localStorage riêng, key `hcmut-score-target-v1`. URL query params có precedence cao hơn localStorage khi load trang.
+- Khi test qua `mcp__chrome-devtools`, dùng tool `click` (không dùng `evaluate_script` với async function) để tránh crash "Target closed" từng gặp trong môi trường này; nếu cần verify state sau khi click, atomic hoá bằng một `evaluate_script` vừa click vừa đọc kết quả trong cùng script thay vì tách 2 lượt gọi (từng đo state "kẹt" giả do timing round-trip giữa các tool call riêng lẻ, không phải bug thật).
 
 ## Đối chiếu rule root (../CLAUDE.md)
 
