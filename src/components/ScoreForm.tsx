@@ -1,39 +1,41 @@
 import { RotateCcw } from 'lucide-react';
-import type { AdmissionConfig, ScoreFieldKey } from '../types/admission';
-import type { FieldValidationResult } from '../lib/validation';
-import { ScoreInput } from './ScoreInput';
-
-interface FieldMeta {
-  key: ScoreFieldKey;
-  label: string;
-  hint: string;
-}
-
-function buildFieldMeta(config: AdmissionConfig): FieldMeta[] {
-  return [
-    { key: 'dgnl', label: 'ĐGNL (quy đổi)', hint: '0 - 100' },
-    { key: 'thpt', label: 'THPT (quy đổi)', hint: '0 - 100' },
-    { key: 'transcript', label: 'Học bạ (quy đổi)', hint: '0 - 100' },
-    { key: 'bonus', label: 'Điểm cộng', hint: `0 - ${config.maxBonus}` },
-    { key: 'priority', label: 'Điểm ưu tiên', hint: `0 - ${config.maxPriority}` },
-  ];
-}
+import type { AdmissionConfig, AdmissionResult } from '../types/admission';
+import type { AdmissionFormState, BonusFormState, DgnlFormState, ThptFormState, TranscriptFormState } from '../types/form';
+import type { AdmissionFormErrors } from '../lib/validation';
+import { DgnlSection } from './DgnlSection';
+import { ThptSection } from './ThptSection';
+import { TranscriptSection } from './TranscriptSection';
+import { BonusPrioritySection } from './BonusPrioritySection';
 
 interface ScoreFormProps {
   config: AdmissionConfig;
-  values: Record<ScoreFieldKey, string>;
-  validations: Record<ScoreFieldKey, FieldValidationResult>;
-  onChange: (key: ScoreFieldKey, value: string) => void;
+  formState: AdmissionFormState;
+  errors: AdmissionFormErrors;
+  result: AdmissionResult;
+  onDgnlChange: (key: keyof DgnlFormState, value: string) => void;
+  onThptChange: (key: keyof ThptFormState, value: string) => void;
+  onTranscriptChange: (grade: keyof TranscriptFormState, subject: keyof TranscriptFormState['grade10'], value: string) => void;
+  onBonusChange: (key: keyof BonusFormState, value: string) => void;
+  onPriorityChange: (value: string) => void;
   onReset: () => void;
 }
 
-export function ScoreForm({ config, values, validations, onChange, onReset }: ScoreFormProps) {
-  const fields = buildFieldMeta(config);
-
+export function ScoreForm({
+  config,
+  formState,
+  errors,
+  result,
+  onDgnlChange,
+  onThptChange,
+  onTranscriptChange,
+  onBonusChange,
+  onPriorityChange,
+  onReset,
+}: ScoreFormProps) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-slate-900">Nhập điểm</h2>
+        <h2 className="text-lg font-semibold text-slate-900">Nhập điểm</h2>
         <button
           type="button"
           onClick={onReset}
@@ -44,20 +46,39 @@ export function ScoreForm({ config, values, validations, onChange, onReset }: Sc
         </button>
       </div>
 
-      <div className="mt-4 flex flex-col gap-4">
-        {fields.map((field) => (
-          <ScoreInput
-            key={field.key}
-            id={`field-${field.key}`}
-            fieldKey={field.key}
-            label={field.label}
-            hint={field.hint}
-            value={values[field.key]}
-            error={validations[field.key].error}
-            onChange={onChange}
-          />
-        ))}
-      </div>
-    </section>
+      <DgnlSection
+        config={config}
+        values={formState.dgnl}
+        errors={errors.dgnl}
+        result={result.dgnl}
+        onChange={onDgnlChange}
+      />
+
+      <TranscriptSection
+        config={config}
+        values={formState.transcript}
+        errors={errors.transcript}
+        result={result.transcript}
+        onChange={onTranscriptChange}
+      />
+
+      <ThptSection
+        config={config}
+        values={formState.thpt}
+        errors={errors.thpt}
+        result={result.thpt}
+        onChange={onThptChange}
+      />
+
+      <BonusPrioritySection
+        config={config}
+        bonusValues={formState.bonus}
+        bonusErrors={errors.bonus}
+        priorityValue={formState.priorityRaw30Scale}
+        priorityError={errors.priorityRaw30Scale.error}
+        onBonusChange={onBonusChange}
+        onPriorityChange={onPriorityChange}
+      />
+    </div>
   );
 }

@@ -8,8 +8,10 @@ Web tĩnh tính điểm xét tuyển HCMUT 2026, 100% client-side (không backen
 - Tailwind CSS v4 qua `@tailwindcss/vite` (không dùng postcss.config/tailwind.config cổ điển).
 - `lucide-react` — icon (nút Đặt lại).
 - `oxlint` — linter (`npm run lint`).
+- `vitest` — test business logic (`npm run test`), thêm ở Phase 2.
 
 ## Ghi chú
 
-- Công thức + trọng số nằm ở `src/config/admission-2026.ts`, không hard-code trong component.
-- localStorage lưu input gần nhất, key `hcmut-score-calculator:input:v1`.
+- Phase 2 (nhập điểm gốc theo phương thức Xét tuyển Tổng hợp HCMUT 2026, có ĐGNL): công thức + tham số nằm ở `src/config/admission-2026.ts`, không hard-code trong component hay `calculator.ts`.
+- localStorage lưu input gần nhất, key `hcmut-score-input-v2` (đã version hóa từ MVP `hcmut-score-calculator:input:v1`, không migrate dữ liệu cũ).
+- Điểm ưu tiên KV/ĐT hiện nhập trực tiếp theo thang 30 (chưa có dropdown Khu vực/Đối tượng vì thiếu bảng mapping đối tượng ưu tiên chính thức).

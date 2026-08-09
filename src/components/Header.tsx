@@ -5,7 +5,7 @@ export function Header() {
         HCMUT Score Calculator
       </h1>
       <p className="mt-2 text-sm sm:text-base text-slate-500">
-        Tính điểm xét tuyển Đại học Bách khoa – ĐHQG TP.HCM 2026
+        Xét tuyển Tổng hợp HCMUT 2026 — thí sinh có kết quả ĐGNL ĐHQG-HCM 2026
       </p>
     </header>
   );
