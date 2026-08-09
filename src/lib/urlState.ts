@@ -1,5 +1,7 @@
 import type { AdmissionConfig } from '../types/admission';
 import type { AdmissionFormState, TranscriptFormState } from '../types/form';
+import type { HcmutProgram } from '../types/programs';
+import { BUFFER_OPTIONS } from './programs';
 import {
   validateBonusComponent,
   validateDgnlComponent,
@@ -176,4 +178,64 @@ export function parseTargetFromSearchParams(params: URLSearchParams, config: Adm
     return raw;
   }
   return null;
+}
+
+const PROGRAM_KEY = 'program';
+const BUFFER_KEY = 'buffer';
+const COMPARE_KEY = 'compare';
+const MAX_COMPARE_FROM_URL = 3;
+
+export interface ProgramUrlState {
+  programId: string | null;
+  buffer: number;
+  comparisonProgramIds: string[];
+}
+
+/** Ghi program/buffer/compare hợp lệ vào params đã có sẵn (dùng chung với serializeStateToSearchParams). */
+export function serializeProgramStateToSearchParams(
+  params: URLSearchParams,
+  state: ProgramUrlState,
+  programs: HcmutProgram[]
+): void {
+  if (state.programId && programs.some((program) => program.id === state.programId)) {
+    params.set(PROGRAM_KEY, state.programId);
+  }
+
+  if (BUFFER_OPTIONS.includes(state.buffer as (typeof BUFFER_OPTIONS)[number]) && state.buffer > 0) {
+    params.set(BUFFER_KEY, String(state.buffer));
+  }
+
+  const validComparisonIds = state.comparisonProgramIds
+    .filter((id) => programs.some((program) => program.id === id))
+    .slice(0, MAX_COMPARE_FROM_URL);
+  if (validComparisonIds.length > 0) {
+    params.set(COMPARE_KEY, validComparisonIds.join(','));
+  }
+}
+
+/**
+ * Đọc program/buffer/compare từ URL. Program id không tồn tại trong dataset bị bỏ qua (không
+ * crash); buffer ngoài danh sách BUFFER_OPTIONS hợp lệ về 0; compare chỉ giữ id hợp lệ, tối đa
+ * 3, loại trùng.
+ */
+export function parseProgramStateFromSearchParams(params: URLSearchParams, programs: HcmutProgram[]): ProgramUrlState {
+  const rawProgram = params.get(PROGRAM_KEY);
+  const programId = rawProgram !== null && programs.some((program) => program.id === rawProgram) ? rawProgram : null;
+
+  const rawBuffer = params.get(BUFFER_KEY);
+  const parsedBuffer = rawBuffer !== null ? Number(rawBuffer) : NaN;
+  const buffer = BUFFER_OPTIONS.includes(parsedBuffer as (typeof BUFFER_OPTIONS)[number]) ? parsedBuffer : 0;
+
+  const rawCompare = params.get(COMPARE_KEY);
+  const comparisonProgramIds: string[] = [];
+  if (rawCompare !== null) {
+    for (const id of rawCompare.split(',')) {
+      if (programs.some((program) => program.id === id) && !comparisonProgramIds.includes(id)) {
+        comparisonProgramIds.push(id);
+      }
+      if (comparisonProgramIds.length >= MAX_COMPARE_FROM_URL) break;
+    }
+  }
+
+  return { programId, buffer, comparisonProgramIds };
 }

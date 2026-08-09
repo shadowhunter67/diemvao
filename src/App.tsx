@@ -4,12 +4,30 @@ import { ScoreForm } from './components/ScoreForm';
 import { ScoreResult } from './components/ScoreResult';
 import { TargetSection } from './components/TargetSection';
 import { ScenarioSimulator } from './components/ScenarioSimulator';
+import { ProgramSection } from './components/ProgramSection';
+import { ProgramHistoryCompare } from './components/ProgramHistoryCompare';
 import { FormulaExplanation } from './components/FormulaExplanation';
 import { activeAdmissionConfig } from './config/admission-2026';
+import { hcmutPrograms } from './data/hcmut-programs';
 import { calculateAdmissionScore } from './lib/calculator';
 import { calculateRequiredDgnl } from './lib/targetCalculator';
+import {
+  addProgramToComparison,
+  calculateEffectiveTarget,
+  calculateGap,
+  getCutoffsForProgram,
+  getLatestComparableCutoff,
+  getProgramById,
+  removeProgramFromComparison,
+} from './lib/programs';
 import { validateAdmissionForm, validateTargetScore, type AdmissionFormErrors } from './lib/validation';
-import { applySearchParamsToForm, parseTargetFromSearchParams, serializeStateToSearchParams } from './lib/urlState';
+import {
+  applySearchParamsToForm,
+  parseProgramStateFromSearchParams,
+  parseTargetFromSearchParams,
+  serializeProgramStateToSearchParams,
+  serializeStateToSearchParams,
+} from './lib/urlState';
 import type { AdmissionInput } from './types/admission';
 import {
   defaultAdmissionFormState,
@@ -22,6 +40,19 @@ import {
 
 const FORM_STORAGE_KEY = 'hcmut-score-input-v2';
 const TARGET_STORAGE_KEY = 'hcmut-score-target-v1';
+const PROGRAM_STORAGE_KEY = 'hcmut-score-program-v1';
+
+interface ProgramState {
+  selectedProgramId: string | null;
+  buffer: number;
+  comparisonProgramIds: string[];
+}
+
+const defaultProgramState: ProgramState = {
+  selectedProgramId: null,
+  buffer: 0,
+  comparisonProgramIds: [],
+};
 
 function loadStoredFormState(): AdmissionFormState {
   try {
@@ -52,6 +83,23 @@ function loadStoredTarget(): string {
   }
 }
 
+function loadStoredProgramState(): ProgramState {
+  try {
+    const raw = localStorage.getItem(PROGRAM_STORAGE_KEY);
+    if (!raw) return defaultProgramState;
+    const parsed = JSON.parse(raw) as Partial<ProgramState>;
+    return {
+      selectedProgramId: typeof parsed.selectedProgramId === 'string' ? parsed.selectedProgramId : null,
+      buffer: typeof parsed.buffer === 'number' ? parsed.buffer : 0,
+      comparisonProgramIds: Array.isArray(parsed.comparisonProgramIds)
+        ? parsed.comparisonProgramIds.filter((id): id is string => typeof id === 'string')
+        : [],
+    };
+  } catch {
+    return defaultProgramState;
+  }
+}
+
 /** URL query params có precedence cao hơn localStorage: field nào URL cung cấp hợp lệ thì ghi đè lên. */
 function loadInitialFormState(): AdmissionFormState {
   const base = loadStoredFormState();
@@ -65,6 +113,20 @@ function loadInitialTarget(): string {
   const params = new URLSearchParams(window.location.search);
   const fromUrl = parseTargetFromSearchParams(params, activeAdmissionConfig);
   return fromUrl ?? loadStoredTarget();
+}
+
+/** program id không hợp lệ trong URL bị bỏ qua (giữ nguyên localStorage) thay vì reset về null. */
+function loadInitialProgramState(): ProgramState {
+  const base = loadStoredProgramState();
+  if (typeof window === 'undefined') return base;
+  const params = new URLSearchParams(window.location.search);
+  const fromUrl = parseProgramStateFromSearchParams(params, hcmutPrograms);
+
+  return {
+    selectedProgramId: params.has('program') && fromUrl.programId !== null ? fromUrl.programId : base.selectedProgramId,
+    buffer: params.has('buffer') ? fromUrl.buffer : base.buffer,
+    comparisonProgramIds: params.has('compare') ? fromUrl.comparisonProgramIds : base.comparisonProgramIds,
+  };
 }
 
 function buildAdmissionInput(errors: AdmissionFormErrors): AdmissionInput {
@@ -109,6 +171,7 @@ function buildAdmissionInput(errors: AdmissionFormErrors): AdmissionInput {
 function App() {
   const [formState, setFormState] = useState<AdmissionFormState>(loadInitialFormState);
   const [targetScore, setTargetScore] = useState<string>(loadInitialTarget);
+  const [programState, setProgramState] = useState<ProgramState>(loadInitialProgramState);
   // Chỉ tăng khi bấm "Đặt lại": buộc ScenarioSimulator remount để đồng bộ lại slider
   // theo điểm hiện tại (state slider là state riêng, không tự nghe formState mỗi lần gõ phím).
   const [resetToken, setResetToken] = useState(0);
@@ -124,6 +187,10 @@ function App() {
       localStorage.setItem(TARGET_STORAGE_KEY, targetScore);
     }
   }, [targetScore]);
+
+  useEffect(() => {
+    localStorage.setItem(PROGRAM_STORAGE_KEY, JSON.stringify(programState));
+  }, [programState]);
 
   const errors = useMemo(() => validateAdmissionForm(formState, activeAdmissionConfig), [formState]);
   const targetError = useMemo(() => validateTargetScore(targetScore, activeAdmissionConfig).error, [targetScore]);
@@ -159,8 +226,29 @@ function App() {
     [currentInput]
   );
 
+  const selectedProgram = programState.selectedProgramId ? getProgramById(programState.selectedProgramId) ?? null : null;
+  const latestCutoff = programState.selectedProgramId
+    ? getLatestComparableCutoff(programState.selectedProgramId)
+    : undefined;
+  const currentFinalScore = result?.finalScore ?? null;
+  const programGap =
+    latestCutoff && currentFinalScore !== null ? calculateGap(currentFinalScore, latestCutoff.score) : null;
+  const effectiveTarget = latestCutoff
+    ? calculateEffectiveTarget(latestCutoff.score, programState.buffer, activeAdmissionConfig.scoreScale)
+    : null;
+  const historicalCutoffs = programState.selectedProgramId ? getCutoffsForProgram(programState.selectedProgramId) : [];
+
   function buildShareUrl(): string {
     const params = serializeStateToSearchParams(formState, targetScore, activeAdmissionConfig);
+    serializeProgramStateToSearchParams(
+      params,
+      {
+        programId: programState.selectedProgramId,
+        buffer: programState.buffer,
+        comparisonProgramIds: programState.comparisonProgramIds,
+      },
+      hcmutPrograms
+    );
     const query = params.toString();
     return `${window.location.origin}${window.location.pathname}${query ? `?${query}` : ''}`;
   }
@@ -199,11 +287,40 @@ function App() {
     setTargetScore(value);
   }
 
+  function handleSelectProgram(id: string | null) {
+    setProgramState((prev) => ({ ...prev, selectedProgramId: id }));
+  }
+
+  function handleBufferChange(buffer: number) {
+    setProgramState((prev) => ({ ...prev, buffer }));
+  }
+
+  function handleToggleComparison(programId: string) {
+    setProgramState((prev) => {
+      const isPinned = prev.comparisonProgramIds.includes(programId);
+      return {
+        ...prev,
+        comparisonProgramIds: isPinned
+          ? removeProgramFromComparison(prev.comparisonProgramIds, programId)
+          : addProgramToComparison(prev.comparisonProgramIds, programId),
+      };
+    });
+  }
+
+  function handleRemoveComparison(programId: string) {
+    setProgramState((prev) => ({
+      ...prev,
+      comparisonProgramIds: removeProgramFromComparison(prev.comparisonProgramIds, programId),
+    }));
+  }
+
   function handleReset() {
     localStorage.removeItem(FORM_STORAGE_KEY);
     localStorage.removeItem(TARGET_STORAGE_KEY);
+    localStorage.removeItem(PROGRAM_STORAGE_KEY);
     setFormState(defaultAdmissionFormState);
     setTargetScore('');
+    setProgramState(defaultProgramState);
     setResetToken((token) => token + 1);
     if (typeof window !== 'undefined' && window.location.search) {
       window.history.replaceState(null, '', window.location.pathname);
@@ -230,16 +347,40 @@ function App() {
             />
           </div>
 
-          <div className="admission-layout-side lg:sticky lg:top-5 flex flex-col gap-5">
-            <ScoreResult result={result} config={activeAdmissionConfig} buildShareUrl={buildShareUrl} />
-            <TargetSection
-              config={activeAdmissionConfig}
-              targetValue={targetScore}
-              targetError={targetError}
-              result={result}
-              requiredResult={requiredResult}
-              onTargetChange={handleTargetChange}
-            />
+          <div className="admission-layout-side flex flex-col gap-5 lg:sticky lg:top-5">
+            <div className="admission-layout-side-result">
+              <ScoreResult result={result} config={activeAdmissionConfig} buildShareUrl={buildShareUrl} />
+            </div>
+            <div className="admission-layout-side-program">
+              <ProgramSection
+                programs={hcmutPrograms}
+                selectedProgramId={programState.selectedProgramId}
+                onSelectProgram={handleSelectProgram}
+                currentFinalScore={currentFinalScore}
+                latestCutoff={latestCutoff}
+                gap={programGap}
+                buffer={programState.buffer}
+                onBufferChange={handleBufferChange}
+                effectiveTarget={effectiveTarget}
+                onUseAsTarget={(score) => handleTargetChange(String(score))}
+                scoreScale={activeAdmissionConfig.scoreScale}
+                isPinnedForComparison={
+                  selectedProgram !== null && programState.comparisonProgramIds.includes(selectedProgram.id)
+                }
+                canAddMoreComparison={programState.comparisonProgramIds.length < 3}
+                onToggleComparison={handleToggleComparison}
+              />
+            </div>
+            <div className="admission-layout-side-target">
+              <TargetSection
+                config={activeAdmissionConfig}
+                targetValue={targetScore}
+                targetError={targetError}
+                result={result}
+                requiredResult={requiredResult}
+                onTargetChange={handleTargetChange}
+              />
+            </div>
           </div>
 
           <div className="admission-layout-sim">
@@ -249,6 +390,16 @@ function App() {
               currentWeightedRaw={liveResult.dgnl.weightedScore}
               otherInputs={simulatorOtherInputs}
               currentFinalScore={result?.finalScore ?? null}
+            />
+          </div>
+
+          <div className="admission-layout-history">
+            <ProgramHistoryCompare
+              selectedProgram={selectedProgram}
+              historicalCutoffs={historicalCutoffs}
+              currentFinalScore={currentFinalScore}
+              comparisonProgramIds={programState.comparisonProgramIds}
+              onRemoveComparison={handleRemoveComparison}
             />
           </div>
 

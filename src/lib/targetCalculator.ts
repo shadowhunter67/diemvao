@@ -1,26 +1,56 @@
-import { calculateAdmissionScore, round2 } from './calculator';
-import type { AdmissionConfig, AdmissionInput, AdmissionResult, RequiredDgnlResult } from '../types/admission';
+import {
+  calculateAcademicScore,
+  calculateAdmissionScore,
+  calculateBonus,
+  calculatePriority,
+  convertThptScore,
+  convertTranscriptScore,
+  round2,
+} from './calculator';
+import type {
+  AdmissionConfig,
+  AdmissionInput,
+  RequiredDgnlResult,
+  SimulatedAdmissionResult,
+} from '../types/admission';
 
 const TOLERANCE = 0.01;
 const MAX_ITERATIONS = 100;
 
 /**
- * Tính điểm xét tuyển ứng với một tổng ĐGNL sau hệ số (weightedRaw, 0 → maxWeightedTotal)
- * giả định, giữ nguyên các thành phần khác. Dùng nguyên `calculateAdmissionScore` (không
- * duplicate công thức học lực/điểm cộng/ưu tiên) bằng cách dồn weightedRaw vào field
- * `vietnamese` (không nhân hệ số trong convertDgnlScore) — chỉ dùng nội bộ để tính, KHÔNG
- * suy ra/hiển thị điểm từng phần thi Tiếng Việt/Anh/Toán/Tư duy khoa học cho người dùng.
+ * Tính điểm xét tuyển ứng với một ĐGNL sau hệ số (weightedRaw, 0 → maxWeightedTotal) GIẢ ĐỊNH,
+ * giữ nguyên THPT/học bạ/điểm cộng/ưu tiên. Tái sử dụng đúng các hàm engine chính
+ * (convertThptScore, convertTranscriptScore, calculateAcademicScore, calculateBonus,
+ * calculatePriority — cùng những hàm calculateAdmissionScore dùng) nên không duplicate công
+ * thức nào. Không gọi calculateAdmissionScore/convertDgnlScore vì không có 4 điểm thành phần
+ * thi ĐGNL thật — dựng DgnlInput giả cho một tổng weightedRaw sẽ đánh lừa chính API đó.
  */
-export function calculateScoreForWeightedRaw(
+export function calculateAdmissionScoreFromWeightedDgnlRaw(
   weightedRaw: number,
   otherInputs: Omit<AdmissionInput, 'dgnl'>,
   config: AdmissionConfig
-): AdmissionResult {
-  const input: AdmissionInput = {
-    ...otherInputs,
-    dgnl: { vietnamese: weightedRaw, english: 0, math: 0, scientificThinking: 0 },
+): SimulatedAdmissionResult {
+  const dgnlNormalizedScore = round2((weightedRaw / config.dgnl.maxWeightedTotal) * config.scoreScale);
+  const thpt = convertThptScore(otherInputs.thpt, config);
+  const transcript = convertTranscriptScore(otherInputs.transcript, config);
+
+  const academic = calculateAcademicScore(dgnlNormalizedScore, thpt.normalizedScore, transcript.normalizedScore, config);
+  const bonus = calculateBonus(otherInputs.bonus, config);
+
+  const baseScoreForPriority = round2(academic.score + bonus.received);
+  const priority = calculatePriority(otherInputs.priorityRaw30Scale, baseScoreForPriority, config);
+
+  const finalScore = round2(Math.min(config.scoreScale, academic.score + bonus.received + priority.received));
+
+  return {
+    dgnlNormalizedScore,
+    dgnlWeightedRawScore: round2(weightedRaw),
+    academic,
+    bonus,
+    priority,
+    baseScore: baseScoreForPriority,
+    finalScore,
   };
-  return calculateAdmissionScore(input, config);
 }
 
 /**
@@ -29,10 +59,11 @@ export function calculateScoreForWeightedRaw(
  *
  * Điểm ưu tiên thực nhận phụ thuộc phi tuyến vào baseScoreForPriority (academic + bonus),
  * nên không thể giải ngược bằng công thức đại số đơn giản. Thay vào đó binary search trên
- * weightedRaw (0 → maxWeightedTotal), đánh giá lại toàn bộ `calculateAdmissionScore` ở mỗi
- * bước — hàm finalScore(weightedRaw) đơn điệu không giảm (academic tăng theo weightedRaw;
- * priorityReceived quanh ngưỡng giảm dần vẫn có hệ số (1 - converted/reductionDivisor) > 0
- * nên tổng vẫn không giảm), nên binary search hội tụ đúng nghiệm nhỏ nhất.
+ * weightedRaw (0 → maxWeightedTotal), đánh giá lại toàn bộ điểm ở mỗi bước qua
+ * calculateAdmissionScoreFromWeightedDgnlRaw — hàm finalScore(weightedRaw) đơn điệu không
+ * giảm (academic tăng theo weightedRaw; priorityReceived quanh ngưỡng giảm dần vẫn có hệ số
+ * (1 - converted/reductionDivisor) > 0 nên tổng vẫn không giảm), nên binary search hội tụ
+ * đúng nghiệm nhỏ nhất.
  */
 export function calculateRequiredDgnl(
   targetFinalScore: number,
@@ -61,7 +92,7 @@ export function calculateRequiredDgnl(
   }
 
   const maxWeightedRaw = config.dgnl.maxWeightedTotal;
-  const maxAchievableFinalScore = calculateScoreForWeightedRaw(maxWeightedRaw, otherInputs, config).finalScore;
+  const maxAchievableFinalScore = calculateAdmissionScoreFromWeightedDgnlRaw(maxWeightedRaw, otherInputs, config).finalScore;
 
   if (maxAchievableFinalScore < targetFinalScore - TOLERANCE) {
     return {
@@ -79,7 +110,7 @@ export function calculateRequiredDgnl(
   let high = maxWeightedRaw;
   for (let i = 0; i < MAX_ITERATIONS && high - low > 0.001; i++) {
     const mid = (low + high) / 2;
-    const finalScore = calculateScoreForWeightedRaw(mid, otherInputs, config).finalScore;
+    const finalScore = calculateAdmissionScoreFromWeightedDgnlRaw(mid, otherInputs, config).finalScore;
     if (finalScore >= targetFinalScore) {
       high = mid;
     } else {

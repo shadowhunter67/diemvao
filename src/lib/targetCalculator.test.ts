@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { activeAdmissionConfig } from '../config/admission-2026';
 import { calculateAdmissionScore } from './calculator';
-import { calculateRequiredDgnl, calculateScoreForWeightedRaw } from './targetCalculator';
+import { calculateAdmissionScoreFromWeightedDgnlRaw, calculateRequiredDgnl } from './targetCalculator';
 import type { AdmissionInput } from '../types/admission';
 
 const config = activeAdmissionConfig;
@@ -61,7 +61,7 @@ describe('calculateRequiredDgnl', () => {
     // công thức đơn giản (không tính priority phi tuyến) dự đoán ~65.00 vì priorityReceived = 0 xuyên suốt ở case này
     expect(result.requiredNormalizedScore!).toBeCloseTo(65, 1);
 
-    const achieved = calculateScoreForWeightedRaw(result.requiredWeightedRawScore!, otherInputs, config);
+    const achieved = calculateAdmissionScoreFromWeightedDgnlRaw(result.requiredWeightedRawScore!, otherInputs, config);
     expect(achieved.finalScore).toBeGreaterThanOrEqual(target - 0.01);
   });
 
@@ -111,7 +111,7 @@ describe('calculateRequiredDgnl', () => {
     expect(result.alreadyReached).toBe(false);
     expect(result.requiredNormalizedScore).not.toBeNull();
 
-    const achieved = calculateScoreForWeightedRaw(result.requiredWeightedRawScore!, otherInputs, config);
+    const achieved = calculateAdmissionScoreFromWeightedDgnlRaw(result.requiredWeightedRawScore!, otherInputs, config);
     expect(achieved.finalScore).toBeGreaterThanOrEqual(target - 0.01);
     // baseScoreForPriority tại nghiệm phải >= 75 (nằm trong nhánh giảm dần) và
     // priority thực nhận phải nhỏ hơn priority quy đổi => xác nhận đã đi qua ngưỡng.

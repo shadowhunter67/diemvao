@@ -88,6 +88,21 @@ export interface AdmissionResult {
   finalScore: number;
 }
 
+/**
+ * Kết quả tính điểm xét tuyển từ một ĐGNL chuẩn hóa/weightedRaw GIẢ ĐỊNH (không phải từ 4
+ * điểm thành phần thi thật) — dùng cho scenario simulator và tính ngược target. Không có
+ * breakdown rawScore/weightedMath như DgnlResult vì không có dữ liệu thật cho từng phần thi.
+ */
+export interface SimulatedAdmissionResult {
+  dgnlNormalizedScore: number;
+  dgnlWeightedRawScore: number;
+  academic: AcademicResult;
+  bonus: BonusResult;
+  priority: PriorityResult;
+  baseScore: number;
+  finalScore: number;
+}
+
 /** Kết quả tính ngược điểm ĐGNL chuẩn hóa cần đạt để chạm điểm xét tuyển mục tiêu. */
 export interface RequiredDgnlResult {
   possible: boolean;

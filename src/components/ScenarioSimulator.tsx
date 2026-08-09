@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
-import { calculateScoreForWeightedRaw } from '../lib/targetCalculator';
+import { calculateAdmissionScoreFromWeightedDgnlRaw } from '../lib/targetCalculator';
 import type { AdmissionConfig, AdmissionInput } from '../types/admission';
 
 interface ScenarioSimulatorProps {
@@ -25,7 +25,7 @@ export function ScenarioSimulator({
   const [simWeightedRaw, setSimWeightedRaw] = useState(() => clamp(currentWeightedRaw, 0, maxWeightedRaw));
   const sliderId = useId();
 
-  const simResult = calculateScoreForWeightedRaw(simWeightedRaw, otherInputs, config);
+  const simResult = calculateAdmissionScoreFromWeightedDgnlRaw(simWeightedRaw, otherInputs, config);
   const delta = currentFinalScore !== null ? simResult.finalScore - currentFinalScore : null;
 
   function applyPreset(delta: number | 'max') {
@@ -104,7 +104,7 @@ export function ScenarioSimulator({
         </div>
         <div className="flex items-center justify-between">
           <dt className="text-slate-500">Chuẩn hóa</dt>
-          <dd className="font-medium text-slate-800">{simResult.dgnl.normalizedScore.toFixed(2)}</dd>
+          <dd className="font-medium text-slate-800">{simResult.dgnlNormalizedScore.toFixed(2)}</dd>
         </div>
         <div className="flex items-center justify-between border-t border-slate-200 pt-1.5">
           <dt className="font-semibold text-slate-900">Điểm xét tuyển tương ứng</dt>

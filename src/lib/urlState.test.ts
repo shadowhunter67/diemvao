@@ -1,9 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { activeAdmissionConfig } from '../config/admission-2026';
 import { defaultAdmissionFormState } from '../types/form';
-import { applySearchParamsToForm, parseTargetFromSearchParams, serializeStateToSearchParams } from './urlState';
+import type { HcmutProgram } from '../types/programs';
+import {
+  applySearchParamsToForm,
+  parseProgramStateFromSearchParams,
+  parseTargetFromSearchParams,
+  serializeProgramStateToSearchParams,
+  serializeStateToSearchParams,
+} from './urlState';
 
 const config = activeAdmissionConfig;
+
+const testPrograms: HcmutProgram[] = [
+  { id: 'a', name: 'Ngành A' },
+  { id: 'b', name: 'Ngành B' },
+  { id: 'c', name: 'Ngành C' },
+];
 
 describe('serializeStateToSearchParams', () => {
   it('only includes non-empty, valid fields', () => {
@@ -59,5 +72,53 @@ describe('parseTargetFromSearchParams', () => {
   it('returns null for an out-of-range or missing target', () => {
     expect(parseTargetFromSearchParams(new URLSearchParams({ tg: '150' }), config)).toBeNull();
     expect(parseTargetFromSearchParams(new URLSearchParams(), config)).toBeNull();
+  });
+});
+
+describe('program state serialize/parse round trip', () => {
+  it('case 7: serialize then parse gives back the same program/buffer/compare state', () => {
+    const params = new URLSearchParams();
+    serializeProgramStateToSearchParams(
+      params,
+      { programId: 'a', buffer: 1, comparisonProgramIds: ['a', 'b', 'c'] },
+      testPrograms
+    );
+
+    expect(params.get('program')).toBe('a');
+    expect(params.get('buffer')).toBe('1');
+    expect(params.get('compare')).toBe('a,b,c');
+
+    const parsed = parseProgramStateFromSearchParams(params, testPrograms);
+    expect(parsed).toEqual({ programId: 'a', buffer: 1, comparisonProgramIds: ['a', 'b', 'c'] });
+  });
+
+  it('does not serialize buffer 0 (default) or an unknown program id', () => {
+    const params = new URLSearchParams();
+    serializeProgramStateToSearchParams(params, { programId: 'z', buffer: 0, comparisonProgramIds: [] }, testPrograms);
+
+    expect(params.has('program')).toBe(false);
+    expect(params.has('buffer')).toBe(false);
+  });
+
+  it('case 8: unknown program id in the URL is ignored, not crashed', () => {
+    const params = new URLSearchParams({ program: 'khong-ton-tai', buffer: '1', compare: 'a,khong-ton-tai,b' });
+    const parsed = parseProgramStateFromSearchParams(params, testPrograms);
+
+    expect(parsed.programId).toBeNull();
+    expect(parsed.buffer).toBe(1);
+    expect(parsed.comparisonProgramIds).toEqual(['a', 'b']);
+  });
+
+  it('clamps compare to at most 3 ids and drops duplicates', () => {
+    const fourPrograms: HcmutProgram[] = [...testPrograms, { id: 'd', name: 'Ngành D' }];
+    const params = new URLSearchParams({ compare: 'a,a,b,c,d' });
+    const parsed = parseProgramStateFromSearchParams(params, fourPrograms);
+
+    expect(parsed.comparisonProgramIds).toEqual(['a', 'b', 'c']);
+  });
+
+  it('falls back to buffer 0 for a value outside BUFFER_OPTIONS', () => {
+    const params = new URLSearchParams({ buffer: '999' });
+    expect(parseProgramStateFromSearchParams(params, testPrograms).buffer).toBe(0);
   });
 });

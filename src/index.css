@@ -21,6 +21,7 @@ body {
     'form'
     'side'
     'sim'
+    'history'
     'explain';
 }
 
@@ -31,6 +32,7 @@ body {
     grid-template-areas:
       'form side'
       'sim side'
+      'history history'
       'explain explain';
   }
 }
@@ -44,6 +46,33 @@ body {
 .admission-layout-sim {
   grid-area: sim;
 }
+.admission-layout-history {
+  grid-area: history;
+}
 .admission-layout-explain {
   grid-area: explain;
+}
+
+/*
+ * Trong cột "side": mobile muốn Result -> Ngành mục tiêu -> Target (đúng luồng đọc tuần tự),
+ * desktop muốn Result -> Target -> Ngành mục tiêu (Target là hành động chính, Ngành mục tiêu
+ * bổ trợ). Dùng flex order thay vì 2 bản JSX khác nhau.
+ */
+.admission-layout-side-result {
+  order: 1;
+}
+.admission-layout-side-program {
+  order: 2;
+}
+.admission-layout-side-target {
+  order: 3;
+}
+
+@media (min-width: 1024px) {
+  .admission-layout-side-target {
+    order: 2;
+  }
+  .admission-layout-side-program {
+    order: 3;
+  }
 }
