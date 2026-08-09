@@ -17,13 +17,13 @@ export function ScoreResult({ result, config }: ScoreResultProps) {
         </div>
       ) : (
         <>
-          <div className="mt-2 flex flex-col items-center rounded-xl bg-indigo-50 py-6 text-center">
-            <span className="text-xs font-medium uppercase tracking-wide text-indigo-500">
+          <div className="mt-2 flex flex-col items-center rounded-xl bg-blue-50 py-6 text-center">
+            <span className="text-xs font-medium uppercase tracking-wide text-blue-600">
               Điểm xét tuyển
             </span>
-            <span className="mt-1 text-4xl font-bold text-indigo-700 sm:text-5xl">
+            <span className="mt-1 text-4xl font-bold text-blue-800 sm:text-5xl">
               {result.finalScore.toFixed(2)}
-              <span className="text-lg font-medium text-indigo-400"> / {config.scoreScale}</span>
+              <span className="text-lg font-medium text-blue-500"> / {config.scoreScale}</span>
             </span>
           </div>
 

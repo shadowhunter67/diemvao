@@ -43,7 +43,7 @@ export function ScoreInput({
         } ${
           error
             ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
-            : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-200'
+            : 'border-slate-300 focus:border-blue-500 focus:ring-blue-200'
         }`}
       />
       {error && (
