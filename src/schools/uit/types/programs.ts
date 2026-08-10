@@ -14,8 +14,11 @@ export interface UitCutoff {
   programId: string;
   /** Điểm trúng tuyển thang 100, đã bao gồm điểm cộng và điểm ưu tiên (theo đúng công bố gốc). */
   score: number;
+  scoreScale: number;
   note?: string;
   sourceLabel: string;
   sourceUrl: string;
+  /** Ngày công bố gốc (khác accessedAt — ngày mình đọc/đối chiếu). */
+  publishedAt: string;
   accessedAt: string;
 }

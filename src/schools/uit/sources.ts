@@ -41,4 +41,30 @@ export const uitSources: UitSource[] = [
     accessedAt: '2026-08-10',
     verification: 'verified',
   },
+  {
+    id: 'uit-bonus-2026',
+    publisher: 'Trường Đại học Công nghệ Thông tin – ĐHQG TP.HCM',
+    title:
+      'Thông báo đăng ký minh chứng xét điểm cộng 2026 — 4 nhóm điểm cộng (tối đa 10/5/5/5), tổng cap 10/100',
+    url: 'https://tuyensinh.uit.edu.vn/2026-thong-bao-ve-viec-dang-ky-thong-tin-minh-chung-xet-diem-cong-dung-de-xet-tuyen-theo-phuong-thuc-tong-hop-vao-dai-hoc-chinh-quy-nam-2026',
+    accessedAt: '2026-08-10',
+    verification: 'verified',
+  },
+  {
+    id: 'uit-certificate-registration-2026',
+    publisher: 'Trường Đại học Công nghệ Thông tin – ĐHQG TP.HCM',
+    title:
+      'Thông báo đăng ký chứng chỉ quốc tế 2026 — ngưỡng đăng ký minh chứng (SAT≥1080/ACT≥21/A-Level≥67%/IB≥29)',
+    url: 'https://tuyensinh.uit.edu.vn/2026-thong-bao-ve-viec-dang-ky-thong-tin-chung-chi-quoc-te-dung-de-xet-tuyen-theo-phuong-thuc-tong-hop-vao-dai-hoc-chinh-quy-nam-2026',
+    accessedAt: '2026-08-10',
+    verification: 'verified',
+  },
+  {
+    id: 'uit-direct-admission-2026',
+    publisher: 'Trường Đại học Công nghệ Thông tin – ĐHQG TP.HCM',
+    title: 'Thông báo tuyển thẳng theo Điều 8 Quy chế tuyển sinh đại học của Bộ GD&ĐT năm 2026',
+    url: 'https://tuyensinh.uit.edu.vn/2026-thong-bao-ve-viec-tuyen-thang-theo-quy-dinh-tai-dieu-8-quy-che-tuyen-sinh-dai-hoc-cua-bo-gddt-vao-dai-hoc-chinh-quy-nam-2026',
+    accessedAt: '2026-08-10',
+    verification: 'verified',
+  },
 ];

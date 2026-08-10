@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 import type { UitCutoff, UitProgram } from '../types/programs';
 import { validateUitDataset } from './validateDataset';
 
-const source = { sourceLabel: 'test', sourceUrl: 'https://example.com', accessedAt: '2026-08-10' };
+const source = {
+  scoreScale: 100,
+  sourceLabel: 'test',
+  sourceUrl: 'https://example.com',
+  publishedAt: '2026-08-10',
+  accessedAt: '2026-08-10',
+};
 
 describe('validateUitDataset', () => {
   it('dataset thật trong repo không có lỗi', () => {

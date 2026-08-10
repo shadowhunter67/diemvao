@@ -23,6 +23,12 @@ export interface SchoolModule {
   year: number;
   status: SchoolStatus;
   /**
+   * Mô tả capability thật, override wording status mặc định trên LandingPage khi cần chính xác
+   * hơn (vd 1 trường researching nhưng đã có eligibility/bonus/cutoff thật, khác hẳn 1 trường
+   * researching mới chỉ có định danh). Bỏ trống thì LandingPage dùng wording mặc định theo status.
+   */
+  summary?: string;
+  /**
    * Component trang riêng của trường (calculator thật, hoặc trang thông tin nếu chưa đủ nguồn
    * để tính điểm). App shell chỉ biết render `<Page />` khi có — không biết/không cần biết bên
    * trong là gì. Không bắt buộc: trường chưa có gì để hiển thị thì bỏ trống, LandingPage tự ẩn

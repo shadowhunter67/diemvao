@@ -7,10 +7,12 @@ import type { UitCutoff } from '../types/programs';
  * 2 lần độc lập để tránh đọc nhầm số/mã ngành).
  */
 const SOURCE_2026 = {
+  scoreScale: 100,
   sourceLabel:
     '[2026] Thông báo điểm trúng tuyển theo phương thức xét tuyển tổng hợp — Trường Đại học Công nghệ Thông tin, ĐHQG-HCM',
   sourceUrl:
     'https://tuyensinh.uit.edu.vn/2026-thong-bao-diem-trung-tuyen-theo-phuong-thuc-xet-tuyen-tong-hop',
+  publishedAt: '2026-08-09',
   accessedAt: '2026-08-10',
 };
 

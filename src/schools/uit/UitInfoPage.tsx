@@ -5,6 +5,9 @@ import { verificationLabel } from '../../core/trust';
 import { uitPrograms } from './data/programs';
 import { uitCutoffs } from './data/cutoffs';
 import { uitSources } from './sources';
+import { EligibilityChecker } from './components/EligibilityChecker';
+import { BonusChecker } from './components/BonusChecker';
+import { DirectAdmissionSection } from './components/DirectAdmissionSection';
 
 interface UitInfoPageProps {
   onChangeSchool: () => void;
@@ -13,9 +16,12 @@ interface UitInfoPageProps {
 const YEAR = 2026;
 
 /**
- * UIT chưa có calculator thật — công thức đã biết (trọng số tổng) nhưng thiếu cách chuẩn hóa
- * chi tiết từng thành phần (nguồn chỉ tồn tại dạng ảnh/PDF không đọc được), nên trang này CHỈ
- * hiển thị thông tin/dữ liệu thật đã xác minh, KHÔNG dựng calculator giả đoán công thức.
+ * UIT Admission Explorer — Level A (thông tin) + B (điểm chuẩn) + C (eligibility/bonus checker,
+ * cả hai đều dùng bảng chính xác đã xác minh) đều đã có thật. Level D (exact final score) vẫn
+ * blocked — thiếu công thức bách phân vị THPT↔ĐGNL, cách tính học bạ, quy đổi SAT/ACT/IB/A-Level
+ * — không suy đoán, xem khối cảnh báo trong JSX. Component con: EligibilityChecker, BonusChecker,
+ * DirectAdmissionSection (schools/uit/components/) — đều pure-data-driven, không hard-code UI text
+ * cho số liệu (đọc từ data/*.ts để nguồn/wording đồng nhất khi cần sửa).
  */
 export function UitInfoPage({ onChangeSchool }: UitInfoPageProps) {
   const cutoffsByProgram = new Map(uitCutoffs.map((cutoff) => [cutoff.programId, cutoff]));
@@ -32,33 +38,39 @@ export function UitInfoPage({ onChangeSchool }: UitInfoPageProps) {
         <section className="mt-5 rounded-card bg-surface p-6 shadow-card sm:p-8">
           <h2 className="text-lg font-semibold text-ink">Công thức đã biết (một phần)</h2>
           <p className="mt-2 text-sm text-muted">
-            Phương thức Xét tuyển Tổng hợp {YEAR}, thang điểm 100: <strong className="text-ink">THPT 47,5%</strong> +{' '}
-            <strong className="text-ink">ĐGNL ĐHQG-HCM 47,5%</strong> + <strong className="text-ink">Học bạ 5%</strong>.
-            Điểm cộng (huy chương Olympic/giải quốc gia) tối đa <strong className="text-ink">10/100</strong>.
+            Phương thức Xét tuyển Tổng hợp {YEAR}, thang điểm 100:{' '}
+            <span className="font-mono text-ink">47,5%×THPT + 47,5%×ĐGNL + 5%×Học bạ + Điểm cộng + Điểm ưu tiên</span>
+            . Trong đó <span className="font-mono text-ink">THPT = Max(THPT thi, THPT quy đổi từ ĐGNL, THPT từ chứng
+            chỉ quốc tế)</span> và tương tự cho ĐGNL — quy đổi giữa THPT và ĐGNL theo "phương pháp bách phân vị".
+            Điểm cộng tối đa <strong className="text-ink">10/100</strong>.
           </p>
         </section>
 
         <section className="mt-5 flex items-start gap-3 rounded-card border border-warning/30 bg-warning/10 p-6 text-sm text-warning sm:p-8">
           <AlertTriangle size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
           <div>
-            <p className="font-semibold">Uniscore chưa hỗ trợ tính điểm cho UIT</p>
+            <p className="font-semibold">Uniscore chưa tính được điểm xét tuyển chính xác cho UIT</p>
             <p className="mt-1 leading-relaxed">
-              Trọng số tổng (THPT/ĐGNL/Học bạ) đã xác minh, nhưng cách quy đổi chi tiết từng thành phần chưa có nguồn
-              dạng text đọc được (chỉ tồn tại dạng ảnh/PDF trên trang UIT) — cụ thể còn thiếu:
+              Trọng số tổng và bảng điểm cộng đã xác minh (dùng được ở dưới), nhưng cách quy đổi bách phân vị và một
+              số thành phần vẫn chưa có nguồn dạng text đọc được (chỉ tồn tại dạng ảnh/PDF) — cụ thể còn thiếu:
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
-              <li>Cách chuẩn hóa điểm THPT (có hệ số môn hay không)</li>
-              <li>Cách quy đổi điểm ĐGNL (thang 1500) về thành phần trong công thức</li>
+              <li>Công thức/bảng quy đổi bách phân vị giữa THPT và ĐGNL</li>
               <li>Cách tính điểm Học bạ</li>
-              <li>Công thức cho nhóm không có ĐGNL (chỉ biết pathway này tồn tại, chưa có công thức)</li>
-              <li>Bảng điểm ưu tiên khu vực/đối tượng riêng của UIT (nếu có)</li>
+              <li>Cách quy đổi SAT/ACT sang thành phần ĐGNL</li>
+              <li>Cách quy đổi IB/A-Level sang thành phần THPT</li>
             </ul>
             <p className="mt-2 leading-relaxed">
-              Đang bổ sung khi tìm được nguồn chính thức đọc được trực tiếp — không suy đoán công thức để tránh hiển
-              thị kết quả sai.
+              Đang chờ nguồn chính thức đọc được trực tiếp — không suy đoán công thức để tránh hiển thị kết quả sai.
+              Trong lúc chờ, bạn vẫn có thể kiểm tra điều kiện tham gia xét tuyển, tính điểm cộng chính xác, và xem
+              điểm chuẩn/tuyển thẳng ở dưới.
             </p>
           </div>
         </section>
+
+        <EligibilityChecker />
+
+        <BonusChecker />
 
         <section className="mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
           <div className="flex items-center gap-2">
@@ -100,6 +112,8 @@ export function UitInfoPage({ onChangeSchool }: UitInfoPageProps) {
             </table>
           </div>
         </section>
+
+        <DirectAdmissionSection />
 
         <section className="mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Nguồn dữ liệu</h2>

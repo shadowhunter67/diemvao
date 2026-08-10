@@ -13,5 +13,6 @@ export const uitModule: SchoolModule = {
   shortName: 'UIT',
   year: 2026,
   status: 'researching',
+  summary: 'Dữ liệu tuyển sinh 2026 đầy đủ (điểm chuẩn, ngưỡng, điểm cộng) · Calculator chính xác đang chờ bảng quy đổi bách phân vị',
   Page: UitInfoPage,
 };

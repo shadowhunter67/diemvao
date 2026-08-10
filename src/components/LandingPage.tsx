@@ -38,7 +38,7 @@ export function LandingPage({ onSelectSchool }: LandingPageProps) {
                 <div>
                   <p className="text-sm font-medium text-ink">{school.shortName}</p>
                   <p className="text-xs text-muted">{school.name}</p>
-                  <p className="mt-0.5 text-xs text-muted">{STATUS_TEXT[school.status]}</p>
+                  <p className="mt-0.5 text-xs text-muted">{school.summary ?? STATUS_TEXT[school.status]}</p>
                 </div>
                 {isClickable ? (
                   <button
