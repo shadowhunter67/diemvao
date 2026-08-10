@@ -50,7 +50,8 @@ Web tĩnh tính & mô phỏng điểm xét tuyển đại học, 100% client-sid
   - **Nguồn dữ liệu**: `schools/hcmut/sources.ts` (`DataSource[]`) — hiển thị trong `ProgramHistoryCompare.tsx` (`#data-sources`).
   - **Quyết định KHÔNG implement trường thứ 2 trong phase này** dù UIT/UEL/HCMUS/USSH đã formulaVerified=true trên giấy — ưu tiên đảm bảo chất lượng/an toàn cho phần đã làm (research+applicant-type+registry) hơn tốc độ; xem lý do đầy đủ trong docs. Shortlist cho phase sau: UIT → UEL → HCMUS.
   - **Đã verify qua chrome-devtools trên dev server thật** trước khi commit: dgnl/no-dgnl/nhóm chưa hỗ trợ đều render đúng, không console error; SchoolSelector mở/đóng đúng.
-  - Không làm (đúng scope): routing `/hcmut`/`/uit` (chỉ 1 trường thật, chưa cần), landing page riêng biệt (dùng modal selector thay vì route mới để tránh rủi ro SPA fallback trên Vercel chưa cấu hình), sửa double-scroll sidebar (đã cân nhắc nhưng rủi ro layout cao — xem lịch sử Phase 7/7b/7c — quyết định không đụng).
+  - Không làm (đúng scope): routing `/hcmut`/`/uit` (chỉ 1 trường thật, chưa cần), sửa double-scroll sidebar (đã cân nhắc nhưng rủi ro layout cao — xem lịch sử Phase 7/7b/7c — quyết định không đụng).
+- **Phase 12 (2026-08-10, feedback ngay sau Phase 11)**: user muốn root ("/") hiện landing page thật thay vì vào thẳng calculator HCMUT — thay thế modal `SchoolSelector` (đã xóa) bằng `LandingPage.tsx` full-page (không dùng React Router, chỉ toggle state `view: 'landing' | 'calculator'` trong `App.tsx`, vẫn 1 route duy nhất nên không cần cấu hình SPA fallback Vercel). `loadInitialView()`: mặc định `'landing'`, NHƯNG nếu `window.location.search` khác rỗng (share link cũ dạng `?dg_v=...`, `?program=...`, `?at=...`) thì vào thẳng `'calculator'` luôn — đã verify qua chrome-devtools: share link cũ vẫn tính điểm đúng ngay, không bị chặn ở landing. `Header.tsx` "Đổi trường" giờ gọi `onChangeSchool` (set `view='landing'`) thay vì mở modal.
 
 ## Đối chiếu rule root (../CLAUDE.md)
 

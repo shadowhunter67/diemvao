@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
+import { LandingPage } from './components/LandingPage';
 import { DashboardHero } from './components/DashboardHero';
 import { CurrentScoreCard } from './components/CurrentScoreCard';
 import { SelectedProgramCard } from './components/SelectedProgramCard';
@@ -166,6 +167,19 @@ function loadInitialApplicantType(): HcmutApplicantType {
   return params.has('at') ? parseApplicantTypeFromSearchParams(params) : base;
 }
 
+type View = 'landing' | 'calculator';
+
+/**
+ * Root ("/") mặc định hiện landing page (chọn trường) thay vì vào thẳng calculator HCMUT.
+ * NGOẠI LỆ: nếu URL có bất kỳ query param nào (share link cũ dạng ?dg_v=..., ?program=...,
+ * ?at=...) thì vào thẳng calculator luôn — không bắt người bấm share link phải tự chọn lại
+ * trường, đúng yêu cầu backward-compat "không break shared link cũ".
+ */
+function loadInitialView(): View {
+  if (typeof window === 'undefined') return 'landing';
+  return window.location.search ? 'calculator' : 'landing';
+}
+
 /** URL query params có precedence cao hơn localStorage: field nào URL cung cấp hợp lệ thì ghi đè lên. */
 function loadInitialFormState(): AdmissionFormState {
   const base = loadStoredFormState();
@@ -240,6 +254,7 @@ function App() {
   const [programState, setProgramState] = useState<ProgramState>(loadInitialProgramState);
   const [dgnlModeState, setDgnlModeState] = useState<DgnlModeState>(loadStoredDgnlModeState);
   const [applicantType, setApplicantType] = useState<HcmutApplicantType>(loadInitialApplicantType);
+  const [view, setView] = useState<View>(loadInitialView);
   // Chỉ tăng khi bấm "Đặt lại": buộc ScenarioSimulator remount để đồng bộ lại slider
   // theo điểm hiện tại (state slider là state riêng, không tự nghe formState mỗi lần gõ phím).
   const [resetToken, setResetToken] = useState(0);
@@ -503,6 +518,17 @@ function App() {
     }
   }
 
+  if (view === 'landing') {
+    return (
+      <div className="min-h-svh bg-bg">
+        <div className="mx-auto max-w-3xl px-4 pb-16">
+          <LandingPage onSelectSchool={() => setView('calculator')} />
+          <Footer />
+        </div>
+      </div>
+    );
+  }
+
   const heroElement = (
     <DashboardHero
       scoreCard={<CurrentScoreCard result={result} config={activeAdmissionConfig} />}
@@ -523,7 +549,7 @@ function App() {
       <StickySummaryBar result={result} selectedProgram={selectedProgram} gap={programGap} />
 
       <div className="mx-auto max-w-7xl px-4 pb-16">
-        <Header onReset={handleReset} buildShareUrl={buildShareUrl} />
+        <Header onReset={handleReset} buildShareUrl={buildShareUrl} onChangeSchool={() => setView('landing')} />
 
         <ApplicantTypeSection value={applicantType} onChange={handleApplicantTypeChange} />
 

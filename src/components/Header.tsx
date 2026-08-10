@@ -1,18 +1,15 @@
-import { useState } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { ShareButton } from './ShareButton';
-import { SchoolSelector } from './SchoolSelector';
 import { siteConfig } from '../config/site';
 import { activeSchool } from '../schools';
 
 interface HeaderProps {
   onReset: () => void;
   buildShareUrl: () => string;
+  onChangeSchool: () => void;
 }
 
-export function Header({ onReset, buildShareUrl }: HeaderProps) {
-  const [selectorOpen, setSelectorOpen] = useState(false);
-
+export function Header({ onReset, buildShareUrl, onChangeSchool }: HeaderProps) {
   return (
     <header className="flex flex-col gap-4 py-8 sm:flex-row sm:items-start sm:justify-between">
       <div>
@@ -26,7 +23,7 @@ export function Header({ onReset, buildShareUrl }: HeaderProps) {
           <span className="text-sm text-ink">{activeSchool.name}</span>
           <button
             type="button"
-            onClick={() => setSelectorOpen(true)}
+            onClick={onChangeSchool}
             className="rounded-sm text-xs font-medium text-accent underline-offset-2 transition hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
           >
             Đổi trường
@@ -46,8 +43,6 @@ export function Header({ onReset, buildShareUrl }: HeaderProps) {
           Đặt lại
         </button>
       </div>
-
-      <SchoolSelector open={selectorOpen} onClose={() => setSelectorOpen(false)} />
     </header>
   );
 }
