@@ -1,6 +1,6 @@
 import { useId, useMemo, useState } from 'react';
 import { Check, GraduationCap, Plus } from 'lucide-react';
-import { MAX_COMPARISON_PINS } from '../schools/hcmut/programs';
+import { MAX_COMPARISON_PINS, getLatestComparableCutoff } from '../schools/hcmut/programs';
 import type { HcmutProgram } from '../schools/hcmut/types/programs';
 
 interface ProgramSectionProps {
@@ -21,6 +21,7 @@ export function ProgramSection({
   onToggleComparison,
 }: ProgramSectionProps) {
   const [search, setSearch] = useState('');
+  const [isEditing, setIsEditing] = useState(selectedProgramId === null);
   const searchId = useId();
 
   const filteredPrograms = useMemo(() => {
@@ -36,6 +37,8 @@ export function ProgramSection({
 
   const selectedProgram = programs.find((program) => program.id === selectedProgramId) ?? null;
   const canAddMoreComparison = comparisonProgramIds.length < MAX_COMPARISON_PINS;
+  const latestCutoff = selectedProgram ? getLatestComparableCutoff(selectedProgram.id) : undefined;
+  const showPicker = isEditing || !selectedProgram;
 
   return (
     <section id="program-picker" className="rounded-2xl bg-surface-soft p-6 sm:p-8">
@@ -44,6 +47,27 @@ export function ProgramSection({
         <h2 className="text-xl font-semibold text-ink">Chọn ngành</h2>
       </div>
 
+      {selectedProgram && !showPicker ? (
+        <div className="mt-6 flex flex-col gap-3 rounded-lg bg-surface p-4">
+          <div>
+            <span className="text-xs text-muted">Ngành mục tiêu</span>
+            <p className="text-lg font-semibold text-ink">{selectedProgram.name}</p>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted">
+              Điểm tham khảo {latestCutoff ? latestCutoff.year : ''}
+            </span>
+            <p className="text-sm font-medium text-ink">{latestCutoff ? latestCutoff.score.toFixed(2) : 'Chưa có dữ liệu'}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsEditing(true)}
+            className="mt-1 w-fit rounded-md border border-ink/10 bg-surface px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-ink/5 focus:outline-none focus:ring-2 focus:ring-accent/30"
+          >
+            Đổi ngành
+          </button>
+        </div>
+      ) : (
       <div className="mt-6">
         <label htmlFor={searchId} className="text-sm font-medium text-ink">
           Tìm ngành
@@ -73,7 +97,10 @@ export function ProgramSection({
                   <li key={program.id} className="flex items-center gap-2 px-2 py-1.5">
                     <button
                       type="button"
-                      onClick={() => onSelectProgram(program.id)}
+                      onClick={() => {
+                        onSelectProgram(program.id);
+                        setIsEditing(false);
+                      }}
                       aria-pressed={isSelected}
                       className={`flex flex-1 items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm transition ${
                         isSelected ? 'bg-accent/10 text-accent' : 'text-ink hover:bg-ink/5'
@@ -118,6 +145,7 @@ export function ProgramSection({
           )}
         </div>
       </div>
+      )}
 
       <p className="mt-6 text-xs leading-relaxed text-muted">
         Điểm chuẩn các năm chỉ mang tính tham khảo. Mức điểm năm sau có thể thay đổi do chỉ tiêu, độ khó kỳ thi, số

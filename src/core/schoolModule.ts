@@ -1,5 +1,5 @@
 /**
- * Thông tin định danh chung cho một "trường" trong nền tảng DiemVao. Cố tình KHÔNG ép buộc
+ * Thông tin định danh chung cho một "trường" trong nền tảng Uniscore. Cố tình KHÔNG ép buộc
  * calculate()/input schema chung — mỗi trường có công thức, thang điểm, phương thức xét tuyển
  * riêng (xem CLAUDE.md). Contract này chỉ phục vụ hiển thị (tên trường, năm) + registry lookup.
  */

@@ -1,16 +1,16 @@
-# DiemVao
+# Uniscore
 
 Tính & mô phỏng điểm xét tuyển đại học
 
-- **Live**: https://diemvao.vercel.app
-- **GitHub**: https://github.com/shadowhunter67/diemvao
-- **Issues**: https://github.com/shadowhunter67/diemvao/issues
+- **Live**: https://uniscore.vercel.app
+- **GitHub**: https://github.com/shadowhunter67/uniscore
+- **Issues**: https://github.com/shadowhunter67/uniscore/issues
 
 ## Giới thiệu
 
-DiemVao là công cụ tính điểm xét tuyển đại học, chạy hoàn toàn phía client (không backend, không database, không đăng nhập), realtime khi người dùng nhập điểm gốc. Ngoài tính điểm, DiemVao còn hỗ trợ đặt mục tiêu điểm số, mô phỏng kịch bản, và so sánh với điểm chuẩn tham khảo của các năm trước.
+Uniscore là công cụ tính điểm xét tuyển đại học, chạy hoàn toàn phía client (không backend, không database, không đăng nhập), realtime khi người dùng nhập điểm gốc. Ngoài tính điểm, Uniscore còn hỗ trợ đặt mục tiêu điểm số, mô phỏng kịch bản, và so sánh với điểm chuẩn tham khảo của các năm trước.
 
-DiemVao **không** dự đoán chắc chắn đậu hay đảm bảo trúng tuyển — mọi kết quả so sánh với điểm chuẩn chỉ mang tính tham khảo.
+Uniscore **không** dự đoán chắc chắn đậu hay đảm bảo trúng tuyển — mọi kết quả so sánh với điểm chuẩn chỉ mang tính tham khảo.
 
 ## Trường đang hỗ trợ
 
@@ -28,7 +28,7 @@ DiemVao **không** dự đoán chắc chắn đậu hay đảm bảo trúng tuy�
 
 ## Kiến trúc multi-school
 
-DiemVao hiện chỉ có một trường (HCMUT), nhưng kiến trúc được chuẩn bị để thêm trường mới mà không phải đập lại toàn bộ codebase:
+Uniscore hiện chỉ có một trường (HCMUT), nhưng kiến trúc được chuẩn bị để thêm trường mới mà không phải đập lại toàn bộ codebase:
 
 ```text
 src/
@@ -126,9 +126,9 @@ Dataset ngành/điểm chuẩn HCMUT (`src/schools/hcmut/data/`) dẫn nguồn b
 - Điểm ưu tiên khu vực/đối tượng có dropdown gợi ý điền nhanh (theo bảng chung Bộ GD&ĐT), nhưng ô nhập tay thang 30 vẫn còn để override.
 - Quy đổi chứng chỉ tiếng Anh chỉ áp dụng cho điểm thi THPT, chưa áp dụng cho học bạ.
 - Học bạ chưa xử lý trường hợp thí sinh đổi môn trong tổ hợp giữa lớp 10/11/12.
-- localStorage dùng key `hcmut-score-input-v2` + `hcmut-score-target-v1` + `hcmut-score-program-v1` (giữ nguyên khi rebrand để không mất dữ liệu người dùng cũ).
+- localStorage dùng key `uniscore-input-v1` + `uniscore-target-v1` + `uniscore-program-v1` + `uniscore-dgnl-mode-v1` + `uniscore-applicant-type-v1` (đổi từ `hcmut-score-*`/`hcmut-applicant-type-*` khi rebrand sang Uniscore — người dùng cũ mất input đã lưu, không migrate).
 - Chưa có: database ngành động, biểu đồ, AI recommendation, xác suất trúng tuyển, login, server, analytics.
 
 ## Disclaimer
 
-DiemVao là công cụ độc lập, không thuộc các trường đại học được hỗ trợ. Thí sinh nên đối chiếu thông tin tuyển sinh chính thức của từng trường trước khi quyết định.
+Uniscore là công cụ độc lập, không thuộc các trường đại học được hỗ trợ. Thí sinh nên đối chiếu thông tin tuyển sinh chính thức của từng trường trước khi quyết định.

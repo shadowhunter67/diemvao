@@ -64,11 +64,11 @@ import {
   type TranscriptFormState,
 } from './schools/hcmut/types/form';
 
-const FORM_STORAGE_KEY = 'hcmut-score-input-v2';
-const TARGET_STORAGE_KEY = 'hcmut-score-target-v1';
-const PROGRAM_STORAGE_KEY = 'hcmut-score-program-v1';
-const DGNL_MODE_STORAGE_KEY = 'hcmut-score-dgnl-mode-v1';
-const APPLICANT_TYPE_STORAGE_KEY = 'hcmut-applicant-type-v1';
+const FORM_STORAGE_KEY = 'uniscore-input-v1';
+const TARGET_STORAGE_KEY = 'uniscore-target-v1';
+const PROGRAM_STORAGE_KEY = 'uniscore-program-v1';
+const DGNL_MODE_STORAGE_KEY = 'uniscore-dgnl-mode-v1';
+const APPLICANT_TYPE_STORAGE_KEY = 'uniscore-applicant-type-v1';
 
 interface DgnlModeState {
   mode: DgnlInputMode;
@@ -531,7 +531,7 @@ function App() {
 
   const heroElement = (
     <DashboardHero
-      scoreCard={<CurrentScoreCard result={result} config={activeAdmissionConfig} />}
+      scoreCard={<CurrentScoreCard result={result} config={activeAdmissionConfig} applicantType={applicantType} />}
       programCard={
         <SelectedProgramCard
           selectedProgram={selectedProgram}
@@ -560,8 +560,18 @@ function App() {
           </p>
         ) : (
         <main className="mt-5 flex flex-col gap-5 lg:grid lg:grid-cols-[1fr_340px] lg:items-stretch lg:gap-6">
-          <div className="flex flex-col gap-5 lg:order-2 lg:sticky lg:top-5 lg:h-fit lg:max-h-[calc(100vh-2.5rem)] lg:overflow-y-auto">
-            {heroElement}
+          <div className="flex flex-col gap-5 lg:order-2 lg:sticky lg:top-5 lg:h-fit">{heroElement}</div>
+
+          <div className="flex flex-col gap-5 lg:order-1">
+            <ProgramSection
+              programs={hcmutPrograms}
+              selectedProgramId={programState.selectedProgramId}
+              onSelectProgram={handleSelectProgram}
+              scoreScale={activeAdmissionConfig.scoreScale}
+              comparisonProgramIds={programState.comparisonProgramIds}
+              onToggleComparison={handleToggleComparison}
+            />
+
             <TargetSection
               config={activeAdmissionConfig}
               targetValue={targetScore}
@@ -572,6 +582,7 @@ function App() {
               onUseRequiredInSimulator={handleUseRequiredInSimulator}
               activeTargetSourceLabel={activeTargetSourceLabel}
             />
+
             <ProgramBufferCard
               selectedProgram={selectedProgram}
               latestCutoff={latestCutoff}
@@ -579,17 +590,6 @@ function App() {
               onBufferChange={handleBufferChange}
               effectiveTarget={effectiveTarget}
               onUseAsTarget={(score) => handleTargetChange(String(score))}
-            />
-          </div>
-
-          <div className="flex flex-col gap-5 lg:order-1">
-            <ProgramSection
-              programs={hcmutPrograms}
-              selectedProgramId={programState.selectedProgramId}
-              onSelectProgram={handleSelectProgram}
-              scoreScale={activeAdmissionConfig.scoreScale}
-              comparisonProgramIds={programState.comparisonProgramIds}
-              onToggleComparison={handleToggleComparison}
             />
 
             <DgnlSection

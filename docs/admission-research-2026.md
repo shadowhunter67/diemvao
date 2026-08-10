@@ -1,14 +1,14 @@
-# Research tuyển sinh 2026 — DiemVao
+# Research tuyển sinh 2026 — Uniscore
 
-Research phục vụ quyết định trường/công thức nào đủ điều kiện implement calculator trong DiemVao. Nguyên tắc: **research trước, code sau; không suy đoán công thức; official source luôn ưu tiên cao nhất**. Ngày research: 2026-08-10.
+Research phục vụ quyết định trường/công thức nào đủ điều kiện implement calculator trong Uniscore. Nguyên tắc: **research trước, code sau; không suy đoán công thức; official source luôn ưu tiên cao nhất**. Ngày research: 2026-08-10.
 
 Thứ tự ưu tiên nguồn: (1) website tuyển sinh chính thức của trường → (2) website chính thức trường → (3) website ĐHQG-HCM → (4) đề án tuyển sinh chính thức → (5) thông báo tuyển sinh/điểm chuẩn chính thức → (6) PDF/ảnh từ trường → (7) báo chí uy tín (chỉ cross-check hoặc đọc bảng khó truy cập, không dùng làm nguồn chính duy nhất). Không dùng: blog SEO, forum, Facebook cá nhân, trang tổng hợp không dẫn nguồn, Google snippet không có link xác minh được.
 
 ## Phần A — HCMUT: mở rộng nhóm thí sinh
 
-HCMUT 2026 định nghĩa **8 "đối tượng" (2.1–2.8)** trong phương thức Xét tuyển Tổng hợp, gộp thành 5 nhóm UI trong DiemVao:
+HCMUT 2026 định nghĩa **8 "đối tượng" (2.1–2.8)** trong phương thức Xét tuyển Tổng hợp, gộp thành 5 nhóm UI trong Uniscore:
 
-| Đối tượng HCMUT | Nhóm UI DiemVao | Công thức | Trạng thái |
+| Đối tượng HCMUT | Nhóm UI Uniscore | Công thức | Trạng thái |
 |---|---|---|---|
 | 2.1 — có ĐGNL ĐHQG-HCM 2026 | `dgnl` | Điểm năng lực = ĐGNL chuẩn hóa (không đổi, hành vi cũ) | ✅ Supported |
 | 2.2 — không có ĐGNL | `no-dgnl` | Điểm năng lực = Điểm THPT quy đổi × **0.75** | ✅ Supported (mới) |
@@ -29,7 +29,7 @@ HCMUT 2026 định nghĩa **8 "đối tượng" (2.1–2.8)** trong phương th�
 
 ## Phần B — 8 trường thành viên ĐHQG-HCM
 
-| Trường | Dùng ĐGNL? | Xét không ĐGNL? | Xét tổng hợp? | Trọng số (khi có ĐGNL) | Formula verified | Trạng thái DiemVao |
+| Trường | Dùng ĐGNL? | Xét không ĐGNL? | Xét tổng hợp? | Trọng số (khi có ĐGNL) | Formula verified | Trạng thái Uniscore |
 |---|---|---|---|---|---|---|
 | **HCMUT** | Có | Có (0.75×THPT) | Có | ĐGNL 70% + THPT 20% + Học bạ 10% | ✅ true | **Supported** |
 | **UIT** | Có | Có (THPT, kể cả quy đổi IB/A-Level) | Có | THPT 47,5% + ĐGNL 47,5% + Học bạ 5% | ✅ true (2 nguồn độc lập khớp) | Researching — ứng viên #1 |
@@ -44,7 +44,7 @@ Chi tiết đầy đủ 15 câu hỏi/trường (thành phần, quy đổi, môn
 
 - **UIT**: `Hs1(THPT) 47,5% + Hs2(ĐGNL) 47,5% + Hs3(học bạ) 5%`, thang 100. Điểm cộng ≤10/100 (huy chương Olympic/giải quốc gia). Có ngưỡng SAT≥1170-1200/ACT≥26/IB≥30/A-Level 70% PUM. Ngưỡng riêng ngành Thiết kế vi mạch cao hơn. Nguồn: `tuyensinh.uit.edu.vn` (thông báo ngưỡng chính thức) + Cổng TTĐT Chính phủ (cross-check trọng số, khớp VnExpress).
 - **UEL**: `ĐGNL 55% + THPT 35% + Học bạ 10%` (nhóm đủ cả 2 loại điểm); nhóm chỉ 1 loại: 90%/10%. Bảng ưu tiên KV/ĐT đầy đủ trên thang 100 (KV1=9,17/KV2NT=8,33/KV2=7,5/KV3=6,67). Điểm cộng IELTS/TOEFL "theo Phụ lục 2" — chưa đọc được bảng. Có Phương thức 5 riêng cho SAT/ACT/IB/A-Level. Nguồn: `uel.edu.vn` + `tuyensinh.uel.edu.vn` (chính thức).
-- **HCMUS**: `0.8×(THPT hoặc ĐGNL, chọn cao hơn) + 0.2×Học bạ`, tính trên thang 30 rồi quy đổi ×100/30 để công bố. Điểm cộng ≤1,5/30. Ưu tiên theo khung chuẩn quốc gia (giống cách HCMUT/DiemVao đã làm). Điều kiện riêng theo ngành (vd Thiết kế vi mạch yêu cầu Toán nhóm 20% cao nhất). Nguồn: `tuyensinh.hcmus.edu.vn` (chính thức, 3 trang khác nhau).
+- **HCMUS**: `0.8×(THPT hoặc ĐGNL, chọn cao hơn) + 0.2×Học bạ`, tính trên thang 30 rồi quy đổi ×100/30 để công bố. Điểm cộng ≤1,5/30. Ưu tiên theo khung chuẩn quốc gia (giống cách HCMUT/Uniscore đã làm). Điều kiện riêng theo ngành (vd Thiết kế vi mạch yêu cầu Toán nhóm 20% cao nhất). Nguồn: `tuyensinh.hcmus.edu.vn` (chính thức, 3 trang khác nhau).
 - **USSH**: 3 công thức theo đối tượng: ĐHL1 = 45%THPT+45%ĐGNL+10%học bạ; ĐHL2 = 90%THPT+10%học bạ; ĐHL3 = 90%ĐGNL+10%học bạ. Nguồn: `hcmussh.edu.vn` (chính thức). **Thiếu**: bảng điểm cộng/ưu tiên chi tiết — cần đọc thêm trước khi code.
 - **IU/AGU/UHS**: xem lý do `false` ở cột trên — cần xác minh thêm bằng cách truy cập trực tiếp (site IU chặn crawler tự động; AGU chỉ có số liệu ở nguồn thứ cấp; UHS tự ghi "dự kiến chưa chính thức").
 

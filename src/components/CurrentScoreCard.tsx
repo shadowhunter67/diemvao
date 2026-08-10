@@ -1,19 +1,30 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import type { AdmissionConfig, AdmissionResult } from '../schools/hcmut/types/admission';
+import type { HcmutApplicantType } from '../schools/hcmut/types/applicantType';
 import { ScoreBreakdownDetails } from './ScoreBreakdownDetails';
 
 interface CurrentScoreCardProps {
   result: AdmissionResult | null;
   config: AdmissionConfig;
+  applicantType: HcmutApplicantType;
 }
 
 function signed(value: number): string {
   return `${value >= 0 ? '+' : ''}${value.toFixed(2)}`;
 }
 
-export function CurrentScoreCard({ result, config }: CurrentScoreCardProps) {
+const ABILITY_SOURCE_LABEL: Record<HcmutApplicantType, string | null> = {
+  dgnl: 'Từ ĐGNL ĐHQG-HCM 2026',
+  'no-dgnl': 'Từ quy đổi theo phương án HCMUT 2026',
+  'international-certificate': null,
+  'foreign-high-school': null,
+  'special-program': null,
+};
+
+export function CurrentScoreCard({ result, config, applicantType }: CurrentScoreCardProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const abilitySourceLabel = ABILITY_SOURCE_LABEL[applicantType];
 
   return (
     <section className="rounded-card bg-surface p-6 shadow-card sm:p-8">
@@ -35,7 +46,10 @@ export function CurrentScoreCard({ result, config }: CurrentScoreCardProps) {
 
           <dl className="mt-6 flex flex-col gap-2 text-sm">
             <div className="flex items-center justify-between">
-              <dt className="text-muted">Điểm năng lực</dt>
+              <dt className="text-muted">
+                Điểm năng lực
+                {abilitySourceLabel && <span className="ml-1.5 text-xs text-muted/70">({abilitySourceLabel})</span>}
+              </dt>
               <dd className="font-medium text-ink">{signed(result.academic.dgnlContribution)}</dd>
             </div>
             <div className="flex items-center justify-between">

@@ -216,9 +216,15 @@ export function ProgramHistoryCompare({
                 {source.title}
               </a>
               <span className="text-muted"> — {source.publisher}</span>
+              {source.kind !== 'official' && (
+                <span className="ml-1.5 rounded-full bg-ink/5 px-1.5 py-0.5 text-muted">Đã đối chiếu nhiều nguồn</span>
+              )}
             </li>
           ))}
         </ul>
+        <p className="mt-3 text-xs leading-relaxed text-muted">
+          Công thức đã xác minh theo nguồn được liệt kê ở trên.
+        </p>
       </div>
     </section>
   );

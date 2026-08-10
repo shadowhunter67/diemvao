@@ -1,8 +1,8 @@
-# DiemVao
+# Uniscore
 
-Web tĩnh tính & mô phỏng điểm xét tuyển đại học, 100% client-side (không backend/database/auth). Package name: `diemvao` (đổi từ `hcmut-score-calculator` ở Phase 9, xem bên dưới). Xem README.md để biết chạy dev/build và nơi cập nhật công thức tuyển sinh.
+Web tĩnh tính & mô phỏng điểm xét tuyển đại học, 100% client-side (không backend/database/auth). Package name: `uniscore` (đổi từ `diemvao` ở Phase 13, trước đó là `hcmut-score-calculator` ở Phase 9, xem bên dưới). Xem README.md để biết chạy dev/build và nơi cập nhật công thức tuyển sinh.
 
-**Product identity**: DiemVao là nền tảng multi-school (kiến trúc), **HCMUT là school module đầu tiên và duy nhất đã implement**. Các trường tương lai (UIT, HCMUS, UEL...) có thể có công thức/input schema/thang điểm hoàn toàn khác — KHÔNG ép mọi trường dùng chung một "universal formula engine". Xem README.md mục "Kiến trúc multi-school" + "HCMUT module".
+**Product identity**: Uniscore (trước đây DiemVao) là nền tảng multi-school (kiến trúc), **HCMUT là school module đầu tiên và duy nhất đã implement**. Các trường tương lai (UIT, HCMUS, UEL...) có thể có công thức/input schema/thang điểm hoàn toàn khác — KHÔNG ép mọi trường dùng chung một "universal formula engine". Xem README.md mục "Kiến trúc multi-school" + "HCMUT module".
 
 ## Stack & dependencies
 
@@ -52,6 +52,12 @@ Web tĩnh tính & mô phỏng điểm xét tuyển đại học, 100% client-sid
   - **Đã verify qua chrome-devtools trên dev server thật** trước khi commit: dgnl/no-dgnl/nhóm chưa hỗ trợ đều render đúng, không console error; SchoolSelector mở/đóng đúng.
   - Không làm (đúng scope): routing `/hcmut`/`/uit` (chỉ 1 trường thật, chưa cần), sửa double-scroll sidebar (đã cân nhắc nhưng rủi ro layout cao — xem lịch sử Phase 7/7b/7c — quyết định không đụng).
 - **Phase 12 (2026-08-10, feedback ngay sau Phase 11)**: user muốn root ("/") hiện landing page thật thay vì vào thẳng calculator HCMUT — thay thế modal `SchoolSelector` (đã xóa) bằng `LandingPage.tsx` full-page (không dùng React Router, chỉ toggle state `view: 'landing' | 'calculator'` trong `App.tsx`, vẫn 1 route duy nhất nên không cần cấu hình SPA fallback Vercel). `loadInitialView()`: mặc định `'landing'`, NHƯNG nếu `window.location.search` khác rỗng (share link cũ dạng `?dg_v=...`, `?program=...`, `?at=...`) thì vào thẳng `'calculator'` luôn — đã verify qua chrome-devtools: share link cũ vẫn tính điểm đúng ngay, không bị chặn ở landing. `Header.tsx` "Đổi trường" giờ gọi `onChangeSchool` (set `view='landing'`) thay vì mở modal.
+- **Phase 13 — rebrand DiemVao → Uniscore (2026-08-10)**: user chủ động muốn đổi tên để phản ánh rõ tầm nhìn multi-school hơn (khác Phase 9, lần này CÓ đổi cả localStorage key/URL — user xác nhận chấp nhận phá dữ liệu/link cũ, khác hẳn nguyên tắc "giữ nguyên key khi rebrand" ở Phase 9).
+  - **Đổi tên hiển thị**: `siteConfig` (`config/site.ts`), `index.html` title/description, README.md, `docs/admission-research-2026.md`, và mọi chỗ hard-code "DiemVao" trong component (`LandingPage.tsx`, `ApplicantTypeSection.tsx`, `Footer.tsx`, `schools/hcmut/index.ts`, `core/schoolModule.ts`, `schools/hcmut/types/applicantType.ts`).
+  - **package.json** name: `diemvao` → `uniscore`.
+  - **localStorage keys** (`App.tsx`): `hcmut-score-input-v2`→`uniscore-input-v1`, `hcmut-score-target-v1`→`uniscore-target-v1`, `hcmut-score-program-v1`→`uniscore-program-v1`, `hcmut-score-dgnl-mode-v1`→`uniscore-dgnl-mode-v1`, `hcmut-applicant-type-v1`→`uniscore-applicant-type-v1` — **cố tình KHÔNG migrate dữ liệu cũ** (đúng tiền lệ MVP→v2 ở README dòng localStorage), người dùng cũ mất input đã lưu, phải nhập lại.
+  - **URL query params** (`dg_v`, `th_m`, `program`, `tg`, `at`...) **giữ nguyên** — đã là mã ngắn trung tính, không mang tên brand nên không cần đổi dù user chọn "đổi đồng bộ".
+  - **Repo/domain**: `githubUrl`/`issuesUrl` trong `site.ts` + README đổi sang `shadowhunter67/uniscore` — **đây là placeholder, chưa verify** GitHub repo đã thật sự rename hay domain Vercel đã thật sự trỏ `uniscore.vercel.app` (nằm ngoài phạm vi Claude thao tác, user tự làm trên GitHub/Vercel UI).
 
 ## Đối chiếu rule root (../CLAUDE.md)
 
