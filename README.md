@@ -2,7 +2,7 @@
 
 Tính & mô phỏng điểm xét tuyển đại học
 
-- **Live**: https://uniscore.vercel.app
+- **Live**: https://diemvao.vercel.app _(Vercel project vẫn tên nội bộ "diemvao", chưa rename theo brand mới — xem CLAUDE.md Phase 13)_
 - **GitHub**: https://github.com/shadowhunter67/uniscore
 - **Issues**: https://github.com/shadowhunter67/uniscore/issues
 

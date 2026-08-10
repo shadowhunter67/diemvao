@@ -57,7 +57,7 @@ Web tĩnh tính & mô phỏng điểm xét tuyển đại học, 100% client-sid
   - **package.json** name: `diemvao` → `uniscore`.
   - **localStorage keys** (`App.tsx`): `hcmut-score-input-v2`→`uniscore-input-v1`, `hcmut-score-target-v1`→`uniscore-target-v1`, `hcmut-score-program-v1`→`uniscore-program-v1`, `hcmut-score-dgnl-mode-v1`→`uniscore-dgnl-mode-v1`, `hcmut-applicant-type-v1`→`uniscore-applicant-type-v1` — **cố tình KHÔNG migrate dữ liệu cũ** (đúng tiền lệ MVP→v2 ở README dòng localStorage), người dùng cũ mất input đã lưu, phải nhập lại.
   - **URL query params** (`dg_v`, `th_m`, `program`, `tg`, `at`...) **giữ nguyên** — đã là mã ngắn trung tính, không mang tên brand nên không cần đổi dù user chọn "đổi đồng bộ".
-  - **Repo/domain**: `githubUrl`/`issuesUrl` trong `site.ts` + README đổi sang `shadowhunter67/uniscore` — **đây là placeholder, chưa verify** GitHub repo đã thật sự rename hay domain Vercel đã thật sự trỏ `uniscore.vercel.app` (nằm ngoài phạm vi Claude thao tác, user tự làm trên GitHub/Vercel UI).
+  - **Repo/domain**: `githubUrl`/`issuesUrl` trong `site.ts` + README đổi sang `shadowhunter67/uniscore` — **đã verify thật** qua `gh repo view` (repo tồn tại, `main` branch OK) và `git remote set-url` + `git fetch` thành công. Domain production **chưa đổi**: verify qua `gh api repos/.../commits/<sha>/status` sau lần push Phase-polish cho thấy Vercel deploy target vẫn là `vercel.com/ntt9/diemvao/...` — project Vercel còn tên nội bộ "diemvao", live URL vẫn `diemvao.vercel.app` (README đã sửa lại đúng thực tế, không dùng placeholder `uniscore.vercel.app` nữa). Đổi tên project Vercel (Settings → General → Project Name) là việc user tự làm nếu muốn domain khớp brand mới.
 
 ## Đối chiếu rule root (../CLAUDE.md)
 
