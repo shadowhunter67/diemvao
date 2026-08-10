@@ -14,7 +14,8 @@ Uniscore **không** dự đoán chắc chắn đậu hay đảm bảo trúng tuy
 
 ## Trường đang hỗ trợ
 
-- **HCMUT** — Trường Đại học Bách khoa – ĐHQG TP.HCM, phương thức Xét tuyển Tổng hợp 2026 (thí sinh có kết quả ĐGNL ĐHQG-HCM 2026)
+- **HCMUT** — Trường Đại học Bách khoa – ĐHQG TP.HCM, phương thức Xét tuyển Tổng hợp 2026 — có calculator đầy đủ
+- **UIT** — Trường Đại học Công nghệ Thông tin – ĐHQG TP.HCM — có trang thông tin + điểm chuẩn 19 ngành 2026 thật, **chưa có calculator** (thiếu nguồn công khai cho cách chuẩn hóa chi tiết từng thành phần điểm)
 
 ## Tính năng
 

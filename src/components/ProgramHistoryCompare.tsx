@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { MAX_COMPARISON_PINS, calculateGap, getLatestComparableCutoff, getProgramById } from '../schools/hcmut/programs';
 import type { AdmissionCutoff, HcmutProgram } from '../schools/hcmut/types/programs';
 import { hcmutSources } from '../schools/hcmut/sources';
+import { verificationLabel } from '../core/trust';
 
 type SortOption = 'score-desc' | 'score-asc' | 'name-asc';
 
@@ -216,9 +217,9 @@ export function ProgramHistoryCompare({
                 {source.title}
               </a>
               <span className="text-muted"> — {source.publisher}</span>
-              {source.kind !== 'official' && (
-                <span className="ml-1.5 rounded-full bg-ink/5 px-1.5 py-0.5 text-muted">Đã đối chiếu nhiều nguồn</span>
-              )}
+              <span className="ml-1.5 rounded-full bg-ink/5 px-1.5 py-0.5 text-muted">
+                {verificationLabel(source.verification)}
+              </span>
             </li>
           ))}
         </ul>

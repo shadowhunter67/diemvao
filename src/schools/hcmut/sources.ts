@@ -1,3 +1,5 @@
+import type { VerificationLevel } from '../../core/trust';
+
 export interface DataSource {
   id: string;
   publisher: string;
@@ -5,6 +7,8 @@ export interface DataSource {
   url: string;
   accessedAt: string;
   kind: 'official' | 'official-republication' | 'news-republication';
+  /** Mức độ tin cậy thật của evidence — dùng để hiển thị wording đúng mức, không nói mạnh hơn bằng chứng. */
+  verification: VerificationLevel;
 }
 
 /**
@@ -19,6 +23,7 @@ export const hcmutSources: DataSource[] = [
     url: 'https://hcmut.edu.vn/tintuc/cong-bo-thong-tin-tuyen-sinh-dai-hoc-chinh-quy-nam-2026',
     accessedAt: '2026-08-10',
     kind: 'official',
+    verification: 'verified',
   },
   {
     id: 'hcmut-de-an-2026',
@@ -27,6 +32,7 @@ export const hcmutSources: DataSource[] = [
     url: 'https://diemthi.tuyensinh247.com/de-an-tuyen-sinh/dai-hoc-bach-khoa-hcm-QSB.html',
     accessedAt: '2026-08-10',
     kind: 'official-republication',
+    verification: 'cross-checked',
   },
   {
     id: 'hcmut-english-cert-2026',
@@ -35,6 +41,7 @@ export const hcmutSources: DataSource[] = [
     url: 'https://hcmut.edu.vn/tintuc/quy-doi-chung-chi-tieng-anh',
     accessedAt: '2026-08-10',
     kind: 'official',
+    verification: 'verified',
   },
   {
     id: 'hcmut-cutoffs-cross-check',
@@ -43,5 +50,6 @@ export const hcmutSources: DataSource[] = [
     url: 'https://hcmut.edu.vn',
     accessedAt: '2026-08-10',
     kind: 'news-republication',
+    verification: 'cross-checked',
   },
 ];

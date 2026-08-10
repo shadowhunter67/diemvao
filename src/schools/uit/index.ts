@@ -1,0 +1,17 @@
+import type { SchoolModule } from '../../core/schoolModule';
+import { UitInfoPage } from './UitInfoPage';
+
+/**
+ * Module UIT — trọng số tổng đã xác minh (xem sources.ts), nhưng thiếu nguồn cho cách chuẩn
+ * hóa chi tiết từng thành phần nên CHƯA có calculator thật. `Page` render trang thông tin +
+ * dữ liệu điểm chuẩn thật (xem UitInfoPage.tsx), không phải calculator. `status` giữ
+ * 'researching' — đúng semantic sẵn có (formula verified một phần, chưa implement calculator).
+ */
+export const uitModule: SchoolModule = {
+  id: 'uit',
+  name: 'Trường Đại học Công nghệ Thông tin – ĐHQG TP.HCM',
+  shortName: 'UIT',
+  year: 2026,
+  status: 'researching',
+  Page: UitInfoPage,
+};

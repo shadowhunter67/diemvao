@@ -6,9 +6,9 @@ interface LandingPageProps {
   onSelectSchool: (schoolId: string) => void;
 }
 
-const STATUS_LABEL: Record<SchoolStatus, string> = {
-  supported: 'Tính điểm',
-  researching: 'Đang bổ sung',
+const STATUS_TEXT: Record<SchoolStatus, string> = {
+  supported: 'Calculator khả dụng',
+  researching: 'Công thức đã xác minh · Calculator đang bổ sung',
   'formula-incomplete': 'Chưa đủ dữ liệu chính thức',
 };
 
@@ -28,7 +28,8 @@ export function LandingPage({ onSelectSchool }: LandingPageProps) {
 
         <ul className="mt-3 flex flex-col gap-2">
           {schools.map((school) => {
-            const isSupported = school.status === 'supported';
+            const isClickable = school.Page !== undefined;
+            const buttonLabel = school.status === 'supported' ? 'Tính điểm' : 'Xem thông tin';
             return (
               <li
                 key={school.id}
@@ -37,18 +38,19 @@ export function LandingPage({ onSelectSchool }: LandingPageProps) {
                 <div>
                   <p className="text-sm font-medium text-ink">{school.shortName}</p>
                   <p className="text-xs text-muted">{school.name}</p>
+                  <p className="mt-0.5 text-xs text-muted">{STATUS_TEXT[school.status]}</p>
                 </div>
-                {isSupported ? (
+                {isClickable ? (
                   <button
                     type="button"
                     onClick={() => onSelectSchool(school.id)}
                     className="shrink-0 rounded-md border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                   >
-                    {STATUS_LABEL[school.status]}
+                    {buttonLabel}
                   </button>
                 ) : (
-                  <span className="shrink-0 rounded-md border border-ink/10 px-3 py-1.5 text-xs font-medium text-muted">
-                    {STATUS_LABEL[school.status]}
+                  <span className="shrink-0 rounded-md border border-ink/10 px-3 py-1.5 text-xs font-medium text-muted opacity-70">
+                    Chưa mở
                   </span>
                 )}
               </li>

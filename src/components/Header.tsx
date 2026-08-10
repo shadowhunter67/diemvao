@@ -1,15 +1,17 @@
 import { RotateCcw } from 'lucide-react';
 import { ShareButton } from './ShareButton';
 import { siteConfig } from '../config/site';
-import { activeSchool } from '../schools';
 
 interface HeaderProps {
-  onReset: () => void;
+  /** Thông tin trường đang active — Header không tự biết, nhận từ page gọi nó (mỗi trường 1 page riêng). */
+  school: { shortName: string; name: string; year: number };
+  /** Bỏ trống ở trang không có form/state để lưu (vd trang thông tin) — ẩn hẳn nút thay vì hiện nút không làm gì. */
+  onReset?: () => void;
   buildShareUrl: () => string;
   onChangeSchool: () => void;
 }
 
-export function Header({ onReset, buildShareUrl, onChangeSchool }: HeaderProps) {
+export function Header({ school, onReset, buildShareUrl, onChangeSchool }: HeaderProps) {
   return (
     <header className="flex flex-col gap-4 py-8 sm:flex-row sm:items-start sm:justify-between">
       <div>
@@ -18,9 +20,9 @@ export function Header({ onReset, buildShareUrl, onChangeSchool }: HeaderProps) 
 
         <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-semibold text-accent">
-            {activeSchool.shortName}
+            {school.shortName}
           </span>
-          <span className="text-sm text-ink">{activeSchool.name}</span>
+          <span className="text-sm text-ink">{school.name}</span>
           <button
             type="button"
             onClick={onChangeSchool}
@@ -29,19 +31,21 @@ export function Header({ onReset, buildShareUrl, onChangeSchool }: HeaderProps) 
             Đổi trường
           </button>
         </div>
-        <p className="mt-0.5 text-xs text-muted">Xét tuyển tổng hợp {activeSchool.year}</p>
+        <p className="mt-0.5 text-xs text-muted">Xét tuyển tổng hợp {school.year}</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <ShareButton buildShareUrl={buildShareUrl} />
-        <button
-          type="button"
-          onClick={onReset}
-          className="inline-flex items-center gap-1.5 rounded-md border border-ink/10 px-3 py-1.5 text-xs font-medium text-muted transition hover:bg-surface-soft hover:text-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
-        >
-          <RotateCcw size={14} aria-hidden="true" />
-          Đặt lại
-        </button>
+        {onReset && (
+          <button
+            type="button"
+            onClick={onReset}
+            className="inline-flex items-center gap-1.5 rounded-md border border-ink/10 px-3 py-1.5 text-xs font-medium text-muted transition hover:bg-surface-soft hover:text-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
+          >
+            <RotateCcw size={14} aria-hidden="true" />
+            Đặt lại
+          </button>
+        )}
       </div>
     </header>
   );

@@ -1,3 +1,5 @@
+import type { ReactElement } from 'react';
+
 /**
  * Thông tin định danh chung cho một "trường" trong nền tảng Uniscore. Cố tình KHÔNG ép buộc
  * calculate()/input schema chung — mỗi trường có công thức, thang điểm, phương thức xét tuyển
@@ -20,4 +22,11 @@ export interface SchoolModule {
   shortName: string;
   year: number;
   status: SchoolStatus;
+  /**
+   * Component trang riêng của trường (calculator thật, hoặc trang thông tin nếu chưa đủ nguồn
+   * để tính điểm). App shell chỉ biết render `<Page />` khi có — không biết/không cần biết bên
+   * trong là gì. Không bắt buộc: trường chưa có gì để hiển thị thì bỏ trống, LandingPage tự ẩn
+   * CTA tương ứng.
+   */
+  Page?: (props: { onChangeSchool: () => void }) => ReactElement;
 }

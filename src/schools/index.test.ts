@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { activeSchool, activeSchoolId, schoolRegistry } from './index';
+import { schoolRegistry } from './index';
 import { hcmutModule } from './hcmut';
 
 describe('schoolRegistry', () => {
@@ -8,8 +8,18 @@ describe('schoolRegistry', () => {
     expect(schoolRegistry.hcmut.id).toBe('hcmut');
   });
 
-  it('activeSchoolId trỏ đúng vào một entry tồn tại trong registry', () => {
-    expect(schoolRegistry[activeSchoolId]).toBe(activeSchool);
+  it('hcmut và uit có Page (route thật) — App shell chỉ cần tra registry, không tự biết bên trong', () => {
+    expect(schoolRegistry.hcmut.Page).toBeDefined();
+    expect(schoolRegistry.uit.Page).toBeDefined();
+  });
+
+  it('các trường formula-incomplete/researching còn lại chưa có Page', () => {
+    const withoutPage = Object.values(schoolRegistry).filter(
+      (school) => school.id !== 'hcmut' && school.id !== 'uit'
+    );
+    for (const school of withoutPage) {
+      expect(school.Page).toBeUndefined();
+    }
   });
 
   it('hcmutModule có đủ thông tin định danh và status supported', () => {
