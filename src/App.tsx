@@ -5,6 +5,7 @@ import { DashboardHero } from './components/DashboardHero';
 import { CurrentScoreCard } from './components/CurrentScoreCard';
 import { SelectedProgramCard } from './components/SelectedProgramCard';
 import { StickySummaryBar } from './components/StickySummaryBar';
+import { ApplicantTypeSection } from './components/ApplicantTypeSection';
 import { DgnlSection, type DgnlInputMode } from './components/DgnlSection';
 import { TranscriptSection } from './components/TranscriptSection';
 import { ThptSection } from './components/ThptSection';
@@ -17,7 +18,12 @@ import { ProgramHistoryCompare } from './components/ProgramHistoryCompare';
 import { FormulaExplanation } from './components/FormulaExplanation';
 import { activeAdmissionConfig } from './schools/hcmut/config/admission-2026';
 import { hcmutPrograms } from './schools/hcmut/data/programs';
-import { calculateAdmissionScore, convertThptScore, convertTranscriptScore } from './schools/hcmut/calculator/calculator';
+import {
+  calculateAdmissionScore,
+  calculateAdmissionScoreNoDgnl,
+  convertThptScore,
+  convertTranscriptScore,
+} from './schools/hcmut/calculator/calculator';
 import {
   calculateAdmissionScoreFromWeightedDgnlRaw,
   calculateRequiredDgnl,
@@ -35,12 +41,19 @@ import {
 import { validateAdmissionForm, validateRange, validateTargetScore, type AdmissionFormErrors } from './schools/hcmut/validation';
 import {
   applySearchParamsToForm,
+  parseApplicantTypeFromSearchParams,
   parseProgramStateFromSearchParams,
   parseTargetFromSearchParams,
+  serializeApplicantTypeToSearchParams,
   serializeProgramStateToSearchParams,
   serializeStateToSearchParams,
 } from './schools/hcmut/urlState';
 import type { AdmissionInput } from './schools/hcmut/types/admission';
+import {
+  DEFAULT_APPLICANT_TYPE,
+  SUPPORTED_APPLICANT_TYPES,
+  type HcmutApplicantType,
+} from './schools/hcmut/types/applicantType';
 import {
   defaultAdmissionFormState,
   type AdmissionFormState,
@@ -54,6 +67,7 @@ const FORM_STORAGE_KEY = 'hcmut-score-input-v2';
 const TARGET_STORAGE_KEY = 'hcmut-score-target-v1';
 const PROGRAM_STORAGE_KEY = 'hcmut-score-program-v1';
 const DGNL_MODE_STORAGE_KEY = 'hcmut-score-dgnl-mode-v1';
+const APPLICANT_TYPE_STORAGE_KEY = 'hcmut-applicant-type-v1';
 
 interface DgnlModeState {
   mode: DgnlInputMode;
@@ -134,6 +148,24 @@ function loadStoredDgnlModeState(): DgnlModeState {
   }
 }
 
+function loadStoredApplicantType(): HcmutApplicantType {
+  try {
+    const raw = localStorage.getItem(APPLICANT_TYPE_STORAGE_KEY);
+    if (raw === null) return DEFAULT_APPLICANT_TYPE;
+    return parseApplicantTypeFromSearchParams(new URLSearchParams({ at: raw }));
+  } catch {
+    return DEFAULT_APPLICANT_TYPE;
+  }
+}
+
+/** URL query "at" có precedence cao hơn localStorage; thiếu/không hợp lệ fallback về dgnl (không break link cũ). */
+function loadInitialApplicantType(): HcmutApplicantType {
+  const base = loadStoredApplicantType();
+  if (typeof window === 'undefined') return base;
+  const params = new URLSearchParams(window.location.search);
+  return params.has('at') ? parseApplicantTypeFromSearchParams(params) : base;
+}
+
 /** URL query params có precedence cao hơn localStorage: field nào URL cung cấp hợp lệ thì ghi đè lên. */
 function loadInitialFormState(): AdmissionFormState {
   const base = loadStoredFormState();
@@ -207,6 +239,7 @@ function App() {
   const [targetScore, setTargetScore] = useState<string>(loadInitialTarget);
   const [programState, setProgramState] = useState<ProgramState>(loadInitialProgramState);
   const [dgnlModeState, setDgnlModeState] = useState<DgnlModeState>(loadStoredDgnlModeState);
+  const [applicantType, setApplicantType] = useState<HcmutApplicantType>(loadInitialApplicantType);
   // Chỉ tăng khi bấm "Đặt lại": buộc ScenarioSimulator remount để đồng bộ lại slider
   // theo điểm hiện tại (state slider là state riêng, không tự nghe formState mỗi lần gõ phím).
   const [resetToken, setResetToken] = useState(0);
@@ -235,6 +268,12 @@ function App() {
     localStorage.setItem(DGNL_MODE_STORAGE_KEY, JSON.stringify(dgnlModeState));
   }, [dgnlModeState]);
 
+  useEffect(() => {
+    localStorage.setItem(APPLICANT_TYPE_STORAGE_KEY, applicantType);
+  }, [applicantType]);
+
+  const isSupportedApplicantType = SUPPORTED_APPLICANT_TYPES.includes(applicantType);
+
   const errors = useMemo(() => validateAdmissionForm(formState, activeAdmissionConfig), [formState]);
   const targetError = useMemo(() => validateTargetScore(targetScore, activeAdmissionConfig).error, [targetScore]);
   const dgnlTotalValidation = useMemo(
@@ -243,16 +282,21 @@ function App() {
   );
 
   const hasCoreInput = useMemo(() => {
-    const dgnlTouched =
-      dgnlModeState.mode === 'total'
-        ? !dgnlTotalValidation.isEmpty
-        : Object.values(errors.dgnl).some((field) => !field.isEmpty);
+    if (!isSupportedApplicantType) return false;
     const thptTouched = Object.values(errors.thpt).some((field) => !field.isEmpty);
     const transcriptTouched = Object.values(errors.transcript).some((year) =>
       Object.values(year).some((field) => !field.isEmpty)
     );
+    if (applicantType === 'no-dgnl') {
+      // Nhóm không ĐGNL: điểm năng lực tự tính từ THPT, không có field dgnl riêng để "touch".
+      return thptTouched || transcriptTouched;
+    }
+    const dgnlTouched =
+      dgnlModeState.mode === 'total'
+        ? !dgnlTotalValidation.isEmpty
+        : Object.values(errors.dgnl).some((field) => !field.isEmpty);
     return dgnlTouched || thptTouched || transcriptTouched;
-  }, [errors, dgnlModeState.mode, dgnlTotalValidation.isEmpty]);
+  }, [errors, dgnlModeState.mode, dgnlTotalValidation.isEmpty, applicantType, isSupportedApplicantType]);
 
   const currentInput = useMemo(() => buildAdmissionInput(errors), [errors]);
 
@@ -272,6 +316,9 @@ function App() {
   // (sẽ phải dựng DgnlInput giả) — tái sử dụng calculateAdmissionScoreFromWeightedDgnlRaw +
   // convertThptScore/convertTranscriptScore (đều là hàm thuần đã có sẵn) để lắp lại đúng shape AdmissionResult.
   const liveResult = useMemo(() => {
+    if (applicantType === 'no-dgnl') {
+      return calculateAdmissionScoreNoDgnl(simulatorOtherInputs, activeAdmissionConfig);
+    }
     if (dgnlModeState.mode === 'total') {
       const simulated = calculateAdmissionScoreFromWeightedDgnlRaw(
         dgnlTotalValidation.value,
@@ -295,11 +342,13 @@ function App() {
       };
     }
     return calculateAdmissionScore(currentInput, activeAdmissionConfig);
-  }, [dgnlModeState.mode, dgnlTotalValidation.value, currentInput, simulatorOtherInputs]);
+  }, [applicantType, dgnlModeState.mode, dgnlTotalValidation.value, currentInput, simulatorOtherInputs]);
   const result = hasCoreInput ? liveResult : null;
 
   const requiredResult = useMemo(() => {
-    if (!hasCoreInput || targetScore.trim() === '' || targetError !== null) return null;
+    // Tính "ĐGNL cần đạt" chỉ có ý nghĩa cho nhóm dgnl — nhóm no-dgnl có điểm năng lực tự
+    // tính từ THPT (không phải giá trị tự do người dùng tăng được), nên không binary-search.
+    if (applicantType !== 'dgnl' || !hasCoreInput || targetScore.trim() === '' || targetError !== null) return null;
     if (dgnlModeState.mode === 'total') {
       return calculateRequiredDgnlFromWeightedRaw(
         Number(targetScore),
@@ -309,7 +358,16 @@ function App() {
       );
     }
     return calculateRequiredDgnl(Number(targetScore), currentInput, activeAdmissionConfig);
-  }, [hasCoreInput, targetScore, targetError, dgnlModeState.mode, dgnlTotalValidation.value, simulatorOtherInputs, currentInput]);
+  }, [
+    applicantType,
+    hasCoreInput,
+    targetScore,
+    targetError,
+    dgnlModeState.mode,
+    dgnlTotalValidation.value,
+    simulatorOtherInputs,
+    currentInput,
+  ]);
 
   const selectedProgram = programState.selectedProgramId ? getProgramById(programState.selectedProgramId) ?? null : null;
   const latestCutoff = programState.selectedProgramId
@@ -322,6 +380,12 @@ function App() {
     ? calculateEffectiveTarget(latestCutoff.score, programState.buffer, activeAdmissionConfig.scoreScale)
     : null;
   const historicalCutoffs = programState.selectedProgramId ? getCutoffsForProgram(programState.selectedProgramId) : [];
+  // Chỉ hiện badge "đang dùng mục tiêu từ ngành X" khi điểm mục tiêu hiện tại khớp đúng
+  // effectiveTarget (điểm chuẩn + biên) — tránh nhận nhầm nếu user tự gõ tay trùng số.
+  const activeTargetSourceLabel =
+    selectedProgram && effectiveTarget !== null && targetScore.trim() !== '' && targetError === null && Number(targetScore) === effectiveTarget
+      ? selectedProgram.name
+      : null;
 
   function buildShareUrl(): string {
     const params = serializeStateToSearchParams(formState, targetScore, activeAdmissionConfig);
@@ -334,6 +398,7 @@ function App() {
       },
       hcmutPrograms
     );
+    serializeApplicantTypeToSearchParams(params, applicantType);
     const query = params.toString();
     return `${window.location.origin}${window.location.pathname}${query ? `?${query}` : ''}`;
   }
@@ -370,6 +435,10 @@ function App() {
 
   function handleTargetChange(value: string) {
     setTargetScore(value);
+  }
+
+  function handleApplicantTypeChange(type: HcmutApplicantType) {
+    setApplicantType(type);
   }
 
   function handleDgnlModeChange(mode: DgnlInputMode) {
@@ -420,10 +489,12 @@ function App() {
     localStorage.removeItem(TARGET_STORAGE_KEY);
     localStorage.removeItem(PROGRAM_STORAGE_KEY);
     localStorage.removeItem(DGNL_MODE_STORAGE_KEY);
+    localStorage.removeItem(APPLICANT_TYPE_STORAGE_KEY);
     setFormState(defaultAdmissionFormState);
     setTargetScore('');
     setProgramState(defaultProgramState);
     setDgnlModeState(defaultDgnlModeState);
+    setApplicantType(DEFAULT_APPLICANT_TYPE);
     setResetToken((token) => token + 1);
     setSimulatorSeed(null);
     setSimulatorKey(0);
@@ -454,7 +525,15 @@ function App() {
       <div className="mx-auto max-w-7xl px-4 pb-16">
         <Header onReset={handleReset} buildShareUrl={buildShareUrl} />
 
-        <main className="flex flex-col gap-5 lg:grid lg:grid-cols-[1fr_340px] lg:items-stretch lg:gap-6">
+        <ApplicantTypeSection value={applicantType} onChange={handleApplicantTypeChange} />
+
+        {!isSupportedApplicantType ? (
+          <p className="mt-5 rounded-card bg-surface p-6 text-sm text-muted shadow-card sm:p-8">
+            Chọn nhóm "Có kết quả ĐGNL" hoặc "Không dự thi ĐGNL" ở trên để bắt đầu tính điểm — 2 nhóm này đã có công
+            thức xác minh từ HCMUT 2026.
+          </p>
+        ) : (
+        <main className="mt-5 flex flex-col gap-5 lg:grid lg:grid-cols-[1fr_340px] lg:items-stretch lg:gap-6">
           <div className="flex flex-col gap-5 lg:order-2 lg:sticky lg:top-5 lg:h-fit lg:max-h-[calc(100vh-2.5rem)] lg:overflow-y-auto">
             {heroElement}
             <TargetSection
@@ -465,6 +544,7 @@ function App() {
               requiredResult={requiredResult}
               onTargetChange={handleTargetChange}
               onUseRequiredInSimulator={handleUseRequiredInSimulator}
+              activeTargetSourceLabel={activeTargetSourceLabel}
             />
             <ProgramBufferCard
               selectedProgram={selectedProgram}
@@ -497,6 +577,7 @@ function App() {
               totalValue={dgnlModeState.totalRaw}
               totalError={dgnlTotalValidation.error}
               onTotalChange={handleDgnlTotalChange}
+              applicantType={applicantType}
             />
 
             <TranscriptSection
@@ -526,14 +607,16 @@ function App() {
               onPriorityChange={handlePriorityChange}
             />
 
-            <ScenarioSimulator
-              key={`${resetToken}-${simulatorKey}`}
-              config={activeAdmissionConfig}
-              currentWeightedRaw={liveResult.dgnl.weightedScore}
-              otherInputs={simulatorOtherInputs}
-              currentFinalScore={result?.finalScore ?? null}
-              initialWeightedRaw={simulatorSeed ?? undefined}
-            />
+            {applicantType === 'dgnl' && (
+              <ScenarioSimulator
+                key={`${resetToken}-${simulatorKey}`}
+                config={activeAdmissionConfig}
+                currentWeightedRaw={liveResult.dgnl.weightedScore}
+                otherInputs={simulatorOtherInputs}
+                currentFinalScore={result?.finalScore ?? null}
+                initialWeightedRaw={simulatorSeed ?? undefined}
+              />
+            )}
 
             <ProgramHistoryCompare
               selectedProgram={selectedProgram}
@@ -546,6 +629,7 @@ function App() {
             <FormulaExplanation config={activeAdmissionConfig} />
           </div>
         </main>
+        )}
 
         <Footer />
       </div>

@@ -35,7 +35,7 @@ export function CurrentScoreCard({ result, config }: CurrentScoreCardProps) {
 
           <dl className="mt-6 flex flex-col gap-2 text-sm">
             <div className="flex items-center justify-between">
-              <dt className="text-muted">ĐGNL</dt>
+              <dt className="text-muted">Điểm năng lực</dt>
               <dd className="font-medium text-ink">{signed(result.academic.dgnlContribution)}</dd>
             </div>
             <div className="flex items-center justify-between">

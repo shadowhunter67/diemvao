@@ -16,7 +16,7 @@ export function ScoreBreakdownDetails({ result, config }: ScoreBreakdownDetailsP
         <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Điểm học lực</h3>
         <dl className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
-            <dt className="text-muted">ĐGNL chuẩn hóa</dt>
+            <dt className="text-muted">Điểm năng lực chuẩn hóa</dt>
             <dd className="font-medium text-ink">{result.dgnl.normalizedScore.toFixed(2)}</dd>
           </div>
           <div className="flex items-center justify-between pl-3">

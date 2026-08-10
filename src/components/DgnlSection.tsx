@@ -1,6 +1,7 @@
 import type { AdmissionConfig, DgnlResult } from '../schools/hcmut/types/admission';
 import type { DgnlFormState } from '../schools/hcmut/types/form';
 import type { FieldValidationResult } from '../schools/hcmut/validation';
+import type { HcmutApplicantType } from '../schools/hcmut/types/applicantType';
 import { ScoreInput } from './ScoreInput';
 import { SectionHeader } from './SectionHeader';
 
@@ -17,6 +18,7 @@ interface DgnlSectionProps {
   totalValue: string;
   totalError: string | null;
   onTotalChange: (value: string) => void;
+  applicantType: HcmutApplicantType;
 }
 
 export function DgnlSection({
@@ -30,9 +32,35 @@ export function DgnlSection({
   totalValue,
   totalError,
   onTotalChange,
+  applicantType,
 }: DgnlSectionProps) {
   const maxHint = `0 - ${config.dgnl.maxPerComponent}`;
   const weightedPercent = Math.min(100, Math.max(0, (result.weightedScore / config.dgnl.maxWeightedTotal) * 100));
+
+  if (applicantType === 'no-dgnl') {
+    return (
+      <section className="rounded-card bg-surface p-6 shadow-card sm:p-8">
+        <SectionHeader index="01" title="Điểm năng lực" />
+        <p className="mt-3 text-sm text-muted">
+          Bạn không có ĐGNL nên điểm năng lực được HCMUT quy đổi từ điểm thi THPT: <strong>Điểm năng lực = Điểm
+          THPT quy đổi × 0,75</strong> (Đối tượng 2.2, Đề án tuyển sinh HCMUT 2026). Giá trị dưới đây tự động cập
+          nhật theo mục "Thi THPT" bên dưới — không cần nhập lại.
+        </p>
+        <div className="mt-6 flex flex-col gap-3 rounded-lg bg-surface-soft p-4 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Điểm năng lực (quy đổi)</span>
+            <span className="font-medium text-ink">{result.normalizedScore.toFixed(2)} / {config.scoreScale}</span>
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink/10">
+            <div
+              className="h-full rounded-full bg-accent"
+              style={{ width: `${Math.min(100, Math.max(0, (result.normalizedScore / config.scoreScale) * 100))}%` }}
+            />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="rounded-card bg-surface p-6 shadow-card sm:p-8">

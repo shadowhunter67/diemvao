@@ -10,6 +10,8 @@ interface TargetSectionProps {
   requiredResult: RequiredDgnlResult | null;
   onTargetChange: (value: string) => void;
   onUseRequiredInSimulator: (weightedRaw: number) => void;
+  /** Tên ngành nếu điểm mục tiêu hiện tại đang khớp đúng mục tiêu mô phỏng từ ngành đó. */
+  activeTargetSourceLabel?: string | null;
 }
 
 export function TargetSection({
@@ -20,6 +22,7 @@ export function TargetSection({
   requiredResult,
   onTargetChange,
   onUseRequiredInSimulator,
+  activeTargetSourceLabel,
 }: TargetSectionProps) {
   const currentFinalScore = result?.finalScore ?? null;
   const hasValidTarget = targetValue.trim() !== '' && targetError === null;
@@ -30,6 +33,12 @@ export function TargetSection({
         <Target size={20} className="text-accent" aria-hidden="true" />
         <h2 className="text-xl font-semibold text-ink">Mục tiêu của bạn</h2>
       </div>
+
+      {activeTargetSourceLabel && (
+        <p className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent">
+          Đang dùng mục tiêu từ ngành "{activeTargetSourceLabel}"
+        </p>
+      )}
 
       <div className="mt-6 flex flex-col gap-6">
         <ScoreInput

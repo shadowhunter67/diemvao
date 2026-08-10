@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { MAX_COMPARISON_PINS, calculateGap, getLatestComparableCutoff, getProgramById } from '../schools/hcmut/programs';
 import type { AdmissionCutoff, HcmutProgram } from '../schools/hcmut/types/programs';
+import { hcmutSources } from '../schools/hcmut/sources';
 
 type SortOption = 'score-desc' | 'score-asc' | 'name-asc';
 
@@ -200,6 +201,25 @@ export function ProgramHistoryCompare({
         Điểm chuẩn các năm chỉ mang tính tham khảo. Mức điểm năm sau có thể thay đổi do chỉ tiêu, độ khó kỳ thi, số
         lượng thí sinh và chính sách tuyển sinh.
       </p>
+
+      <div className="mt-6 border-t border-ink/10 pt-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">Nguồn công thức &amp; dữ liệu</h3>
+        <ul className="mt-2 flex flex-col gap-1.5 text-xs">
+          {hcmutSources.map((source) => (
+            <li key={source.id}>
+              <a
+                href={source.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent underline-offset-2 hover:underline"
+              >
+                {source.title}
+              </a>
+              <span className="text-muted"> — {source.publisher}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }

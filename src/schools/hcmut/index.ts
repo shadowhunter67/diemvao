@@ -12,4 +12,5 @@ export const hcmutModule: SchoolModule = {
   name: 'Trường Đại học Bách khoa – ĐHQG TP.HCM',
   shortName: 'HCMUT',
   year: 2026,
+  status: 'supported',
 };

@@ -163,3 +163,47 @@ export function calculateAdmissionScore(input: AdmissionInput, config: Admission
     finalScore,
   };
 }
+
+/**
+ * Đối tượng 2.2 (không có kết quả ĐGNL ĐHQG-HCM 2026): điểm năng lực = điểm THPT quy đổi ×
+ * config.noDgnl.abilityMultiplier (0.75) — nguồn: docs/admission-research-2026.md#hcmut. Tái
+ * dùng nguyên convertThptScore cho cả "điểm THPT quy đổi" (thành phần điểm năng lực) lẫn
+ * "THPT chuẩn hóa" (thành phần 20% trong điểm học lực) vì đề án dùng đúng 1 công thức quy đổi
+ * THPT cho cả hai chỗ. Kết quả trả về đúng shape AdmissionResult (dgnl field chứa điểm năng
+ * lực đã quy đổi, không phải điểm thi ĐGNL thật) để tái sử dụng nguyên UI hiện có
+ * (CurrentScoreCard, ScoreBreakdownDetails, StickySummaryBar...) không cần nhánh riêng.
+ */
+export function calculateAdmissionScoreNoDgnl(
+  input: Omit<AdmissionInput, 'dgnl'>,
+  config: AdmissionConfig
+): AdmissionResult {
+  const thpt = convertThptScore(input.thpt, config);
+  const transcript = convertTranscriptScore(input.transcript, config);
+
+  const abilityNormalizedScore = round2(thpt.normalizedScore * config.noDgnl.abilityMultiplier);
+  const ability: DgnlResult = {
+    rawScore: 0,
+    weightedMath: 0,
+    weightedScore: 0,
+    normalizedScore: abilityNormalizedScore,
+  };
+
+  const academic = calculateAcademicScore(ability.normalizedScore, thpt.normalizedScore, transcript.normalizedScore, config);
+  const bonus = calculateBonus(input.bonus, config);
+
+  const baseScoreForPriority = round2(academic.score + bonus.received);
+  const priority = calculatePriority(input.priorityRaw30Scale, baseScoreForPriority, config);
+
+  const finalScore = round2(Math.min(config.scoreScale, academic.score + bonus.received + priority.received));
+
+  return {
+    dgnl: ability,
+    thpt,
+    transcript,
+    academic,
+    bonus,
+    priority,
+    baseScore: baseScoreForPriority,
+    finalScore,
+  };
+}

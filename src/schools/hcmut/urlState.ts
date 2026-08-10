@@ -1,6 +1,7 @@
 import type { AdmissionConfig } from './types/admission';
 import type { AdmissionFormState, TranscriptFormState } from './types/form';
 import type { HcmutProgram } from './types/programs';
+import { HCMUT_APPLICANT_TYPES, DEFAULT_APPLICANT_TYPE, type HcmutApplicantType } from './types/applicantType';
 import { BUFFER_OPTIONS } from './programs';
 import {
   validateBonusComponent,
@@ -238,4 +239,20 @@ export function parseProgramStateFromSearchParams(params: URLSearchParams, progr
   }
 
   return { programId, buffer, comparisonProgramIds };
+}
+
+const APPLICANT_TYPE_KEY = 'at';
+
+/** Chỉ ghi vào URL khi khác mặc định (dgnl) — link cũ (không có "at") vẫn hiểu đúng là dgnl. */
+export function serializeApplicantTypeToSearchParams(params: URLSearchParams, applicantType: HcmutApplicantType): void {
+  if (applicantType !== DEFAULT_APPLICANT_TYPE) {
+    params.set(APPLICANT_TYPE_KEY, applicantType);
+  }
+}
+
+/** Giá trị "at" không hợp lệ/không có trong URL đều fallback về DEFAULT_APPLICANT_TYPE (dgnl). */
+export function parseApplicantTypeFromSearchParams(params: URLSearchParams): HcmutApplicantType {
+  const raw = params.get(APPLICANT_TYPE_KEY);
+  const found = HCMUT_APPLICANT_TYPES.find((type) => type === raw);
+  return found ?? DEFAULT_APPLICANT_TYPE;
 }

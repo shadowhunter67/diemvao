@@ -147,6 +147,10 @@ export interface AdmissionConfig {
     reductionThreshold: number;
     reductionDivisor: number;
   };
+  noDgnl: {
+    /** Hệ số nhân vào điểm THPT quy đổi để ra "điểm năng lực" cho thí sinh không có ĐGNL. */
+    abilityMultiplier: number;
+  };
   /** Thang điểm tối đa của điểm xét tuyển (100). */
   scoreScale: number;
 }

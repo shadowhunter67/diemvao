@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { activeAdmissionConfig } from '../config/admission-2026';
 import {
   calculateAdmissionScore,
+  calculateAdmissionScoreNoDgnl,
   calculateBonus,
   calculatePriority,
   convertDgnlScore,
@@ -93,6 +94,48 @@ describe('calculateAdmissionScore - academic score', () => {
     const result = calculateAdmissionScore(input, config);
     expect(result.academic.score).toBe(100);
     expect(result.finalScore).toBe(100);
+  });
+});
+
+describe('calculateAdmissionScoreNoDgnl (Đối tượng 2.2 — không có ĐGNL)', () => {
+  it('ability score = THPT chuẩn hóa × 0.75, tối đa 75 kể cả khi THPT/học bạ tối đa', () => {
+    const result = calculateAdmissionScoreNoDgnl(
+      {
+        thpt: { math: 10, subject2: 10, subject3: 10 },
+        transcript: {
+          grade10: fullYear(10, 10, 10),
+          grade11: fullYear(10, 10, 10),
+          grade12: fullYear(10, 10, 10),
+        },
+        bonus: { reward: 0, considerationReward: 0, encouragement: 0 },
+        priorityRaw30Scale: 0,
+      },
+      config
+    );
+    expect(result.dgnl.normalizedScore).toBe(75);
+    // academic = 75*0.7 + 100*0.2 + 100*0.1 = 82.5 — không thể đạt 100 khi không có ĐGNL.
+    expect(result.academic.score).toBe(82.5);
+    expect(result.finalScore).toBe(82.5);
+  });
+
+  it('matches the worked example: THPT 9/8/7 -> ability 61.88, academic 69.82', () => {
+    const result = calculateAdmissionScoreNoDgnl(
+      {
+        thpt: { math: 9, subject2: 8, subject3: 7 },
+        transcript: {
+          grade10: fullYear(10, 10, 10),
+          grade11: fullYear(10, 10, 10),
+          grade12: fullYear(10, 10, 10),
+        },
+        bonus: { reward: 0, considerationReward: 0, encouragement: 0 },
+        priorityRaw30Scale: 0,
+      },
+      config
+    );
+    expect(result.thpt.normalizedScore).toBe(82.5);
+    expect(result.dgnl.normalizedScore).toBe(61.88);
+    expect(result.academic.score).toBe(69.82);
+    expect(result.finalScore).toBe(69.82);
   });
 });
 

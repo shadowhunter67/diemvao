@@ -4,8 +4,10 @@ import { defaultAdmissionFormState } from './types/form';
 import type { HcmutProgram } from './types/programs';
 import {
   applySearchParamsToForm,
+  parseApplicantTypeFromSearchParams,
   parseProgramStateFromSearchParams,
   parseTargetFromSearchParams,
+  serializeApplicantTypeToSearchParams,
   serializeProgramStateToSearchParams,
   serializeStateToSearchParams,
 } from './urlState';
@@ -120,5 +122,34 @@ describe('program state serialize/parse round trip', () => {
   it('falls back to buffer 0 for a value outside BUFFER_OPTIONS', () => {
     const params = new URLSearchParams({ buffer: '999' });
     expect(parseProgramStateFromSearchParams(params, testPrograms).buffer).toBe(0);
+  });
+});
+
+describe('applicant type (at=)', () => {
+  it('falls back to dgnl when "at" is missing (link cũ không có at)', () => {
+    const params = new URLSearchParams();
+    expect(parseApplicantTypeFromSearchParams(params)).toBe('dgnl');
+  });
+
+  it('falls back to dgnl when "at" has an unknown value', () => {
+    const params = new URLSearchParams({ at: 'something-invalid' });
+    expect(parseApplicantTypeFromSearchParams(params)).toBe('dgnl');
+  });
+
+  it('parses a known applicant type from "at"', () => {
+    const params = new URLSearchParams({ at: 'no-dgnl' });
+    expect(parseApplicantTypeFromSearchParams(params)).toBe('no-dgnl');
+  });
+
+  it('does not write "at" to the URL when applicant type is the default (dgnl)', () => {
+    const params = new URLSearchParams();
+    serializeApplicantTypeToSearchParams(params, 'dgnl');
+    expect(params.has('at')).toBe(false);
+  });
+
+  it('writes "at" to the URL when applicant type is not the default', () => {
+    const params = new URLSearchParams();
+    serializeApplicantTypeToSearchParams(params, 'no-dgnl');
+    expect(params.get('at')).toBe('no-dgnl');
   });
 });

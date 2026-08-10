@@ -41,6 +41,15 @@ export const admissionConfig2026: AdmissionConfig = {
     reductionDivisor: 25,
   },
 
+  /**
+   * Đối tượng 2.2 (không có ĐGNL ĐHQG-HCM 2026): điểm năng lực = điểm THPT quy đổi × 0.75.
+   * Nguồn: xem docs/admission-research-2026.md#hcmut (cross-check 2 nguồn độc lập, chưa fetch
+   * trực tiếp được PDF đề án gốc hcmut.edu.vn — nêu rõ mức độ tin cậy trong docs).
+   */
+  noDgnl: {
+    abilityMultiplier: 0.75,
+  },
+
   scoreScale: 100,
 };
 
