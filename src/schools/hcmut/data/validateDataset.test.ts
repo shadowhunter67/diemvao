@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AdmissionCutoff, HcmutProgram } from '../types/programs';
-import { validateAdmissionDataset } from './validateAdmissionDataset';
+import { validateAdmissionDataset } from './validateDataset';
 
 const source = { sourceLabel: 'test', sourceUrl: 'https://example.com', accessedAt: '2026-08-09' };
 

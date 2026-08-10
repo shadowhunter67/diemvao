@@ -61,9 +61,9 @@ describe('calculateEffectiveTarget', () => {
 });
 
 describe('addProgramToComparison / removeProgramFromComparison', () => {
-  it('case 9: không thêm quá 3 ngành, yêu cầu bỏ bớt trước', () => {
-    const threePinned = ['a', 'b', 'c'];
-    expect(addProgramToComparison(threePinned, 'd')).toEqual(threePinned);
+  it('case 9: không thêm quá giới hạn mặc định (5 ngành), yêu cầu bỏ bớt trước', () => {
+    const fivePinned = ['a', 'b', 'c', 'd', 'e'];
+    expect(addProgramToComparison(fivePinned, 'f')).toEqual(fivePinned);
   });
 
   it('case 10: không thêm trùng ngành đã pin', () => {
@@ -71,7 +71,7 @@ describe('addProgramToComparison / removeProgramFromComparison', () => {
     expect(addProgramToComparison(pinned, 'a')).toEqual(pinned);
   });
 
-  it('thêm bình thường khi chưa đủ 3 và chưa có trong danh sách', () => {
+  it('thêm bình thường khi chưa đủ giới hạn và chưa có trong danh sách', () => {
     expect(addProgramToComparison(['a'], 'b')).toEqual(['a', 'b']);
   });
 
@@ -79,5 +79,9 @@ describe('addProgramToComparison / removeProgramFromComparison', () => {
     const afterRemove = removeProgramFromComparison(['a', 'b', 'c'], 'b');
     expect(afterRemove).toEqual(['a', 'c']);
     expect(addProgramToComparison(afterRemove, 'd')).toEqual(['a', 'c', 'd']);
+  });
+
+  it('tôn trọng tham số max tùy chỉnh (không phải mặc định 5)', () => {
+    expect(addProgramToComparison(['a', 'b', 'c'], 'd', 3)).toEqual(['a', 'b', 'c']);
   });
 });

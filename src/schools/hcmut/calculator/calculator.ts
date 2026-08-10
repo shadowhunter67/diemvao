@@ -13,10 +13,9 @@ import type {
   TranscriptInput,
   TranscriptResult,
 } from '../types/admission';
+import { round2 } from '../../../core/round2';
 
-export function round2(value: number): number {
-  return Math.round((value + Number.EPSILON) * 100) / 100;
-}
+export { round2 };
 
 /**
  * Điểm ĐGNL ĐHQG-HCM: Toán nhân hệ số, tổng quy đổi về thang scoreScale (100)

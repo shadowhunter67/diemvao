@@ -33,19 +33,19 @@ export function ShareButton({ buildShareUrl }: ShareButtonProps) {
   }
 
   return (
-    <div>
+    <div className="relative">
       <button
         type="button"
         onClick={handleShare}
-        className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200"
+        className="inline-flex items-center gap-1.5 rounded-md border border-ink/10 px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-surface-soft focus:outline-none focus:ring-2 focus:ring-accent/30"
       >
         {copied ? <Check size={14} aria-hidden="true" /> : <Share2 size={14} aria-hidden="true" />}
-        {copied ? 'Đã copy liên kết' : 'Chia sẻ kết quả'}
+        {copied ? 'Đã copy' : 'Chia sẻ'}
       </button>
 
       {manualUrl && (
-        <div className="mt-2">
-          <label htmlFor="share-url-fallback" className="text-xs text-slate-500">
+        <div className="absolute right-0 top-full z-10 mt-2 w-72 rounded-lg border border-ink/10 bg-surface p-3 shadow-card">
+          <label htmlFor="share-url-fallback" className="text-xs text-muted">
             Không tự copy được, hãy copy thủ công:
           </label>
           <input
@@ -54,7 +54,7 @@ export function ShareButton({ buildShareUrl }: ShareButtonProps) {
             readOnly
             value={manualUrl}
             onFocus={(e) => e.currentTarget.select()}
-            className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700"
+            className="mt-1 w-full rounded-md border border-ink/10 bg-surface-soft px-2 py-1 text-xs text-ink"
           />
         </div>
       )}

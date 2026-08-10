@@ -1,7 +1,7 @@
-import { hcmutCutoffs } from '../data/hcmut-cutoffs';
-import { hcmutPrograms } from '../data/hcmut-programs';
-import type { AdmissionCutoff, HcmutProgram } from '../types/programs';
-import { round2 } from './calculator';
+import { hcmutCutoffs } from './data/cutoffs';
+import { hcmutPrograms } from './data/programs';
+import type { AdmissionCutoff, HcmutProgram } from './types/programs';
+import { round2 } from './calculator/calculator';
 
 export const BUFFER_OPTIONS = [0, 0.5, 1, 2] as const;
 
@@ -36,7 +36,7 @@ export function calculateEffectiveTarget(cutoffScore: number, buffer: number, sc
   return round2(Math.min(scoreScale, Math.max(0, cutoffScore + buffer)));
 }
 
-const MAX_COMPARISON_PINS = 3;
+export const MAX_COMPARISON_PINS = 5;
 
 /** Thêm ngành vào danh sách so sánh: bỏ qua nếu đã có (không duplicate) hoặc đã đủ tối đa. */
 export function addProgramToComparison(

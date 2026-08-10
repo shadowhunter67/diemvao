@@ -1,7 +1,8 @@
-import type { AdmissionConfig, TranscriptResult } from '../types/admission';
-import type { TranscriptFormState, TranscriptYearFormState } from '../types/form';
-import type { FieldValidationResult } from '../lib/validation';
+import type { AdmissionConfig, TranscriptResult } from '../schools/hcmut/types/admission';
+import type { TranscriptFormState, TranscriptYearFormState } from '../schools/hcmut/types/form';
+import type { FieldValidationResult } from '../schools/hcmut/validation';
 import { ScoreInput } from './ScoreInput';
+import { SectionHeader } from './SectionHeader';
 
 type GradeKey = keyof TranscriptFormState;
 type SubjectKey = keyof TranscriptYearFormState;
@@ -29,17 +30,16 @@ export function TranscriptSection({ config, values, errors, result, onChange }: 
   const maxHint = `0 - ${config.transcript.maxPerSubject}`;
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <h2 className="text-base font-semibold text-slate-900">Điểm học bạ</h2>
-      <p className="mt-1 text-xs text-slate-400">{maxHint} mỗi môn, mỗi năm</p>
+    <section className="rounded-card bg-surface p-6 shadow-card sm:p-8">
+      <SectionHeader index="02" title="Học bạ" subtitle={`${maxHint} mỗi môn, mỗi năm`} />
 
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[420px] border-separate border-spacing-x-2 border-spacing-y-3">
+      <div className="mt-6 overflow-x-auto">
+        <table className="w-full min-w-[420px] border-separate border-spacing-x-3 border-spacing-y-3">
           <thead>
             <tr>
-              <th className="text-left text-xs font-medium text-slate-500" />
+              <th className="text-left text-xs font-medium text-muted" />
               {grades.map((grade) => (
-                <th key={grade.key} className="text-center text-xs font-medium text-slate-500">
+                <th key={grade.key} className="text-center text-xs font-medium text-muted">
                   {grade.label}
                 </th>
               ))}
@@ -48,7 +48,7 @@ export function TranscriptSection({ config, values, errors, result, onChange }: 
           <tbody>
             {subjects.map((subject) => (
               <tr key={subject.key}>
-                <th scope="row" className="whitespace-nowrap pr-2 text-left text-sm font-medium text-slate-700">
+                <th scope="row" className="whitespace-nowrap pr-2 text-left text-sm font-medium text-ink">
                   {subject.label}
                 </th>
                 {grades.map((grade) => {
@@ -73,18 +73,18 @@ export function TranscriptSection({ config, values, errors, result, onChange }: 
         </table>
       </div>
 
-      <dl className="mt-2 flex flex-col gap-1 rounded-lg bg-slate-50 p-3 text-sm">
+      <div className="mt-4 flex flex-col gap-2 rounded-lg bg-surface-soft p-4 text-sm">
         <div className="flex items-center justify-between">
-          <dt className="text-slate-500">Trung bình có trọng số</dt>
-          <dd className="font-medium text-slate-800">{result.weightedAverage.toFixed(2)}</dd>
+          <span className="text-muted">Trung bình có trọng số</span>
+          <span className="font-medium text-ink">{result.weightedAverage.toFixed(2)}</span>
         </div>
         <div className="flex items-center justify-between">
-          <dt className="text-slate-500">Chuẩn hóa</dt>
-          <dd className="font-medium text-slate-800">{result.normalizedScore.toFixed(2)} / {config.scoreScale}</dd>
+          <span className="text-muted">Chuẩn hóa</span>
+          <span className="font-medium text-ink">{result.normalizedScore.toFixed(2)} / {config.scoreScale}</span>
         </div>
-      </dl>
+      </div>
 
-      <p className="mt-3 text-xs leading-relaxed text-slate-400">
+      <p className="mt-3 text-xs leading-relaxed text-muted">
         Nếu bạn thay đổi môn học trong tổ hợp giữa lớp 10, 11 và 12, kết quả thực tế có thể được HCMUT
         xử lý theo quy định riêng.
       </p>

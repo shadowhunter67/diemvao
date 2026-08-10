@@ -1,6 +1,6 @@
-import type { AdmissionConfig } from '../types/admission';
-import type { AdmissionFormState, TranscriptFormState } from '../types/form';
-import type { HcmutProgram } from '../types/programs';
+import type { AdmissionConfig } from './types/admission';
+import type { AdmissionFormState, TranscriptFormState } from './types/form';
+import type { HcmutProgram } from './types/programs';
 import { BUFFER_OPTIONS } from './programs';
 import {
   validateBonusComponent,

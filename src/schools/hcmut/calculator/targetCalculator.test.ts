@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { activeAdmissionConfig } from '../config/admission-2026';
 import { calculateAdmissionScore } from './calculator';
-import { calculateAdmissionScoreFromWeightedDgnlRaw, calculateRequiredDgnl } from './targetCalculator';
+import {
+  calculateAdmissionScoreFromWeightedDgnlRaw,
+  calculateRequiredDgnl,
+  calculateRequiredDgnlFromWeightedRaw,
+} from './targetCalculator';
 import type { AdmissionInput } from '../types/admission';
 
 const config = activeAdmissionConfig;
@@ -117,5 +121,69 @@ describe('calculateRequiredDgnl', () => {
     // priority thực nhận phải nhỏ hơn priority quy đổi => xác nhận đã đi qua ngưỡng.
     expect(achieved.baseScore).toBeGreaterThanOrEqual(75);
     expect(achieved.priority.received).toBeLessThan(achieved.priority.converted);
+  });
+});
+
+describe('calculateRequiredDgnlFromWeightedRaw', () => {
+  it('agrees with calculateRequiredDgnl for an equivalent 4-part input (chế độ nhập tổng điểm ĐGNL)', () => {
+    const otherInputs = {
+      thpt: { math: 9, subject2: 8, subject3: 7 },
+      transcript: {
+        grade10: { math: 8, subject2: 8, subject3: 8 },
+        grade11: { math: 8, subject2: 8, subject3: 8 },
+        grade12: { math: 8, subject2: 8, subject3: 8 },
+      },
+      bonus: { reward: 0, considerationReward: 0, encouragement: 0 },
+      priorityRaw30Scale: 0,
+    };
+    // vietnamese + english = 600, math/scientificThinking = 0 -> weightedScore = 600, khớp hệt input chi tiết.
+    const currentWeightedRaw = 600;
+    const detailInput = baseInput({
+      ...otherInputs,
+      dgnl: { vietnamese: 300, english: 300, math: 0, scientificThinking: 0 },
+    });
+
+    const target = 70;
+    const fromWeightedRaw = calculateRequiredDgnlFromWeightedRaw(target, currentWeightedRaw, otherInputs, config);
+    const fromDetailInput = calculateRequiredDgnl(target, detailInput, config);
+
+    expect(fromWeightedRaw.possible).toBe(fromDetailInput.possible);
+    expect(fromWeightedRaw.alreadyReached).toBe(fromDetailInput.alreadyReached);
+    expect(fromWeightedRaw.requiredNormalizedScore).toBeCloseTo(fromDetailInput.requiredNormalizedScore!, 2);
+    expect(fromWeightedRaw.requiredWeightedRawScore).toBeCloseTo(fromDetailInput.requiredWeightedRawScore!, 2);
+  });
+
+  it('alreadyReached khi ĐGNL hiện tại đã đủ đạt mục tiêu', () => {
+    const otherInputs = {
+      thpt: { math: 10, subject2: 10, subject3: 10 },
+      transcript: {
+        grade10: { math: 10, subject2: 10, subject3: 10 },
+        grade11: { math: 10, subject2: 10, subject3: 10 },
+        grade12: { math: 10, subject2: 10, subject3: 10 },
+      },
+      bonus: { reward: 0, considerationReward: 0, encouragement: 0 },
+      priorityRaw30Scale: 0,
+    };
+    const result = calculateRequiredDgnlFromWeightedRaw(90, 1500, otherInputs, config);
+    expect(result.possible).toBe(true);
+    expect(result.alreadyReached).toBe(true);
+    expect(result.requiredNormalizedScore).toBeNull();
+  });
+
+  it('unreachable khi ĐGNL tối đa (1500) vẫn không đủ', () => {
+    const otherInputs = {
+      thpt: { math: 0, subject2: 0, subject3: 0 },
+      transcript: {
+        grade10: { math: 0, subject2: 0, subject3: 0 },
+        grade11: { math: 0, subject2: 0, subject3: 0 },
+        grade12: { math: 0, subject2: 0, subject3: 0 },
+      },
+      bonus: { reward: 0, considerationReward: 0, encouragement: 0 },
+      priorityRaw30Scale: 0,
+    };
+    const result = calculateRequiredDgnlFromWeightedRaw(90, 0, otherInputs, config);
+    expect(result.possible).toBe(false);
+    expect(result.requiredNormalizedScore).toBeNull();
+    expect(result.maxAchievableFinalScore).toBeCloseTo(70, 1);
   });
 });

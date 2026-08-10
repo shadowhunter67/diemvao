@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { activeAdmissionConfig } from '../config/admission-2026';
-import { defaultAdmissionFormState } from '../types/form';
-import type { HcmutProgram } from '../types/programs';
+import { activeAdmissionConfig } from './config/admission-2026';
+import { defaultAdmissionFormState } from './types/form';
+import type { HcmutProgram } from './types/programs';
 import {
   applySearchParamsToForm,
   parseProgramStateFromSearchParams,

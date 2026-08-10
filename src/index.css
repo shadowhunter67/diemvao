@@ -1,78 +1,25 @@
 @import "tailwindcss";
 
+@theme {
+  --color-bg: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-surface-soft: #f1f4f8;
+  --color-ink: #111827;
+  --color-muted: #667085;
+  --color-primary: #183153;
+  --color-accent: #2f6bff;
+  --color-success: #16805c;
+  --color-warning: #b54708;
+  --color-danger: #b42318;
+  --radius-card: 20px;
+  --shadow-card: 0 1px 2px rgba(17, 24, 39, 0.04), 0 12px 24px -12px rgba(17, 24, 39, 0.12);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
 html {
   color-scheme: light;
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
-}
-
-/*
- * Layout chính: mobile xếp dọc theo đúng thứ tự Form -> Result+Target -> Simulator -> Explain,
- * desktop chia 2 cột (form/simulator bên trái, result/target sticky bên phải). Dùng
- * grid-template-areas thay vì Tailwind order/col-start để tránh phải trộn arbitrary value
- * nhiều dòng khó đọc.
- */
-.admission-layout {
-  display: grid;
-  gap: 1.25rem;
-  grid-template-areas:
-    'form'
-    'side'
-    'sim'
-    'history'
-    'explain';
-}
-
-@media (min-width: 1024px) {
-  .admission-layout {
-    grid-template-columns: 1fr 360px;
-    align-items: start;
-    grid-template-areas:
-      'form side'
-      'sim side'
-      'history history'
-      'explain explain';
-  }
-}
-
-.admission-layout-form {
-  grid-area: form;
-}
-.admission-layout-side {
-  grid-area: side;
-}
-.admission-layout-sim {
-  grid-area: sim;
-}
-.admission-layout-history {
-  grid-area: history;
-}
-.admission-layout-explain {
-  grid-area: explain;
-}
-
-/*
- * Trong cột "side": mobile muốn Result -> Ngành mục tiêu -> Target (đúng luồng đọc tuần tự),
- * desktop muốn Result -> Target -> Ngành mục tiêu (Target là hành động chính, Ngành mục tiêu
- * bổ trợ). Dùng flex order thay vì 2 bản JSX khác nhau.
- */
-.admission-layout-side-result {
-  order: 1;
-}
-.admission-layout-side-program {
-  order: 2;
-}
-.admission-layout-side-target {
-  order: 3;
-}
-
-@media (min-width: 1024px) {
-  .admission-layout-side-target {
-    order: 2;
-  }
-  .admission-layout-side-program {
-    order: 3;
-  }
+  @apply bg-bg text-ink antialiased;
 }

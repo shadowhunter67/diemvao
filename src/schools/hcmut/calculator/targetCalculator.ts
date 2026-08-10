@@ -130,3 +130,71 @@ export function calculateRequiredDgnl(
     gap,
   };
 }
+
+/**
+ * Biến thể của calculateRequiredDgnl dùng khi người dùng nhập thẳng ĐGNL sau hệ số
+ * (chế độ "Nhập tổng điểm ĐGNL") thay vì 4 điểm thành phần thật — nên không có
+ * AdmissionInput.dgnl hợp lệ để đưa qua calculateAdmissionScore như hàm gốc. Logic tìm
+ * nghiệm (binary search) giống hệt calculateRequiredDgnl, chỉ khác nguồn lấy currentFinalScore
+ * (từ currentWeightedRaw qua calculateAdmissionScoreFromWeightedDgnlRaw thay vì từ currentInput
+ * đầy đủ) — cố tình không refactor gộp chung với calculateRequiredDgnl để không đụng vào hàm đó.
+ */
+export function calculateRequiredDgnlFromWeightedRaw(
+  targetFinalScore: number,
+  currentWeightedRaw: number,
+  otherInputs: Omit<AdmissionInput, 'dgnl'>,
+  config: AdmissionConfig
+): RequiredDgnlResult {
+  const currentFinalScore = calculateAdmissionScoreFromWeightedDgnlRaw(currentWeightedRaw, otherInputs, config).finalScore;
+  const gap = round2(Math.max(0, targetFinalScore - currentFinalScore));
+
+  if (currentFinalScore >= targetFinalScore - TOLERANCE) {
+    return {
+      possible: true,
+      alreadyReached: true,
+      requiredNormalizedScore: null,
+      requiredWeightedRawScore: null,
+      maxAchievableFinalScore: currentFinalScore,
+      gap,
+    };
+  }
+
+  const maxWeightedRaw = config.dgnl.maxWeightedTotal;
+  const maxAchievableFinalScore = calculateAdmissionScoreFromWeightedDgnlRaw(maxWeightedRaw, otherInputs, config).finalScore;
+
+  if (maxAchievableFinalScore < targetFinalScore - TOLERANCE) {
+    return {
+      possible: false,
+      alreadyReached: false,
+      requiredNormalizedScore: null,
+      requiredWeightedRawScore: null,
+      maxAchievableFinalScore,
+      gap,
+      reason: 'Không thể đạt mục tiêu này chỉ bằng việc tăng điểm ĐGNL.',
+    };
+  }
+
+  let low = 0;
+  let high = maxWeightedRaw;
+  for (let i = 0; i < MAX_ITERATIONS && high - low > 0.001; i++) {
+    const mid = (low + high) / 2;
+    const finalScore = calculateAdmissionScoreFromWeightedDgnlRaw(mid, otherInputs, config).finalScore;
+    if (finalScore >= targetFinalScore) {
+      high = mid;
+    } else {
+      low = mid;
+    }
+  }
+
+  const requiredWeightedRawScore = round2(high);
+  const requiredNormalizedScore = round2((high / maxWeightedRaw) * config.scoreScale);
+
+  return {
+    possible: true,
+    alreadyReached: false,
+    requiredNormalizedScore,
+    requiredWeightedRawScore,
+    maxAchievableFinalScore,
+    gap,
+  };
+}

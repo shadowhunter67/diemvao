@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { activeAdmissionConfig } from '../config/admission-2026';
+import { activeAdmissionConfig } from './config/admission-2026';
 import { validateTargetScore } from './validation';
 
 const config = activeAdmissionConfig;

@@ -1,50 +1,73 @@
-# HCMUT Score Calculator
+# DiemVao
 
-Công cụ tính điểm xét tuyển Đại học Bách khoa – ĐHQG TP.HCM, phương thức Xét tuyển Tổng hợp 2026 (thí sinh có kết quả ĐGNL ĐHQG-HCM 2026). Tính hoàn toàn phía client (không backend, không database, không đăng nhập), realtime khi người dùng nhập điểm gốc.
+Tính & mô phỏng điểm xét tuyển đại học
 
-## Development
+## Giới thiệu
 
-```bash
-npm install
-npm run dev
-```
+DiemVao là công cụ tính điểm xét tuyển đại học, chạy hoàn toàn phía client (không backend, không database, không đăng nhập), realtime khi người dùng nhập điểm gốc. Ngoài tính điểm, DiemVao còn hỗ trợ đặt mục tiêu điểm số, mô phỏng kịch bản, và so sánh với điểm chuẩn tham khảo của các năm trước.
 
-## Build
+DiemVao **không** dự đoán chắc chắn đậu hay đảm bảo trúng tuyển — mọi kết quả so sánh với điểm chuẩn chỉ mang tính tham khảo.
 
-```bash
-npm run build
-```
+## Trường đang hỗ trợ
 
-## Test
+- **HCMUT** — Trường Đại học Bách khoa – ĐHQG TP.HCM, phương thức Xét tuyển Tổng hợp 2026 (thí sinh có kết quả ĐGNL ĐHQG-HCM 2026)
 
-```bash
-npm run test
-```
+## Tính năng
 
-## Deploy
+- Tính điểm xét tuyển realtime từ điểm ĐGNL, THPT, học bạ, điểm cộng, điểm ưu tiên
+- Quy đổi chứng chỉ tiếng Anh quốc tế (IELTS/PTE/TOEFL iBT/TOEIC) sang điểm môn Tiếng Anh thi THPT
+- Đặt mục tiêu điểm số, tính ngược ĐGNL cần đạt (binary search)
+- Mô phỏng kịch bản điểm ĐGNL giả định
+- So sánh với điểm chuẩn tham khảo nhiều ngành, nhiều năm
+- Chia sẻ kết quả qua URL (query params), không cần tài khoản
+- Lưu input gần nhất vào localStorage của trình duyệt
 
-Có thể import repository trực tiếp vào Vercel (framework preset: Vite).
+## Kiến trúc multi-school
 
-## Cấu trúc project
+DiemVao hiện chỉ có một trường (HCMUT), nhưng kiến trúc được chuẩn bị để thêm trường mới mà không phải đập lại toàn bộ codebase:
 
 ```text
 src/
-├── components/     # UI thuần, không chứa công thức tính điểm
-├── config/         # Trọng số + tham số công thức theo từng năm tuyển sinh
-├── data/           # Dataset tĩnh: ngành + điểm chuẩn tham khảo, có validateAdmissionDataset()
-├── lib/            # calculator.ts, targetCalculator.ts, programs.ts, validation.ts, urlState.ts
-├── types/          # admission.ts (business), form.ts (form state), programs.ts (ngành/điểm chuẩn)
-├── App.tsx         # State + localStorage
-└── main.tsx
+├── core/           # Thật sự generic: round2, validateRange, SchoolModule contract
+├── schools/
+│   ├── index.ts    # schoolRegistry + activeSchoolId
+│   └── hcmut/      # Module trường đầu tiên — xem "HCMUT module" bên dưới
+├── config/
+│   └── site.ts     # Brand: tên, tagline, description
+├── components/      # UI dùng chung, không chứa business logic riêng trường nào
+└── App.tsx
 ```
 
-## Cập nhật công thức tuyển sinh
+Nguyên tắc:
 
-Toàn bộ trọng số, hệ số môn Toán, thang điểm tối đa từng thành phần, ngưỡng giảm điểm ưu tiên... nằm ở [src/config/admission-2026.ts](src/config/admission-2026.ts) — không hard-code trong component hay trong `calculator.ts`. Để thêm năm tuyển sinh mới, tạo file `src/config/admission-<năm>.ts` theo cùng cấu trúc `AdmissionConfig` rồi trỏ `activeAdmissionConfig` sang file mới.
+- Logic/công thức riêng của một trường nằm trong `schools/<id>/`, không tràn ra `components/` hay `core/`.
+- Mỗi trường có input schema, thang điểm, phương thức xét tuyển riêng — **không** ép về một "universal formula engine". `SchoolModule` (`src/core/schoolModule.ts`) chỉ chứa thông tin định danh (id, tên, năm) để đăng ký vào `schoolRegistry`, không ép `calculate()` chung chữ ký.
+- Thêm trường thứ hai (ví dụ UIT) = tạo `schools/uit/` theo cấu trúc tương tự + thêm 1 dòng vào `schoolRegistry` (`src/schools/index.ts`). Chưa cần React Router — khi có ≥2 trường mới cần tính đến URL dạng `/hcmut`, `/uit`.
 
-Logic tính điểm nằm ở [src/lib/calculator.ts](src/lib/calculator.ts) — toàn bộ là pure function (`convertDgnlScore`, `convertThptScore`, `convertTranscriptScore`, `calculateAcademicScore`, `calculateBonus`, `calculatePriority`, `calculateAdmissionScore`), không phụ thuộc React, không đọc localStorage. Có test ở [src/lib/calculator.test.ts](src/lib/calculator.test.ts) (Vitest).
+## HCMUT module
 
-## Quy trình tính điểm
+Toàn bộ phần đặc thù HCMUT nằm trong `src/schools/hcmut/`:
+
+```text
+schools/hcmut/
+├── config/admission-2026.ts     # Trọng số + tham số công thức 2026
+├── calculator/
+│   ├── calculator.ts            # Engine tính điểm — pure function, không phụ thuộc React
+│   └── targetCalculator.ts      # Tính ngược ĐGNL cần đạt (binary search) + scenario simulator
+├── data/
+│   ├── programs.ts               # 29 ngành/chương trình
+│   ├── cutoffs.ts                # Điểm chuẩn tham khảo, có sourceLabel/sourceUrl/accessedAt
+│   └── validateDataset.ts        # Kiểm tra toàn vẹn dataset (dev/test)
+├── types/                         # admission.ts, form.ts, programs.ts
+├── programs.ts                    # Helper so sánh ngành / tra cutoff
+├── validation.ts                  # Validator riêng schema HCMUT (dựa trên core/rangeValidation)
+├── urlState.ts                    # Serialize/parse query params riêng schema HCMUT
+└── index.ts                       # export hcmutModule (SchoolModule) để đăng ký registry
+```
+
+Để thêm năm tuyển sinh mới cho HCMUT: tạo `schools/hcmut/config/admission-<năm>.ts` theo cùng cấu trúc `AdmissionConfig` rồi trỏ `activeAdmissionConfig` sang file mới — không cần đổi gì trong `calculator.ts`.
+
+### Công thức HCMUT (không đổi khi rebrand)
 
 ```text
 Điểm gốc (ĐGNL 4 phần thi, THPT 3 môn, học bạ 9 ô điểm 3 năm)
@@ -55,26 +78,53 @@ Logic tính điểm nằm ở [src/lib/calculator.ts](src/lib/calculator.ts) —
   → điểm xét tuyển = học lực + điểm cộng + ưu tiên thực nhận (tối đa 100)
 ```
 
-## Mục tiêu & mô phỏng (Phase 3)
+Chi tiết công thức xem `src/schools/hcmut/calculator/calculator.ts` (pure function, có test ở `calculator.test.ts`).
 
-- **Mục tiêu của bạn**: nhập điểm xét tuyển mục tiêu (0-100), app tính ngược ĐGNL chuẩn hóa cần đạt bằng binary search trên [src/lib/targetCalculator.ts](src/lib/targetCalculator.ts) (`calculateRequiredDgnl`), tái sử dụng nguyên `calculateAdmissionScore` ở mỗi bước — không giải bằng công thức đại số vì điểm ưu tiên thực nhận phụ thuộc phi tuyến vào baseScoreForPriority.
-- **Mô phỏng điểm ĐGNL**: slider thử một mức ĐGNL giả định (0-1500 sau hệ số), có state riêng, không đổi dữ liệu form gốc.
-- **Chia sẻ kết quả**: serialize input hợp lệ (không rỗng, không lỗi) ra query params ngắn (`dg_v`, `th_m`, `tr10_m`, `bn_r`, `pr`, `tg`...) qua [src/lib/urlState.ts](src/lib/urlState.ts). Mở URL sẽ populate form; field lỗi/thiếu bị bỏ qua, không crash app. URL có precedence cao hơn localStorage.
+## Development
 
-## Ngành mục tiêu & điểm chuẩn tham khảo (Phase 4)
+```bash
+npm install
+npm run dev
+```
 
-- **Dataset**: [src/data/hcmut-programs.ts](src/data/hcmut-programs.ts) (29 ngành/chương trình) + [src/data/hcmut-cutoffs.ts](src/data/hcmut-cutoffs.ts) (điểm chuẩn "Xét tuyển Tổng hợp", thang 100). Mỗi cutoff bắt buộc có `sourceLabel`/`sourceUrl`/`accessedAt`. **Dữ liệu chưa đầy đủ**: HCMUT tuyển 70+ ngành, dataset mới có 29 chương trình xác minh được qua báo chí dẫn nguồn công bố chính thức của trường (bảng điểm gốc trên hcmut.edu.vn nhúng dưới dạng ảnh, không fetch được bằng text). Xem chi tiết nguồn ở comment đầu file `hcmut-cutoffs.ts`.
-- **Không gọi là "xác suất đậu"**: toàn bộ UI dùng từ "tham khảo"/"chênh lệch"/"cao hơn"/"thấp hơn", không dùng "đậu/rớt/tỉ lệ đậu".
-- **Ngành mục tiêu**: tìm + chọn ngành, xem điểm chuẩn gần nhất, chênh lệch với điểm hiện tại, bảng lịch sử theo từng năm có dữ liệu thật (không nội suy/bịa năm thiếu).
-- **Dùng làm mục tiêu**: nút trên mỗi cutoff/biên mục tiêu gọi thẳng `setTargetScore`, TargetSection (Phase 3) tự tính lại `calculateRequiredDgnl`.
-- **Biên mục tiêu**: cộng thêm 0/0.5/1/2 điểm vào cutoff để mô phỏng, có disclaimer không phải mức "an toàn tuyệt đối".
-- **So sánh ngành**: pin tối đa 3 ngành ([src/lib/programs.ts](src/lib/programs.ts) `addProgramToComparison`), có sort theo điểm/tên.
-- **Share URL**: mở rộng `urlState.ts` với `program`, `buffer`, `compare` (id không tồn tại bị bỏ qua, không crash).
+Trên Windows có thể double-click [start-dev.bat](start-dev.bat) — tự `npm install` nếu thiếu `node_modules` rồi chạy `npm run dev`.
+
+## Test
+
+```bash
+npm run test
+```
+
+## Lint
+
+```bash
+npm run lint
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+## Deploy
+
+Có thể import repository trực tiếp vào Vercel (framework preset: Vite).
+
+## Data sources
+
+Dataset ngành/điểm chuẩn HCMUT (`src/schools/hcmut/data/`) dẫn nguồn báo chí trích công bố chính thức của trường (bảng điểm gốc trên hcmut.edu.vn nhúng dạng ảnh, không fetch trực tiếp được). Mỗi cutoff có `sourceLabel`/`sourceUrl`/`accessedAt`. Bảng quy đổi chứng chỉ tiếng Anh dẫn nguồn hcmut.edu.vn/tintuc/quy-doi-chung-chi-tieng-anh.
 
 ## Giới hạn hiện tại
 
-- Điểm ưu tiên khu vực/đối tượng đang nhập trực tiếp theo thang 30 (`priorityRaw30Scale`, 0 → 2.75) thay vì chọn Khu vực/Đối tượng ưu tiên qua dropdown, vì project chưa có bảng mapping đối tượng ưu tiên chính xác từ HCMUT.
-- Học bạ chưa xử lý trường hợp thí sinh đổi môn trong tổ hợp giữa lớp 10/11/12 (hiển thị note nhắc thí sinh đối chiếu quy định riêng).
-- localStorage dùng key `hcmut-score-input-v2` + `hcmut-score-target-v1` + `hcmut-score-program-v1`; dữ liệu từ schema cũ (MVP, key `hcmut-score-calculator:input:v1`) không được migrate tự động.
-- Dataset ngành/điểm chuẩn mới có 29/70+ chương trình, chỉ 4 ngành có đủ 2025+2026 để so sánh lịch sử có ý nghĩa; các chương trình tiên tiến/chuyển tiếp quốc tế có note vì tiêu chí xét tuyển có thể khác chuẩn 3 thành phần.
+- Kiến trúc multi-school mới chuẩn bị sẵn, **chưa** implement UIT/HCMUS/UEL hay trường nào khác ngoài HCMUT.
+- Dataset ngành/điểm chuẩn HCMUT mới có 29/70+ chương trình; chỉ 4 ngành có đủ 2025+2026 để so sánh lịch sử có ý nghĩa.
+- Điểm ưu tiên khu vực/đối tượng có dropdown gợi ý điền nhanh (theo bảng chung Bộ GD&ĐT), nhưng ô nhập tay thang 30 vẫn còn để override.
+- Quy đổi chứng chỉ tiếng Anh chỉ áp dụng cho điểm thi THPT, chưa áp dụng cho học bạ.
+- Học bạ chưa xử lý trường hợp thí sinh đổi môn trong tổ hợp giữa lớp 10/11/12.
+- localStorage dùng key `hcmut-score-input-v2` + `hcmut-score-target-v1` + `hcmut-score-program-v1` (giữ nguyên khi rebrand để không mất dữ liệu người dùng cũ).
 - Chưa có: database ngành động, biểu đồ, AI recommendation, xác suất trúng tuyển, login, server, analytics.
+
+## Disclaimer
+
+DiemVao là công cụ độc lập, không thuộc các trường đại học được hỗ trợ. Thí sinh nên đối chiếu thông tin tuyển sinh chính thức của từng trường trước khi quyết định.

@@ -1,6 +1,6 @@
 import type { AdmissionCutoff, HcmutProgram } from '../types/programs';
-import { hcmutCutoffs } from './hcmut-cutoffs';
-import { hcmutPrograms } from './hcmut-programs';
+import { hcmutCutoffs } from './cutoffs';
+import { hcmutPrograms } from './programs';
 
 export type DatasetIssueType =
   | 'duplicate-program-id'

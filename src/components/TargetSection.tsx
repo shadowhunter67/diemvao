@@ -1,5 +1,5 @@
 import { AlertTriangle, CheckCircle2, Target, TrendingUp } from 'lucide-react';
-import type { AdmissionConfig, AdmissionResult, RequiredDgnlResult } from '../types/admission';
+import type { AdmissionConfig, AdmissionResult, RequiredDgnlResult } from '../schools/hcmut/types/admission';
 import { ScoreInput } from './ScoreInput';
 
 interface TargetSectionProps {
@@ -9,6 +9,7 @@ interface TargetSectionProps {
   result: AdmissionResult | null;
   requiredResult: RequiredDgnlResult | null;
   onTargetChange: (value: string) => void;
+  onUseRequiredInSimulator: (weightedRaw: number) => void;
 }
 
 export function TargetSection({
@@ -18,18 +19,19 @@ export function TargetSection({
   result,
   requiredResult,
   onTargetChange,
+  onUseRequiredInSimulator,
 }: TargetSectionProps) {
   const currentFinalScore = result?.finalScore ?? null;
   const hasValidTarget = targetValue.trim() !== '' && targetError === null;
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="rounded-2xl bg-surface-soft p-6 sm:p-8">
       <div className="flex items-center gap-2">
-        <Target size={18} className="text-blue-600" aria-hidden="true" />
-        <h2 className="text-base font-semibold text-slate-900">Mục tiêu của bạn</h2>
+        <Target size={20} className="text-accent" aria-hidden="true" />
+        <h2 className="text-xl font-semibold text-ink">Mục tiêu của bạn</h2>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-6 flex flex-col gap-6">
         <ScoreInput
           id="target-score"
           label="Điểm mục tiêu"
@@ -38,28 +40,38 @@ export function TargetSection({
           error={targetError}
           onChange={onTargetChange}
         />
+
+        {currentFinalScore === null ? (
+          <p className="text-sm text-muted">Nhập điểm để so sánh với mục tiêu.</p>
+        ) : (
+          <div className="flex flex-col gap-3 rounded-lg bg-surface p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted">Hiện tại</span>
+              <p className="text-lg font-semibold text-ink">{currentFinalScore.toFixed(2)}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted">Mục tiêu</span>
+              <p className="text-lg font-semibold text-ink">
+                {hasValidTarget ? Number(targetValue).toFixed(2) : '—'}
+              </p>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted">Còn thiếu</span>
+              <p className="text-lg font-semibold text-ink">
+                {hasValidTarget ? Math.max(0, Number(targetValue) - currentFinalScore).toFixed(2) : '—'}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {currentFinalScore === null ? (
-        <p className="mt-4 text-sm text-slate-400">Nhập điểm để so sánh với mục tiêu.</p>
-      ) : (
-        <dl className="mt-4 flex flex-col gap-1.5 rounded-lg bg-slate-50 p-3 text-sm">
-          <div className="flex items-center justify-between">
-            <dt className="text-slate-500">Điểm hiện tại</dt>
-            <dd className="font-medium text-slate-800">{currentFinalScore.toFixed(2)}</dd>
-          </div>
-          {hasValidTarget && (
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-500">Còn thiếu</dt>
-              <dd className="font-medium text-slate-800">
-                {Math.max(0, Number(targetValue) - currentFinalScore).toFixed(2)}
-              </dd>
-            </div>
-          )}
-        </dl>
+      {requiredResult && (
+        <TargetStatus
+          requiredResult={requiredResult}
+          targetValue={targetValue}
+          onUseRequiredInSimulator={onUseRequiredInSimulator}
+        />
       )}
-
-      {requiredResult && <TargetStatus requiredResult={requiredResult} targetValue={targetValue} />}
     </section>
   );
 }
@@ -67,12 +79,13 @@ export function TargetSection({
 interface TargetStatusProps {
   requiredResult: RequiredDgnlResult;
   targetValue: string;
+  onUseRequiredInSimulator: (weightedRaw: number) => void;
 }
 
-function TargetStatus({ requiredResult, targetValue }: TargetStatusProps) {
+function TargetStatus({ requiredResult, targetValue, onUseRequiredInSimulator }: TargetStatusProps) {
   if (requiredResult.alreadyReached) {
     return (
-      <p className="mt-4 flex items-start gap-2 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
+      <p className="mt-6 flex items-start gap-2 rounded-lg bg-success/10 p-4 text-sm text-success">
         <CheckCircle2 size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
         <span>Bạn đã đạt mức điểm mục tiêu.</span>
       </p>
@@ -81,23 +94,32 @@ function TargetStatus({ requiredResult, targetValue }: TargetStatusProps) {
 
   if (requiredResult.possible) {
     return (
-      <p className="mt-4 flex items-start gap-2 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
-        <TrendingUp size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
-        <span>
-          Để đạt {Number(targetValue).toFixed(2)} điểm, với các thành phần khác giữ nguyên, bạn cần khoảng{' '}
-          <strong>{requiredResult.requiredNormalizedScore!.toFixed(2)}</strong> điểm ĐGNL chuẩn hóa (tổng sau hệ số{' '}
-          {requiredResult.requiredWeightedRawScore!.toFixed(2)}).
-        </span>
-      </p>
+      <div className="mt-6 flex items-start gap-2 rounded-lg bg-accent/10 p-4 text-sm text-primary">
+        <TrendingUp size={18} className="mt-0.5 shrink-0 text-accent" aria-hidden="true" />
+        <div>
+          <p>
+            Để đạt {Number(targetValue).toFixed(2)} điểm, với các thành phần khác giữ nguyên, bạn cần khoảng{' '}
+            <strong>{requiredResult.requiredNormalizedScore!.toFixed(2)}</strong> điểm ĐGNL chuẩn hóa
+            {' '}(≈ {requiredResult.requiredWeightedRawScore!.toFixed(0)} sau hệ số).
+          </p>
+          <button
+            type="button"
+            onClick={() => onUseRequiredInSimulator(requiredResult.requiredWeightedRawScore!)}
+            className="mt-3 inline-flex items-center rounded-md border border-accent/30 bg-surface px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/10 focus:outline-none focus:ring-2 focus:ring-accent/30"
+          >
+            Dùng trong mô phỏng
+          </button>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="mt-4 flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+    <div className="mt-6 flex items-start gap-2 rounded-lg bg-warning/10 p-4 text-sm text-warning">
       <AlertTriangle size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
       <div>
         <p>Không thể đạt mục tiêu này chỉ bằng việc tăng điểm ĐGNL.</p>
-        <p className="mt-1 text-amber-700">
+        <p className="mt-1">
           Điểm tối đa có thể đạt với các dữ liệu khác giữ nguyên: {requiredResult.maxAchievableFinalScore.toFixed(2)}
         </p>
       </div>

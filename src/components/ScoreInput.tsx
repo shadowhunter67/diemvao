@@ -24,10 +24,10 @@ export function ScoreInput({
   return (
     <div>
       <div className="flex items-baseline justify-between gap-2">
-        <label htmlFor={id} className={hideLabel ? 'sr-only' : 'text-sm font-medium text-slate-700'}>
+        <label htmlFor={id} className={hideLabel ? 'sr-only' : 'text-sm font-medium text-ink'}>
           {label}
         </label>
-        {hint && <span className="text-xs text-slate-400">{hint}</span>}
+        {hint && <span className="text-xs text-muted">{hint}</span>}
       </div>
       <input
         id={id}
@@ -38,16 +38,16 @@ export function ScoreInput({
         onChange={(e) => onChange(e.target.value)}
         aria-invalid={error !== null}
         aria-describedby={error ? errorId : undefined}
-        className={`mt-1 w-full rounded-lg border bg-white text-slate-900 shadow-sm outline-none transition focus:ring-2 focus:ring-offset-0 ${
-          compact ? 'px-2 py-1.5 text-sm' : 'px-3 py-2'
+        className={`mt-1 w-full rounded-lg border bg-surface text-ink shadow-sm outline-none transition focus:ring-2 focus:ring-offset-0 ${
+          compact ? 'h-10 px-2.5 text-sm' : 'h-11 px-3.5 sm:h-12'
         } ${
           error
-            ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
-            : 'border-slate-300 focus:border-blue-500 focus:ring-blue-200'
+            ? 'border-danger/50 focus:border-danger focus:ring-danger/20'
+            : 'border-ink/10 focus:border-accent focus:ring-accent/25'
         }`}
       />
       {error && (
-        <p id={errorId} className="mt-1 text-xs text-red-600">
+        <p id={errorId} className="mt-1 text-xs text-danger">
           {error}
         </p>
       )}
