@@ -2,6 +2,10 @@
 
 Tính & mô phỏng điểm xét tuyển đại học
 
+- **Live**: https://diemvao.vercel.app
+- **GitHub**: https://github.com/shadowhunter67/diemvao
+- **Issues**: https://github.com/shadowhunter67/diemvao/issues
+
 ## Giới thiệu
 
 DiemVao là công cụ tính điểm xét tuyển đại học, chạy hoàn toàn phía client (không backend, không database, không đăng nhập), realtime khi người dùng nhập điểm gốc. Ngoài tính điểm, DiemVao còn hỗ trợ đặt mục tiêu điểm số, mô phỏng kịch bản, và so sánh với điểm chuẩn tham khảo của các năm trước.
