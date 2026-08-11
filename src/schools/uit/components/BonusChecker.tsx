@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Award } from 'lucide-react';
 import { UIT_BONUS_CATEGORIES, UIT_BONUS_OVERALL_CAP, type UitBonusCategoryId } from '../data/bonus';
-import { calculateUitBonus } from '../bonus';
+import { calculateUitBonusEligibility } from '../bonus';
 
 export function BonusChecker() {
   const [selected, setSelected] = useState<UitBonusCategoryId[]>([]);
@@ -10,17 +10,18 @@ export function BonusChecker() {
     setSelected((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
   }
 
-  const total = calculateUitBonus(selected);
+  const eligibility = calculateUitBonusEligibility(selected);
+  const eligibleCount = eligibility.eligibleCategories.length;
 
   return (
     <section className="mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
       <div className="flex items-center gap-2">
         <Award size={20} className="text-accent" aria-hidden="true" />
-        <h2 className="text-lg font-semibold text-ink">Điểm cộng của bạn</h2>
+        <h2 className="text-lg font-semibold text-ink">Điều kiện được xét điểm cộng</h2>
       </div>
       <p className="mt-1 text-sm text-muted">
-        Chọn các nhóm bạn đạt điều kiện — điểm cộng chính xác theo bảng công bố, tổng tối đa {UIT_BONUS_OVERALL_CAP}
-        /100.
+        Chọn các nhóm bạn đạt điều kiện — mỗi nhóm có mức trần riêng, tổng điểm cộng theo quy định không vượt quá{' '}
+        {UIT_BONUS_OVERALL_CAP}/100.
       </p>
 
       <div className="mt-4 flex flex-col gap-2">
@@ -51,15 +52,28 @@ export function BonusChecker() {
         })}
       </div>
 
-      <div className="mt-4 flex items-center justify-between rounded-lg bg-surface p-4">
-        <span className="text-sm text-muted">Điểm cộng ước tính</span>
-        <span className="text-2xl font-bold text-primary">
-          {total.toFixed(0)} / {UIT_BONUS_OVERALL_CAP}
-        </span>
+      <div className="mt-4 rounded-lg bg-surface p-4">
+        {eligibleCount === 0 ? (
+          <p className="text-sm text-muted">Chưa chọn nhóm nào.</p>
+        ) : (
+          <>
+            <p className="text-sm text-ink">
+              Bạn thuộc <strong>{eligibleCount}</strong> nhóm có thể được xét điểm cộng.
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              Tổng điểm cộng theo quy định không vượt quá <strong className="text-ink">{eligibility.overallCap}/100</strong>.
+            </p>
+            <p className="mt-2 text-xs text-muted">
+              Uniscore chưa có đủ bảng chính thức để xác định số điểm thực nhận — mức trần từng nhóm chỉ là giới hạn
+              trên, không phải điểm cộng đảm bảo.
+            </p>
+          </>
+        )}
       </div>
 
       <p className="mt-3 text-xs leading-relaxed text-muted">
-        Kết quả dựa trên bảng điểm cộng công bố chính thức 2026 — vẫn cần nộp minh chứng đúng hạn để được xét thật.
+        Kết quả trên chỉ phản ánh điều kiện được xét, dựa trên bảng công bố chính thức 2026 — vẫn cần nộp minh chứng
+        đúng hạn để hội đồng xét thật.
       </p>
     </section>
   );

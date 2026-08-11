@@ -1,24 +1,33 @@
 import { describe, expect, it } from 'vitest';
-import { calculateUitBonus } from './bonus';
+import { calculateUitBonusEligibility } from './bonus';
 import { getAcademicCompetitionSubjects } from './data/bonus';
 
-describe('calculateUitBonus', () => {
-  it('không chọn nhóm nào -> 0', () => {
-    expect(calculateUitBonus([])).toBe(0);
+describe('calculateUitBonusEligibility', () => {
+  it('không chọn nhóm nào -> eligibleCategories rỗng, không có cap', () => {
+    const result = calculateUitBonusEligibility([]);
+    expect(result.eligibleCategories).toEqual([]);
+    expect(result.categoryCaps).toEqual({});
+    expect(result.overallCap).toBe(10);
+    expect(result.exactPointsKnown).toBe(false);
   });
 
-  it('chọn 1 nhóm -> đúng mức trần nhóm đó', () => {
-    expect(calculateUitBonus(['olp-voai'])).toBe(5);
-    expect(calculateUitBonus(['academic-competition'])).toBe(10);
+  it('chọn 1 nhóm -> đúng mức trần nhóm đó, không phải awarded score', () => {
+    expect(calculateUitBonusEligibility(['olp-voai']).categoryCaps).toEqual({ 'olp-voai': 5 });
+    expect(calculateUitBonusEligibility(['academic-competition']).categoryCaps).toEqual({
+      'academic-competition': 10,
+    });
   });
 
-  it('chọn nhiều nhóm cộng lại nhưng cap tổng ở 10', () => {
-    expect(calculateUitBonus(['olp-voai', 'language-certificate'])).toBe(10);
-    expect(calculateUitBonus(['olp-voai', 'language-certificate', 'priority-school'])).toBe(10);
+  it('chọn nhiều nhóm -> categoryCaps liệt kê từng nhóm riêng, overallCap luôn cố định 10, không cộng dồn', () => {
+    const result = calculateUitBonusEligibility(['olp-voai', 'language-certificate', 'priority-school']);
+    expect(result.eligibleCategories).toEqual(['olp-voai', 'language-certificate', 'priority-school']);
+    expect(result.categoryCaps).toEqual({ 'olp-voai': 5, 'language-certificate': 5, 'priority-school': 5 });
+    expect(result.overallCap).toBe(10);
   });
 
-  it('chọn academic-competition (10) cùng nhóm khác vẫn cap ở 10', () => {
-    expect(calculateUitBonus(['academic-competition', 'olp-voai'])).toBe(10);
+  it('exactPointsKnown luôn false — không suy đoán điểm thực nhận', () => {
+    expect(calculateUitBonusEligibility(['academic-competition']).exactPointsKnown).toBe(false);
+    expect(calculateUitBonusEligibility([]).exactPointsKnown).toBe(false);
   });
 });
 

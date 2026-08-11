@@ -3,6 +3,8 @@ import { Footer } from './components/Footer';
 import { LandingPage } from './components/LandingPage';
 import { useRoute } from './hooks/useRoute';
 import { schoolRegistry } from './schools';
+import { setPageMeta } from './core/pageMeta';
+import { siteConfig } from './config/site';
 
 /**
  * "/" -> null (landing). "/<id>" -> id. Ngoại lệ: "/" + query non-empty là share link cũ
@@ -34,6 +36,15 @@ function App() {
   }, [pathname, schoolId, redirect]);
 
   const school = schoolId ? schoolRegistry[schoolId] : undefined;
+
+  useEffect(() => {
+    if (!school) {
+      setPageMeta(`${siteConfig.name} — Điểm xét tuyển đại học`, siteConfig.description);
+      return;
+    }
+    const suffix = school.status === 'supported' ? 'Tính điểm xét tuyển' : 'Điểm chuẩn & tuyển sinh';
+    setPageMeta(`${school.shortName} ${school.year} — ${suffix} | ${siteConfig.name}`);
+  }, [school]);
 
   if (school?.Page) {
     const Page = school.Page;

@@ -16,15 +16,17 @@ interface UitInfoPageProps {
 const YEAR = 2026;
 
 /**
- * UIT Admission Explorer — Level A (thông tin) + B (điểm chuẩn) + C (eligibility/bonus checker,
- * cả hai đều dùng bảng chính xác đã xác minh) đều đã có thật. Level D (exact final score) vẫn
+ * UIT Admission Explorer — Level A (thông tin) + B (điểm chuẩn) + C (admission eligibility checker
+ * dùng bảng ngưỡng chính xác đã xác minh; bonus checker chỉ báo eligibility + mức trần, KHÔNG
+ * suy ra awarded points — xem `bonus.ts`) đều đã có thật. Level D (exact final score) vẫn
  * blocked — thiếu công thức bách phân vị THPT↔ĐGNL, cách tính học bạ, quy đổi SAT/ACT/IB/A-Level
  * — không suy đoán, xem khối cảnh báo trong JSX. Component con: EligibilityChecker, BonusChecker,
  * DirectAdmissionSection (schools/uit/components/) — đều pure-data-driven, không hard-code UI text
  * cho số liệu (đọc từ data/*.ts để nguồn/wording đồng nhất khi cần sửa).
  */
 export function UitInfoPage({ onChangeSchool }: UitInfoPageProps) {
-  const cutoffsByProgram = new Map(uitCutoffs.map((cutoff) => [cutoff.programId, cutoff]));
+  const finalCutoffs = uitCutoffs.filter((cutoff) => (cutoff.status ?? 'final') === 'final');
+  const cutoffsByProgram = new Map(finalCutoffs.map((cutoff) => [cutoff.programId, cutoff]));
 
   return (
     <div className="min-h-svh bg-bg">
@@ -62,8 +64,8 @@ export function UitInfoPage({ onChangeSchool }: UitInfoPageProps) {
             </ul>
             <p className="mt-2 leading-relaxed">
               Đang chờ nguồn chính thức đọc được trực tiếp — không suy đoán công thức để tránh hiển thị kết quả sai.
-              Trong lúc chờ, bạn vẫn có thể kiểm tra điều kiện tham gia xét tuyển, tính điểm cộng chính xác, và xem
-              điểm chuẩn/tuyển thẳng ở dưới.
+              Trong lúc chờ, bạn vẫn có thể kiểm tra điều kiện tham gia xét tuyển, xem mình đủ điều kiện được xét
+              điểm cộng nhóm nào, và xem điểm chuẩn/tuyển thẳng ở dưới.
             </p>
           </div>
         </section>
@@ -104,7 +106,9 @@ export function UitInfoPage({ onChangeSchool }: UitInfoPageProps) {
                     <tr key={program.id} className="border-t border-ink/5">
                       <td className="py-2.5 pr-3 text-ink">{program.name}</td>
                       <td className="py-2.5 pr-3 text-muted">{program.code}</td>
-                      <td className="py-2.5 font-medium text-ink">{cutoff ? cutoff.score.toFixed(2) : '—'}</td>
+                      <td className="py-2.5 font-medium text-ink">
+                        {cutoff ? cutoff.score.toFixed(2) : <span className="font-normal text-muted">Chưa công bố</span>}
+                      </td>
                     </tr>
                   );
                 })}

@@ -1,8 +1,13 @@
 /**
  * Điểm cộng UIT 2026 — nguồn: thông báo đăng ký minh chứng xét điểm cộng (xem sources.ts,
- * id 'uit-bonus-2026'). Mỗi nhóm có mức trần CỐ ĐỊNH — trong nhóm không có thang trượt theo
- * hạng giải/mức chứng chỉ (đạt điều kiện là nhận trọn mức trần của nhóm đó), nên đây là bảng
- * đủ chính xác để tính điểm cộng thật, không phải suy đoán.
+ * id 'uit-bonus-2026'), đọc text thuần, verification 'verified'. Research gốc (2026-05-20) ghi
+ * nhận nguồn nói mỗi nhóm có mức trần cố định, không thang trượt trong nhóm.
+ *
+ * Dù vậy, UniScore chủ động KHÔNG hiển thị "đạt điều kiện ⇒ nhận trọn mức trần" như một điểm số
+ * cuối cùng: đây là quyết định policy thận trọng (thà under-claim), không phải bằng chứng mới
+ * phủ định research cũ — hồ sơ xét duyệt thực tế (minh chứng, hội đồng) vẫn có thể có bước xác
+ * nhận/điều chỉnh ngoài phạm vi thông báo đã đọc. `maxPoints` dưới đây là UPPER BOUND của từng
+ * nhóm, không phải awardedPoints — xem `calculateUitBonusEligibility` trong `../bonus.ts`.
  */
 export type UitBonusCategoryId =
   | 'academic-competition'
