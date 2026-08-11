@@ -87,7 +87,7 @@ Bối cảnh: 118 trường ĐH/CĐ đăng ký dùng kết quả ĐGNL ĐHQG-HCM
 | Trường | Dùng ĐGNL? | officialSource | calculatorWorthBuilding |
 |---|---|---|---|
 | **FTU — Ngoại thương** | Có | thongtintuyensinh.ftu.edu.vn/admissions-methods | ✅ **true** — công thức tuyến tính đơn giản, đã xác minh |
-| **UEH — Kinh tế TP.HCM** | Có | tuyensinh.ueh.edu.vn | ✅ true (cần lấy thêm bảng mốc nội suy đầy đủ) |
+| **UEH — Kinh tế TP.HCM** | Có | tuyensinh.ueh.edu.vn | ✅ true — **đã lấy đủ bảng, đã implement Explorer + tool quy đổi thật** (xem ghi chú dưới, `schools/ueh/`) |
 | NEU — Kinh tế Quốc dân | Có | neu.edu.vn (PDF) | ⚠️ chưa chắc — cần đọc PDF đề án gốc |
 | HCMUTE — Sư phạm Kỹ thuật TP.HCM | Có | xettuyen.hcmute.edu.vn | ❌ false — trọng số chưa công khai |
 | IUH — Công nghiệp TP.HCM | Có | tuyensinh.iuh.edu.vn (PDF, lỗi SSL khi fetch) | ❌ false (tạm thời) |
@@ -98,6 +98,10 @@ Bối cảnh: 118 trường ĐH/CĐ đăng ký dùng kết quả ĐGNL ĐHQG-HCM
 **FTU** — công thức xác nhận: `Điểm quy đổi thang 30 = 27 + (Điểm ĐGNL − 850) × 3/350`, ngưỡng tối thiểu 850/1200, cộng thêm điểm ưu tiên/khuyến khích tối đa 3/30. Nguồn: `thongtintuyensinh.ftu.edu.vn/admissions-methods` (chính thức).
 
 **UEH** — công thức: `Điểm xét tuyển (thang 100) = Điểm thi quy đổi×60% + ĐTB THPT quy đổi×40% + điểm cộng + điểm ưu tiên`; ĐGNL quy đổi bằng nội suy tuyến tính (ví dụ: 950 điểm ĐGNL → 25.55/30). Ngưỡng: 65/100 (UEH TP.HCM) / 60/100 (UEH Mekong). Nguồn: `tuyensinh.ueh.edu.vn` (chính thức).
+  - **Research bổ sung + IMPLEMENT 2026-08-11** (xem `schools/ueh/`): lấy được ĐẦY ĐỦ bảng 12 khoảng quy đổi ĐGNL→THPT (đọc trực tiếp trang, không phải ảnh — hiếm, tốt hơn hẳn UIT/HCMUS) + công thức học bạ chính xác `(ĐTB10×1+ĐTB11×2+ĐTB12×3)/6` + ngưỡng 65/60 + điểm chuẩn 97 chương trình (82 KSA + 15 KSV, đọc bảng HTML qua fetch tool, verification `cross-checked` — KHÔNG đối chiếu 2 lần độc lập như cách đọc ảnh của HCMUT/UIT/UEL, nên nếu phát hiện sai số ưu tiên kiểm tra lại trực tiếp). Implement `convertDgnlToThpt()` như tool thật (`scoreConversion: true`) — LẦN ĐẦU TIÊN một trường ngoài HCMUT có capability này. Exact final calculator vẫn blocked: bước quy đổi cuối (điểm thi thang 30 + học bạ → thang 100) không đủ rõ, và bảng điểm cộng/ưu tiên chỉ có ví dụ minh họa (IELTS 6.0→5 điểm), không phải bảng đầy đủ.
+- **OU (Đại học Mở TP.HCM)** — research 2026-08-11: dùng ĐGNL như 1 trong 6 phương thức ĐỘC LẬP (không phải trọng số trong công thức kết hợp) — điểm ĐGNL raw dùng trực tiếp làm điểm xét. Điểm cộng có 2 mục biết mức (khuyến khích ngoại ngữ, xét thưởng học bạ 0,5–1,0, thưởng HSG 0,5–1,5) nhưng KHÔNG có ngưỡng sàn ĐGNL, KHÔNG có cutoff, KHÔNG có danh sách ngành trong nguồn đã đọc. **KHÔNG implement** — Explorer không có cutoff/danh sách ngành thì giá trị quá thấp. Nguồn: `ou.edu.vn`, `tuyensinh.ou.edu.vn` (chính thức, đã fetch trực tiếp).
+- **IUH (Đại học Công nghiệp TP.HCM)** — research 2026-08-11: có công cụ tính điểm CHÍNH THỨC (`tuyensinh.iuh.edu.vn/thiSinh/fTinhDiem_2026`, nhận input ĐGNL/ưu tiên/thành tích/IELTS-TOEIC-VSTEP) và biết trường dùng bảng bách phân vị quốc gia (Phụ lục 2, Thông tư 06/2026/TT-BGDĐT) để quy đổi ĐGNL. Nhưng theo đúng rule "không coi UI tool = verified formula nếu chưa đối chiếu văn bản gốc" — CHƯA tìm được văn bản/quy chế liệt kê trọng số cụ thể đằng sau tool, nên KHÔNG gọi formula verified. Cutoff 2026 biết range chung 17–26/30 (không phải per-ngành). **KHÔNG implement.**
+  - **Lead quan trọng phát hiện khi research IUH**: bảng bách phân vị quốc gia (ĐHQG-HCM công bố 6/7/2026, 5 tổ hợp A00/A01/B00/C00/D01, theo Thông tư 06/2026 Phụ lục 2) RẤT CÓ THỂ là đúng bảng mà UIT ("phương pháp bách phân vị") và HCMUS (nội suy A1/A2/X1/X2) đều thiếu — xem `docs/external-vact-registry.md` mục lead. Chưa lấy được bảng 2026 thật (trang `vnuhcm.edu.vn` render JS, WebFetch không đọc được; bản tìm thấy trên `chinhphu.vn` là năm 2025, không dùng được).
 
 ## Shortlist ưu tiên implement tiếp theo (deliverable bắt buộc)
 
