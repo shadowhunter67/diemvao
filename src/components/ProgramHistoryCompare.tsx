@@ -1,6 +1,12 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
-import { MAX_COMPARISON_PINS, calculateGap, getLatestComparableCutoff, getProgramById } from '../schools/hcmut/programs';
+import { AlertTriangle, X } from 'lucide-react';
+import {
+  CURRENT_ADMISSION_YEAR,
+  MAX_COMPARISON_PINS,
+  calculateGap,
+  getLatestComparableCutoff,
+  getProgramById,
+} from '../schools/hcmut/programs';
 import type { AdmissionCutoff, HcmutProgram } from '../schools/hcmut/types/programs';
 import { hcmutSources } from '../schools/hcmut/sources';
 import { verificationLabel } from '../core/trust';
@@ -81,6 +87,20 @@ export function ProgramHistoryCompare({
                   </tr>
                 </thead>
                 <tbody>
+                  {!historicalCutoffs.some((c) => c.year === CURRENT_ADMISSION_YEAR) && (
+                    <tr className="border-t border-ink/5">
+                      <td className="py-2.5 pr-3">
+                        <span className="rounded-full bg-surface px-2 py-0.5 text-xs font-medium text-ink">
+                          {CURRENT_ADMISSION_YEAR}
+                        </span>
+                      </td>
+                      <td className="py-2.5 pr-3 text-muted">Chưa công bố</td>
+                      <td className="py-2.5 pr-3 text-ink">
+                        {currentFinalScore === null ? '—' : currentFinalScore.toFixed(2)}
+                      </td>
+                      <td className="py-2.5 text-muted">—</td>
+                    </tr>
+                  )}
                   {historicalCutoffs.map((cutoff) => {
                     const gap = currentFinalScore !== null ? calculateGap(currentFinalScore, cutoff.score) : null;
                     return (
@@ -100,6 +120,15 @@ export function ProgramHistoryCompare({
                   })}
                 </tbody>
               </table>
+              {historicalCutoffs.some((c) => c.comparableToPrevious === false) && (
+                <div className="mt-2 flex items-start gap-2 rounded-lg bg-warning/10 p-3 text-xs text-warning">
+                  <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+                  <span>
+                    Phương thức/cách tính giữa các năm khác nhau; hai mức điểm không hoàn toàn tương đương, chỉ mang
+                    tính tham khảo.
+                  </span>
+                </div>
+              )}
               {historicalCutoffs.some((c) => c.note) && (
                 <ul className="mt-2 flex flex-col gap-1 text-xs text-warning">
                   {historicalCutoffs

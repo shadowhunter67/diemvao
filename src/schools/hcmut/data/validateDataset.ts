@@ -5,7 +5,7 @@ import { hcmutPrograms } from './programs';
 export type DatasetIssueType =
   | 'duplicate-program-id'
   | 'cutoff-unknown-program'
-  | 'duplicate-year-program'
+  | 'multiple-final-year-program'
   | 'score-out-of-range'
   | 'invalid-year';
 
@@ -16,8 +16,10 @@ export interface DatasetIssue {
 
 /**
  * Kiểm tra tính toàn vẹn của dataset ngành/điểm chuẩn: id trùng, cutoff trỏ ngành không tồn
- * tại, trùng (năm, ngành), điểm ngoài 0..100, năm không hợp lệ. Dùng trong dev/tests, không
- * chạy trong production bundle.
+ * tại, >1 bản 'final' cho cùng (năm, ngành), điểm ngoài 0..100, năm không hợp lệ. Trùng (năm,
+ * ngành) giữa 1 bản 'final' + N bản 'superseded' là HỢP LỆ (lịch sử điều chỉnh trong mùa tuyển
+ * sinh, xem core/admissionHistory.ts) — không bị coi là lỗi. Dùng trong dev/tests, không chạy
+ * trong production bundle.
  */
 export function validateAdmissionDataset(
   programs: HcmutProgram[] = hcmutPrograms,
@@ -34,7 +36,7 @@ export function validateAdmissionDataset(
   }
 
   const programIds = new Set(programs.map((program) => program.id));
-  const seenYearProgram = new Set<string>();
+  const finalCountByYearProgram = new Map<string, number>();
   const maxValidYear = new Date().getFullYear() + 1;
 
   for (const cutoff of cutoffs) {
@@ -45,11 +47,10 @@ export function validateAdmissionDataset(
       });
     }
 
-    const key = `${cutoff.year}::${cutoff.programId}`;
-    if (seenYearProgram.has(key)) {
-      issues.push({ type: 'duplicate-year-program', message: `Trùng (năm, ngành): ${key}` });
+    if ((cutoff.status ?? 'final') === 'final') {
+      const key = `${cutoff.year}::${cutoff.programId}`;
+      finalCountByYearProgram.set(key, (finalCountByYearProgram.get(key) ?? 0) + 1);
     }
-    seenYearProgram.add(key);
 
     if (!Number.isFinite(cutoff.score) || cutoff.score < 0 || cutoff.score > 100) {
       issues.push({
@@ -60,6 +61,15 @@ export function validateAdmissionDataset(
 
     if (!Number.isInteger(cutoff.year) || cutoff.year < 2000 || cutoff.year > maxValidYear) {
       issues.push({ type: 'invalid-year', message: `Năm không hợp lệ: ${cutoff.year} (${cutoff.programId})` });
+    }
+  }
+
+  for (const [key, count] of finalCountByYearProgram) {
+    if (count > 1) {
+      issues.push({
+        type: 'multiple-final-year-program',
+        message: `Có ${count} bản 'final' cho cùng (năm, ngành): ${key} — chỉ được 1 bản final, các bản cũ phải đánh dấu 'superseded'`,
+      });
     }
   }
 

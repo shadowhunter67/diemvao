@@ -2,14 +2,22 @@ import type { UitCutoff, UitProgram } from '../types/programs';
 import { uitCutoffs } from './cutoffs';
 import { uitPrograms } from './programs';
 
-export type DatasetIssueType = 'duplicate-program-id' | 'cutoff-unknown-program' | 'duplicate-year-program' | 'score-out-of-range';
+export type DatasetIssueType =
+  | 'duplicate-program-id'
+  | 'cutoff-unknown-program'
+  | 'multiple-final-year-program'
+  | 'score-out-of-range';
 
 export interface DatasetIssue {
   type: DatasetIssueType;
   message: string;
 }
 
-/** Kiểm tra tính toàn vẹn dataset ngành/điểm chuẩn UIT — cùng pattern với schools/hcmut/data/validateDataset.ts. */
+/**
+ * Kiểm tra tính toàn vẹn dataset ngành/điểm chuẩn UIT — cùng pattern với
+ * schools/hcmut/data/validateDataset.ts, kể cả cho phép trùng (năm, ngành) nếu là 1 bản
+ * 'final' + N bản 'superseded' (xem core/admissionHistory.ts).
+ */
 export function validateUitDataset(
   programs: UitProgram[] = uitPrograms,
   cutoffs: UitCutoff[] = uitCutoffs
@@ -25,7 +33,7 @@ export function validateUitDataset(
   }
 
   const programIds = new Set(programs.map((program) => program.id));
-  const seenYearProgram = new Set<string>();
+  const finalCountByYearProgram = new Map<string, number>();
 
   for (const cutoff of cutoffs) {
     if (!programIds.has(cutoff.programId)) {
@@ -35,16 +43,24 @@ export function validateUitDataset(
       });
     }
 
-    const key = `${cutoff.year}::${cutoff.programId}`;
-    if (seenYearProgram.has(key)) {
-      issues.push({ type: 'duplicate-year-program', message: `Trùng (năm, ngành): ${key}` });
+    if ((cutoff.status ?? 'final') === 'final') {
+      const key = `${cutoff.year}::${cutoff.programId}`;
+      finalCountByYearProgram.set(key, (finalCountByYearProgram.get(key) ?? 0) + 1);
     }
-    seenYearProgram.add(key);
 
     if (!Number.isFinite(cutoff.score) || cutoff.score < 0 || cutoff.score > 100) {
       issues.push({
         type: 'score-out-of-range',
         message: `Điểm chuẩn ngoài khoảng 0..100: ${cutoff.score} (${cutoff.programId}, ${cutoff.year})`,
+      });
+    }
+  }
+
+  for (const [key, count] of finalCountByYearProgram) {
+    if (count > 1) {
+      issues.push({
+        type: 'multiple-final-year-program',
+        message: `Có ${count} bản 'final' cho cùng (năm, ngành): ${key} — chỉ được 1 bản final, các bản cũ phải đánh dấu 'superseded'`,
       });
     }
   }

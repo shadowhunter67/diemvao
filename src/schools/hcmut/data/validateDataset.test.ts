@@ -25,14 +25,24 @@ describe('validateAdmissionDataset', () => {
     expect(issues.some((i) => i.type === 'cutoff-unknown-program')).toBe(true);
   });
 
-  it('phát hiện trùng (năm, ngành)', () => {
+  it('phát hiện >1 bản final cho cùng (năm, ngành)', () => {
     const programs: HcmutProgram[] = [{ id: 'a', name: 'Ngành A' }];
     const cutoffs: AdmissionCutoff[] = [
       { year: 2026, programId: 'a', score: 80, method: 'combined', ...source },
       { year: 2026, programId: 'a', score: 81, method: 'combined', ...source },
     ];
     const issues = validateAdmissionDataset(programs, cutoffs);
-    expect(issues.some((i) => i.type === 'duplicate-year-program')).toBe(true);
+    expect(issues.some((i) => i.type === 'multiple-final-year-program')).toBe(true);
+  });
+
+  it('KHÔNG lỗi khi 1 bản final + 1 bản superseded cùng (năm, ngành) — lịch sử điều chỉnh hợp lệ', () => {
+    const programs: HcmutProgram[] = [{ id: 'a', name: 'Ngành A' }];
+    const cutoffs: AdmissionCutoff[] = [
+      { year: 2026, programId: 'a', score: 60, method: 'combined', status: 'superseded', ...source },
+      { year: 2026, programId: 'a', score: 81, method: 'combined', status: 'final', ...source },
+    ];
+    const issues = validateAdmissionDataset(programs, cutoffs);
+    expect(issues).toEqual([]);
   });
 
   it('phát hiện điểm ngoài khoảng 0..100', () => {

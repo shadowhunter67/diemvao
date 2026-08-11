@@ -7,6 +7,8 @@ export interface UitSource {
   url: string;
   accessedAt: string;
   verification: VerificationLevel;
+  /** Lần admin/data-maintainer gần nhất xác nhận lại record này còn đúng, ISO date. Optional — chỉ set khi có review thật, không backfill hàng loạt. */
+  lastReviewedAt?: string;
 }
 
 /**

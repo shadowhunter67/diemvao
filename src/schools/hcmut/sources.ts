@@ -9,6 +9,8 @@ export interface DataSource {
   kind: 'official' | 'official-republication' | 'news-republication';
   /** Mức độ tin cậy thật của evidence — dùng để hiển thị wording đúng mức, không nói mạnh hơn bằng chứng. */
   verification: VerificationLevel;
+  /** Lần admin/data-maintainer gần nhất xác nhận lại record này còn đúng, ISO date. Optional — chỉ set khi có review thật, không backfill hàng loạt. */
+  lastReviewedAt?: string;
 }
 
 /**
