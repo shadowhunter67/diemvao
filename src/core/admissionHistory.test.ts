@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   finalCutoffsSortedDesc,
+  getCutoffAvailability,
   isYearPublished,
   latestFinalCutoff,
   nearestPreviousFinalCutoff,
@@ -65,5 +66,28 @@ describe('finalCutoffsSortedDesc', () => {
       { year: 2025, score: 70 },
     ];
     expect(finalCutoffsSortedDesc(records).map((r) => r.year)).toEqual([2025, 2024]);
+  });
+});
+
+describe('getCutoffAvailability', () => {
+  it("'published' khi có record final đúng năm", () => {
+    const records: FakeCutoff[] = [{ year: 2026, score: 80 }];
+    expect(getCutoffAvailability(records, 2026)).toBe('published');
+  });
+
+  it("'not-published' chỉ khi có NotPublishedCheck xác nhận, không tự suy từ absence", () => {
+    const records: FakeCutoff[] = [];
+    expect(getCutoffAvailability(records, 2026)).toBe('unknown');
+    expect(getCutoffAvailability(records, 2026, [{ year: 2026 }])).toBe('not-published');
+  });
+
+  it("'published' được ưu tiên hơn 'not-published' nếu cả hai đều có mặt (final ghi đè check cũ)", () => {
+    const records: FakeCutoff[] = [{ year: 2026, score: 80 }];
+    expect(getCutoffAvailability(records, 2026, [{ year: 2026 }])).toBe('published');
+  });
+
+  it("'unknown' khi record duy nhất của năm đó đã superseded và không có check nào", () => {
+    const records: FakeCutoff[] = [{ year: 2026, score: 60, status: 'superseded' }];
+    expect(getCutoffAvailability(records, 2026)).toBe('unknown');
   });
 });

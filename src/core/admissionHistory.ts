@@ -57,3 +57,41 @@ export function nearestPreviousFinalCutoff<T extends HistoricalCutoffLike>(
 export function finalCutoffsSortedDesc<T extends HistoricalCutoffLike>(records: T[]): T[] {
   return records.filter(isFinal).sort((a, b) => b.year - a.year);
 }
+
+/**
+ * Xác nhận CHỦ ĐỘNG rằng đã kiểm tra nguồn chính thức và trường CHƯA công bố cutoff năm đó —
+ * khác hẳn "không có record vì chưa research" hay "research rồi nhưng chưa tìm được nguồn đủ
+ * mạnh" (2 trường hợp đó vẫn chỉ là absence, không cần record). Đây là type RIÊNG, KHÔNG trộn
+ * vào mảng cutoff của từng trường (AdmissionCutoff/UitCutoff/UelCutoff) — giữ `score` ở các type
+ * đó luôn là number thật, tránh phải optional-hóa và narrow lại `score` ở mọi nơi UI đọc cutoff
+ * chỉ để phục vụ 1 trường hợp hiếm. Ví dụ thật: xem `src/data/notPublishedCutoffChecks.ts`
+ * (USSH 2026, research 2026-08-11, dự kiến công bố 2026-08-13).
+ */
+export interface NotPublishedCheck {
+  schoolId: string;
+  /** Bỏ trống = áp dụng cho cả trường/phương thức, không riêng 1 ngành. */
+  programId?: string;
+  year: number;
+  /** Ngày thực sự đối chiếu lại nguồn — không phải ngày tạo record. */
+  checkedAt: string;
+  sourceUrl?: string;
+  notes?: string;
+}
+
+export type CutoffAvailability = 'published' | 'not-published' | 'unknown';
+
+/**
+ * 'published': có record 'final' cho năm đó.
+ * 'not-published': KHÔNG có record final, NHƯNG có NotPublishedCheck xác nhận đã kiểm tra.
+ * 'unknown': không có gì cả — chưa research, hoặc research chưa đủ nguồn. KHÔNG được hiển thị
+ * như "trường chưa công bố" (đó là kết luận cần bằng chứng, không phải suy ra từ im lặng).
+ */
+export function getCutoffAvailability<T extends HistoricalCutoffLike>(
+  records: T[],
+  year: number,
+  notPublishedChecks: Pick<NotPublishedCheck, 'year'>[] = []
+): CutoffAvailability {
+  if (isYearPublished(records, year)) return 'published';
+  if (notPublishedChecks.some((check) => check.year === year)) return 'not-published';
+  return 'unknown';
+}
