@@ -8,16 +8,16 @@ describe('schoolRegistry', () => {
     expect(schoolRegistry.hcmut.id).toBe('hcmut');
   });
 
-  it('hcmut, uit, uel có Page (route thật) — App shell chỉ cần tra registry, không tự biết bên trong', () => {
+  it('hcmut, uit, uel, ueh có Page (route thật) — App shell chỉ cần tra registry, không tự biết bên trong', () => {
     expect(schoolRegistry.hcmut.Page).toBeDefined();
     expect(schoolRegistry.uit.Page).toBeDefined();
     expect(schoolRegistry.uel.Page).toBeDefined();
+    expect(schoolRegistry.ueh.Page).toBeDefined();
   });
 
   it('các trường formula-incomplete/researching còn lại chưa có Page', () => {
-    const withoutPage = Object.values(schoolRegistry).filter(
-      (school) => school.id !== 'hcmut' && school.id !== 'uit' && school.id !== 'uel'
-    );
+    const withPage = new Set(['hcmut', 'uit', 'uel', 'ueh']);
+    const withoutPage = Object.values(schoolRegistry).filter((school) => !withPage.has(school.id));
     for (const school of withoutPage) {
       expect(school.Page).toBeUndefined();
     }
@@ -35,8 +35,8 @@ describe('schoolRegistry', () => {
     expect(supported).toEqual([hcmutModule]);
   });
 
-  it('có đủ 7 trường ĐHQG-HCM đã research (ngoài HCMUT)', () => {
+  it('có đủ các trường đã research (ĐHQG-HCM + UEH ngoài hệ thống)', () => {
     const ids = Object.keys(schoolRegistry).sort();
-    expect(ids).toEqual(['agu', 'hcmus', 'hcmut', 'iu', 'uel', 'uhs', 'uit', 'ussh']);
+    expect(ids).toEqual(['agu', 'hcmus', 'hcmut', 'iu', 'ueh', 'uel', 'uhs', 'uit', 'ussh']);
   });
 });

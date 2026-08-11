@@ -2,6 +2,7 @@ import type { SchoolModule } from '../core/schoolModule';
 import { hcmutModule } from './hcmut';
 import { uitModule } from './uit';
 import { uelModule } from './uel';
+import { uehModule } from './ueh';
 
 /**
  * Các trường ĐHQG-HCM khác đã research (xem docs/admission-research-2026.md) nhưng CHƯA có
@@ -60,5 +61,8 @@ export const schoolRegistry: Record<string, SchoolModule> = {
   hcmut: hcmutModule,
   uit: uitModule,
   uel: uelModule,
+  // UEH không thuộc ĐHQG-HCM (dùng V-ACT như 1 trong 6 phương thức độc lập, không phải trọng số
+  // trong công thức tổng hợp) — vẫn đăng ký chung registry, không cần phân biệt UI.
+  ueh: uehModule,
   ...Object.fromEntries(researchedSchools.map((school) => [school.id, school])),
 };
