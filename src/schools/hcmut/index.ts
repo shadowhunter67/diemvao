@@ -16,5 +16,13 @@ export const hcmutModule: SchoolModule = {
   shortName: 'HCMUT',
   year: 2026,
   status: 'supported',
+  capabilities: {
+    admissionInfo: true,
+    programs: true,
+    eligibility: true,
+    cutoffs: true,
+    scoreConversion: true,
+    exactCalculator: true,
+  },
   Page: HcmutCalculatorPage,
 };

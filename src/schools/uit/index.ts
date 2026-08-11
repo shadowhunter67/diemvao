@@ -14,5 +14,13 @@ export const uitModule: SchoolModule = {
   year: 2026,
   status: 'researching',
   summary: 'Dữ liệu tuyển sinh 2026 đầy đủ (điểm chuẩn, ngưỡng, điểm cộng) · Calculator chính xác đang chờ bảng quy đổi bách phân vị',
+  capabilities: {
+    admissionInfo: true,
+    programs: true,
+    eligibility: true,
+    cutoffs: true,
+    scoreConversion: false,
+    exactCalculator: false,
+  },
   Page: UitInfoPage,
 };

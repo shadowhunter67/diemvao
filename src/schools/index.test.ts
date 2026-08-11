@@ -8,14 +8,15 @@ describe('schoolRegistry', () => {
     expect(schoolRegistry.hcmut.id).toBe('hcmut');
   });
 
-  it('hcmut và uit có Page (route thật) — App shell chỉ cần tra registry, không tự biết bên trong', () => {
+  it('hcmut, uit, uel có Page (route thật) — App shell chỉ cần tra registry, không tự biết bên trong', () => {
     expect(schoolRegistry.hcmut.Page).toBeDefined();
     expect(schoolRegistry.uit.Page).toBeDefined();
+    expect(schoolRegistry.uel.Page).toBeDefined();
   });
 
   it('các trường formula-incomplete/researching còn lại chưa có Page', () => {
     const withoutPage = Object.values(schoolRegistry).filter(
-      (school) => school.id !== 'hcmut' && school.id !== 'uit'
+      (school) => school.id !== 'hcmut' && school.id !== 'uit' && school.id !== 'uel'
     );
     for (const school of withoutPage) {
       expect(school.Page).toBeUndefined();

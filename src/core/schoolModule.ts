@@ -14,6 +14,22 @@ import type { ReactElement } from 'react';
  */
 export type SchoolStatus = 'supported' | 'researching' | 'formula-incomplete';
 
+/**
+ * Mô tả capability thật ở mức chi tiết hơn `status` — một trường có thể có info/cutoff/
+ * eligibility mà KHÔNG có exact calculator (như UIT, UEL), khác hẳn `status: 'researching'`
+ * dùng chung cho cả trường "researching mới chỉ có định danh" lẫn "researching đã có info/
+ * cutoff/eligibility thật". Optional, additive migration — trường chưa set field này (HCMUT,
+ * các trường identity-only) vẫn hoạt động bình thường, LandingPage tự suy ra từ `status`.
+ */
+export interface SchoolCapabilities {
+  admissionInfo: boolean;
+  programs: boolean;
+  eligibility: boolean;
+  cutoffs: boolean;
+  scoreConversion: boolean;
+  exactCalculator: boolean;
+}
+
 export interface SchoolModule {
   id: string;
   /** Tên đầy đủ, dùng khi cần trình bày trang trọng (school context, footer, share). */
@@ -28,6 +44,8 @@ export interface SchoolModule {
    * researching mới chỉ có định danh). Bỏ trống thì LandingPage dùng wording mặc định theo status.
    */
   summary?: string;
+  /** Optional, xem SchoolCapabilities — chưa set thì LandingPage suy theo `status` như cũ. */
+  capabilities?: SchoolCapabilities;
   /**
    * Component trang riêng của trường (calculator thật, hoặc trang thông tin nếu chưa đủ nguồn
    * để tính điểm). App shell chỉ biết render `<Page />` khi có — không biết/không cần biết bên
