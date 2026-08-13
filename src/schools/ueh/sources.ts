@@ -17,6 +17,16 @@ export interface UehSource {
 
 export const uehSources: UehSource[] = [
   {
+    id: 'ueh-ksa-ksv-info-2026',
+    publisher: 'Trường Đại học Kinh tế TP.HCM',
+    title:
+      'Thông tin tuyển sinh Đại học chính quy mã trường KSA, KSV Khóa 52 năm 2026 — công thức xét tuyển tích hợp, bảng điểm cộng/điểm ưu tiên đầy đủ',
+    url: 'https://tuyensinh.ueh.edu.vn/bai-viet/thong-tin-tuyen-sinh-dai-hoc-chinh-quy-ma-truong-ksa-ksv-khoa-52-nam-2026/',
+    accessedAt: '2026-08-13',
+    sourceType: 'official-school',
+    verification: 'verified',
+  },
+  {
     id: 'ueh-formula-2026',
     publisher: 'Trường Đại học Kinh tế TP.HCM',
     title: 'Thông tin tuyển sinh Đại học chính quy Khóa 52 năm 2026 — công thức Xét tuyển tích hợp (60% điểm thi quy đổi + 40% học bạ quy đổi, thang 100)',
@@ -31,6 +41,7 @@ export const uehSources: UehSource[] = [
     title: 'Hướng dẫn quy đổi điểm giữa các kỳ thi trong Phương thức xét tuyển tích hợp Khóa 52 — bảng 12 khoảng quy đổi ĐGNL-HCM sang điểm THPT, công thức học bạ (ĐTB10×1+ĐTB11×2+ĐTB12×3)/6',
     url: 'https://tuyensinh.ueh.edu.vn/bai-viet/huong-dan-quy-doi-diem-giua-cac-ky-thi-trong-phuong-thuc-xet-tuyen-tich-hop-khoa-52-dai-hoc-chinh-quy-ueh-2026/',
     accessedAt: '2026-08-11',
+    lastReviewedAt: '2026-08-13',
     sourceType: 'official-school',
     verification: 'verified',
   },
@@ -40,6 +51,7 @@ export const uehSources: UehSource[] = [
     title: 'Ngưỡng đảm bảo chất lượng đầu vào Phương thức xét tuyển tích hợp 2026: KSA (TP.HCM) ≥65/100, KSV (UEH Mekong – Vĩnh Long) ≥60/100, chưa gồm ưu tiên/điểm cộng',
     url: 'https://tuyensinh.ueh.edu.vn/bai-viet/ueh-cong-bo-nguong-dam-bao-chat-luong-dau-vao-quy-doi-diem-giua-cac-ky-thi-va-ra-mat-cong-cu-ho-tro-tinh-diem-trong-phuong-thuc-xet-tuyen-tich-hop-khoa-52-dai-hoc-chinh-quy-nam-2026/',
     accessedAt: '2026-08-11',
+    lastReviewedAt: '2026-08-13',
     sourceType: 'official-school',
     verification: 'verified',
   },

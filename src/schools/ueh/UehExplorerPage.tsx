@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { AlertTriangle, ArrowRightLeft, GraduationCap, ShieldCheck } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { ArrowRightLeft, Calculator, GraduationCap, ShieldCheck } from 'lucide-react';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { MethodCapabilitySummary } from '../../components/MethodCapabilitySummary';
@@ -11,9 +11,17 @@ import { uehCutoffs } from './data/cutoffs';
 import { uehSources } from './sources';
 import { convertDgnlToThpt } from './dgnlConversion';
 import { checkUehThreshold, UEH_THRESHOLD_HCMC, UEH_THRESHOLD_MEKONG } from './eligibility';
-import { uehKnowledgeGaps } from './knowledgeGaps';
 import { buildUehEvaluationInput } from './applicantProfileAdapter';
 import { uehAdmissionMethods } from './methods';
+import { evaluateUehExactAdmission } from './evaluate';
+import { UEH_BONUS_DOMESTIC } from './bonus';
+import {
+  UEH_PRIORITY_OBJECT_LABELS,
+  UEH_PRIORITY_ZONE_LABELS,
+  type UehPriorityObjectGroup,
+  type UehPriorityZone,
+} from './priority';
+import { UEH_EXACT_CALCULATOR_SCOPE_NOTE } from './scopeNotes';
 
 interface UehExplorerPageProps {
   onChangeSchool: () => void;
@@ -36,6 +44,22 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
 
   const { profile, updateVactTotal } = useApplicantProfile();
   const profileDgnlTotal = buildUehEvaluationInput(profile).dgnlScore;
+
+  // Calculator chính xác — Đối tượng 1. Điểm thi thang 30 có thể lấy từ quy đổi ĐGNL (dùng lại
+  // profileDgnlTotal/dgnlInput bên dưới) hoặc nhập trực tiếp.
+  const [examSource, setExamSource] = useState<'dgnl' | 'direct'>('dgnl');
+  const [directExamInput, setDirectExamInput] = useState('');
+  const [gpa10Input, setGpa10Input] = useState('');
+  const [gpa11Input, setGpa11Input] = useState('');
+  const [gpa12Input, setGpa12Input] = useState('');
+  const [selectedBonusIds, setSelectedBonusIds] = useState<string[]>([]);
+  const [priorityZone, setPriorityZone] = useState<UehPriorityZone>('kv3');
+  const [priorityObjectGroup, setPriorityObjectGroup] = useState<UehPriorityObjectGroup>('none');
+  const [calcCampus, setCalcCampus] = useState<'hcmc' | 'mekong'>('hcmc');
+
+  function toggleBonus(id: string) {
+    setSelectedBonusIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
 
   // Batch 4 workstream K: nếu hồ sơ dùng chung đã có điểm ĐGNL thô (vd nhập ở HCMUT trước đó),
   // ưu tiên dùng luôn — không bắt nhập lại. `manualOverride` cho phép người dùng chủ động thay
@@ -73,6 +97,32 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
   const [thresholdInput, setThresholdInput] = useState('');
   const [campus, setCampus] = useState<'hcmc' | 'mekong'>('hcmc');
   const thresholdResult = thresholdInput.trim() !== '' ? checkUehThreshold(Number(thresholdInput), campus) : null;
+
+  const examScore30 = useMemo(() => {
+    if (examSource === 'dgnl') {
+      return dgnlResult !== undefined && dgnlResult !== null ? dgnlResult : undefined;
+    }
+    return directExamInput.trim() !== '' ? Number(directExamInput) : undefined;
+  }, [examSource, dgnlResult, directExamInput]);
+
+  const gpaGrade10 = gpa10Input.trim() !== '' ? Number(gpa10Input) : undefined;
+  const gpaGrade11 = gpa11Input.trim() !== '' ? Number(gpa11Input) : undefined;
+  const gpaGrade12 = gpa12Input.trim() !== '' ? Number(gpa12Input) : undefined;
+
+  const calculatorEvaluation = useMemo(
+    () =>
+      evaluateUehExactAdmission({
+        examScore30,
+        gpaGrade10,
+        gpaGrade11,
+        gpaGrade12,
+        bonusIds: selectedBonusIds,
+        priorityZone,
+        priorityObjectGroup,
+        campus: calcCampus,
+      }),
+    [examScore30, gpaGrade10, gpaGrade11, gpaGrade12, selectedBonusIds, priorityZone, priorityObjectGroup, calcCampus]
+  );
 
   function renderCutoffTable(programs: typeof ksaPrograms, caption: string) {
     return (
@@ -139,22 +189,175 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
           </ul>
         </section>
 
-        <section className="mt-5 flex items-start gap-3 rounded-card border border-warning/30 bg-warning/10 p-6 text-sm text-warning sm:p-8">
-          <AlertTriangle size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
-          <div>
-            <p className="font-semibold">UniscoreVN chưa tính được điểm xét tuyển chính xác cho UEH</p>
-            <p className="mt-1 leading-relaxed">
-              Bảng quy đổi ĐGNL/V-SAT và công thức học bạ đã rõ, nhưng vẫn còn thiếu:
-            </p>
-            <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
-              {uehKnowledgeGaps.map((gap) => (
-                <li key={gap.id}>{gap.label}</li>
+        <section id="calculator" className="mt-5 scroll-mt-5 rounded-card bg-surface p-6 shadow-card sm:p-8">
+          <div className="flex items-center gap-2">
+            <Calculator size={20} className="text-accent" aria-hidden="true" />
+            <h2 className="text-lg font-semibold text-ink">Tính điểm xét tuyển</h2>
+          </div>
+          <p className="mt-1 text-sm text-muted">{UEH_EXACT_CALCULATOR_SCOPE_NOTE}</p>
+
+          <fieldset className="mt-4">
+            <legend className="text-xs font-medium text-ink">Nguồn điểm thi (thang 30)</legend>
+            <div className="mt-1.5 flex flex-wrap gap-3 text-sm">
+              <label className="flex items-center gap-1.5">
+                <input type="radio" checked={examSource === 'dgnl'} onChange={() => setExamSource('dgnl')} />
+                Quy đổi từ ĐGNL-HCM (xem bên dưới)
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input type="radio" checked={examSource === 'direct'} onChange={() => setExamSource('direct')} />
+                Nhập trực tiếp điểm thi tổ hợp (thang 30)
+              </label>
+            </div>
+            {examSource === 'direct' && (
+              <input
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={30}
+                value={directExamInput}
+                onChange={(e) => setDirectExamInput(e.target.value)}
+                placeholder="0 - 30"
+                aria-label="Điểm thi tốt nghiệp THPT tổ hợp (thang 30)"
+                className="mt-2 w-full max-w-xs rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+              />
+            )}
+            {examSource === 'dgnl' && (
+              <p className="mt-1.5 text-xs text-muted">
+                Dùng kết quả quy đổi ở mục "Quy đổi điểm ĐGNL-HCM → thang THPT" bên dưới.
+              </p>
+            )}
+          </fieldset>
+
+          <fieldset className="mt-4">
+            <legend className="text-xs font-medium text-ink">Điểm trung bình các năm học THPT (thang 10)</legend>
+            <div className="mt-1.5 grid grid-cols-3 gap-2">
+              {[
+                { label: 'Lớp 10', value: gpa10Input, set: setGpa10Input },
+                { label: 'Lớp 11', value: gpa11Input, set: setGpa11Input },
+                { label: 'Lớp 12', value: gpa12Input, set: setGpa12Input },
+              ].map(({ label, value, set }) => (
+                <label key={label} className="text-xs text-muted">
+                  {label}
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={10}
+                    value={value}
+                    onChange={(e) => set(e.target.value)}
+                    placeholder="0 - 10"
+                    aria-label={`Điểm trung bình ${label}`}
+                    className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+                  />
+                </label>
               ))}
-            </ul>
-            <p className="mt-2 leading-relaxed">
-              Trong lúc chờ, bạn có thể dùng công cụ quy đổi ĐGNL→THPT bên dưới (đã verified), kiểm tra ngưỡng đầu
-              vào, và xem điểm chuẩn 2026.
-            </p>
+            </div>
+          </fieldset>
+
+          <fieldset className="mt-4">
+            <legend className="text-xs font-medium text-ink">Điểm cộng (Đối tượng 1 — THPT Việt Nam)</legend>
+            <div className="mt-1.5 flex flex-col gap-1.5">
+              {UEH_BONUS_DOMESTIC.map((option) => (
+                <label key={option.id} className="flex items-start gap-2 text-xs text-ink">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={selectedBonusIds.includes(option.id)}
+                    onChange={() => toggleBonus(option.id)}
+                  />
+                  <span>
+                    {option.label} <span className="text-muted">(+{option.points})</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="mt-4">
+            <legend className="text-xs font-medium text-ink">Điểm ưu tiên khu vực/đối tượng</legend>
+            <div className="mt-1.5 flex flex-wrap gap-2">
+              <select
+                value={priorityZone}
+                onChange={(e) => setPriorityZone(e.target.value as UehPriorityZone)}
+                aria-label="Khu vực ưu tiên"
+                className="rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+              >
+                {Object.entries(UEH_PRIORITY_ZONE_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={priorityObjectGroup}
+                onChange={(e) => setPriorityObjectGroup(e.target.value as UehPriorityObjectGroup)}
+                aria-label="Đối tượng ưu tiên chính sách"
+                className="rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+              >
+                {Object.entries(UEH_PRIORITY_OBJECT_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </fieldset>
+
+          <fieldset className="mt-4">
+            <legend className="text-xs font-medium text-ink">Cơ sở xét tuyển</legend>
+            <select
+              value={calcCampus}
+              onChange={(e) => setCalcCampus(e.target.value as 'hcmc' | 'mekong')}
+              aria-label="Cơ sở UEH"
+              className="mt-1.5 rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+            >
+              <option value="hcmc">TP.HCM (KSA)</option>
+              <option value="mekong">UEH Mekong – Vĩnh Long (KSV)</option>
+            </select>
+          </fieldset>
+
+          <div className="mt-5 rounded-2xl bg-surface-soft p-4">
+            {calculatorEvaluation.confidence === 'exact-verified' && calculatorEvaluation.score ? (
+              <>
+                <p className="text-sm text-ink">
+                  Điểm xét tuyển: <strong className="text-primary text-lg">{calculatorEvaluation.score.value.toFixed(2)}</strong>{' '}
+                  / {calculatorEvaluation.score.scale}
+                </p>
+                <p className={`mt-1 text-sm ${calculatorEvaluation.eligibility?.status === 'eligible' ? 'text-success' : 'text-danger'}`}>
+                  {calculatorEvaluation.eligibility?.reasons[0]} —{' '}
+                  {calculatorEvaluation.eligibility?.status === 'eligible' ? 'đạt ngưỡng đầu vào' : 'chưa đạt ngưỡng đầu vào'}
+                </p>
+                <details className="mt-3 rounded-md border border-ink/10 bg-surface p-3">
+                  <summary className="cursor-pointer text-xs font-medium text-ink">Xem cách tính chi tiết</summary>
+                  <ol className="mt-2 space-y-1.5 text-xs text-muted">
+                    {calculatorEvaluation.explanation.map((step, index) => (
+                      <li key={step.id}>
+                        <span className="font-medium text-ink">
+                          {index + 1}. {step.label}
+                        </span>
+                        {step.output !== undefined && (
+                          <span className="text-ink">
+                            : {step.output.toFixed(2)}
+                            {step.scale !== undefined ? ` / ${step.scale}` : ''}
+                          </span>
+                        )}
+                        {step.formula && <p className="font-mono">{step.formula}</p>}
+                      </li>
+                    ))}
+                  </ol>
+                </details>
+              </>
+            ) : (
+              <p className="text-sm text-muted">
+                Nhập đủ điểm thi và điểm trung bình 3 năm học để xem điểm xét tuyển.
+                {calculatorEvaluation.missingInputs.length > 0 && (
+                  <>
+                    {' '}
+                    Còn thiếu: {calculatorEvaluation.missingInputs.join('; ')}
+                  </>
+                )}
+              </p>
+            )}
           </div>
         </section>
 
@@ -239,9 +442,8 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
             <h2 className="text-lg font-semibold text-ink">Ngưỡng đầu vào chính thức</h2>
           </div>
           <p className="mt-1 text-sm text-muted">
-            UniscoreVN <strong className="text-ink">chưa tự tính được</strong> điểm xét tuyển cuối cùng của bạn cho UEH
-            (thiếu bước quy đổi cuối, xem cảnh báo phía trên) — nên không thể tự kết luận bạn đạt hay chưa đạt ngưỡng.
-            Ngưỡng chính thức là:
+            Dùng công cụ "Tính điểm xét tuyển" phía trên để UniscoreVN tự so ngưỡng cho bạn. Ngưỡng chính thức
+            (thang 100, chưa gồm ưu tiên/điểm cộng) là:
           </p>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink">
             <li>TP.HCM (mã KSA): điểm xét tuyển thang 100 (chưa gồm ưu tiên/điểm cộng) ≥ <strong>{UEH_THRESHOLD_HCMC}</strong></li>

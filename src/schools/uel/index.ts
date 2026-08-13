@@ -29,6 +29,9 @@ export const uelModule: SchoolModule = {
     programs: true,
     cutoffs: true,
     ...aggregateSchoolCapabilities(uelAdmissionMethods),
+    // Tính được thành phần thật (ĐGNL→100, ưu tiên có giảm dần, ngưỡng THPT) trên input người
+    // dùng — CTA "Tính một phần" thay vì chỉ "Quy đổi điểm", xem SchoolCapabilities.partialCalculator.
+    partialCalculator: true,
   },
   Page: UelExplorerPage,
 };

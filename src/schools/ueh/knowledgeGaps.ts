@@ -1,15 +1,14 @@
 import type { KnowledgeGap } from '../../core/knowledgeStatus';
 
-/** 2 khoảng trống chặn exact calculator UEH — cùng pattern với `schools/uit/knowledgeGaps.ts`. */
-export const uehKnowledgeGaps: KnowledgeGap[] = [
-  {
-    id: 'ueh-final-conversion-step',
-    label: 'Bước quy đổi cuối cùng từ (điểm thi thang 30 + học bạ) sang điểm xét thang 100 — nguồn chưa nêu rõ hệ số cụ thể',
-    status: 'official-but-unparsed',
-  },
-  {
-    id: 'ueh-bonus-priority-table',
-    label: 'Bảng điểm cộng/điểm ưu tiên chính thức (mới thấy ví dụ minh họa, chưa phải bảng đầy đủ)',
-    status: 'incomplete',
-  },
-];
+/**
+ * Re-audit 2026-08-13: cả 2 gap cũ ("ueh-final-conversion-step", "ueh-bonus-priority-table") đã
+ * resolved — nguồn `ueh-ksa-ksv-info-2026` công bố worked example đầy đủ (hệ số quy đổi cuối) và
+ * bảng điểm cộng/ưu tiên đầy đủ (không còn là ví dụ minh họa), xem `evidence.ts`. Mảng này giữ rỗng
+ * (không phải xóa file — vẫn là single source of truth cho `AdmissionMethodDescriptor.knowledgeGaps`
+ * nếu phát sinh gap mới sau này) thay vì báo "chưa tính được" khi đã tính được thật.
+ *
+ * Giới hạn phạm vi CÒN LẠI không phải "gap" theo nghĩa số liệu thiếu — là ranh giới cố ý, xem
+ * `scopeNotes.ts`: chỉ Đối tượng 1 (thí sinh tốt nghiệp THPT Việt Nam) có exact calculator; Đối
+ * tượng 2 (THPT nước ngoài) dùng cấu trúc học bạ khác UniscoreVN chưa implement.
+ */
+export const uehKnowledgeGaps: KnowledgeGap[] = [];

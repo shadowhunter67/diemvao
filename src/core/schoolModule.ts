@@ -28,6 +28,13 @@ export interface SchoolCapabilities {
   cutoffs: boolean;
   scoreConversion: boolean;
   exactCalculator: boolean;
+  /**
+   * True khi trường có công cụ tính ra một điểm số/thành phần THẬT (không chỉ quy đổi 1 chiều)
+   * dù chưa đủ dữ liệu ra điểm xét tuyển cuối — vd UEL: quy đổi ĐGNL + ưu tiên + kiểm tra ngưỡng
+   * cùng lúc trên input thật của người dùng. Khác `scoreConversion` (chỉ 1 phép quy đổi đơn lẻ,
+   * vd bảng ĐGNL→THPT). Optional — trường chưa set coi như false, không CTA "Tính một phần".
+   */
+  partialCalculator?: boolean;
 }
 
 export interface SchoolModule {

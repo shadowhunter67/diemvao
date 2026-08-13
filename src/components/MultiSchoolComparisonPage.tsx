@@ -25,6 +25,12 @@ const programOptions: Record<string, readonly ProgramOption[]> = {
   ueh: uehPrograms,
   uel: uelPrograms,
   uit: uitPrograms,
+  // HCMUS/USSH/IU chưa có program registry dạng ProgramOption (chỉ eligibility/checker theo tổ
+  // hợp, không phải theo ngành cụ thể) — UHS có UHS_PROGRAMS nhưng shape khác ProgramOption.
+  hcmus: [],
+  ussh: [],
+  uhs: [],
+  iu: [],
 };
 
 function parseNumber(value: string): number | undefined {
@@ -39,6 +45,9 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
   const storedHcmutContext = useMemo(loadStoredHcmutMethodContext, []);
   const [hcmutCombinationId, setHcmutCombinationId] = useState(storedHcmutContext?.combination.id ?? '');
   const [uelCombinationId, setUelCombinationId] = useState(loadStoredUelCombinationId);
+  // HCMUS/USSH/UHS/IU đều chỉ cần "tổ hợp THPT" (không có UI riêng từng trường trong /compare) —
+  // dùng chung 1 selector, không lưu localStorage riêng (khác HCMUT/UEL đã có contextStorage).
+  const [sharedCombinationId, setSharedCombinationId] = useState('');
   const [hcmutReward, setHcmutReward] = useState(storedHcmutContext ? String(storedHcmutContext.bonus.reward) : '');
   const [hcmutConsiderationReward, setHcmutConsiderationReward] = useState(
     storedHcmutContext ? String(storedHcmutContext.bonus.considerationReward) : ''
@@ -49,6 +58,7 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
 
   const hcmutCombination = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === hcmutCombinationId);
   const uelCombination = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === uelCombinationId);
+  const sharedCombination = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === sharedCombinationId);
   const hcmutContext = useMemo(() => {
     const reward = parseNumber(hcmutReward);
     const considerationReward = parseNumber(hcmutConsiderationReward);
@@ -73,12 +83,16 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
       },
       ueh: { selectedProgramId: selectedPrograms.ueh },
       uit: { selectedProgramId: selectedPrograms.uit, programId: selectedPrograms.uit },
+      hcmus: { subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined },
+      ussh: { subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined },
+      uhs: { subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined },
+      iu: { subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined },
     }).sort((a, b) => {
       const statusA = getEvaluationDisplayStatus(a.evaluation.confidence);
       const statusB = getEvaluationDisplayStatus(b.evaluation.confidence);
       return evaluationSortWeight(statusA) - evaluationSortWeight(statusB) || a.shortName.localeCompare(b.shortName, 'vi');
     });
-  }, [hcmutContext, profile, selectedPrograms, uelCombination]);
+  }, [hcmutContext, profile, selectedPrograms, sharedCombination, uelCombination]);
 
   const statusCounts = useMemo(
     () =>
@@ -153,6 +167,21 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
               setUelCombinationId(event.target.value);
               saveStoredUelCombinationId(event.target.value);
             }}
+            className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2"
+          >
+            <option value="">Chưa chọn</option>
+            {COMMON_SUBJECT_COMBINATIONS.map((combination) => (
+              <option key={combination.id} value={combination.id}>
+                {combination.id}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs font-medium text-ink">
+          Tổ hợp (HCMUS/USSH/UHS/IU)
+          <select
+            value={sharedCombinationId}
+            onChange={(event) => setSharedCombinationId(event.target.value)}
             className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2"
           >
             <option value="">Chưa chọn</option>

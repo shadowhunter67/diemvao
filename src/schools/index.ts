@@ -3,6 +3,10 @@ import { hcmutModule } from './hcmut';
 import { uitModule } from './uit';
 import { uelModule } from './uel';
 import { uehModule } from './ueh';
+import { hcmusModule } from './hcmus';
+import { usshModule } from './ussh';
+import { uhsModule } from './uhs';
+import { iuModule } from './iu';
 
 /**
  * Các trường ĐHQG-HCM khác đã research (xem docs/admission-research-2026.md) nhưng CHƯA có
@@ -15,41 +19,21 @@ import { uehModule } from './ueh';
  * trong docs) nhưng chưa tới lượt implement trong phase này.
  * status='formula-incomplete': research chưa tìm đủ công thức từ nguồn đủ tin cậy.
  */
+/**
+ * AGU — research 2026-08-13 (Priority 5, bounded): domain chính thức KHÔNG truy cập được —
+ * `agu.edu.vn`/`www.agu.edu.vn` timeout DNS từ môi trường hiện tại. Đây là blocker truy cập
+ * nguồn, KHÔNG phải "chưa đủ dữ liệu chính thức" chung chung — cần retry từ máy có DNS resolve
+ * được domain này. (IU đã research xong qua trình duyệt thật — xem `schools/iu/`, không còn ở
+ * danh sách identity-only này.)
+ */
 const researchedSchools: SchoolModule[] = [
-  {
-    id: 'hcmus',
-    name: 'Trường Đại học Khoa học Tự nhiên – ĐHQG TP.HCM',
-    shortName: 'HCMUS',
-    year: 2026,
-    status: 'researching',
-  },
-  {
-    id: 'ussh',
-    name: 'Trường Đại học Khoa học Xã hội và Nhân văn – ĐHQG TP.HCM',
-    shortName: 'USSH',
-    year: 2026,
-    status: 'researching',
-  },
-  {
-    id: 'iu',
-    name: 'Trường Đại học Quốc tế – ĐHQG TP.HCM',
-    shortName: 'IU',
-    year: 2026,
-    status: 'formula-incomplete',
-  },
   {
     id: 'agu',
     name: 'Trường Đại học An Giang – ĐHQG TP.HCM',
     shortName: 'AGU',
     year: 2026,
     status: 'formula-incomplete',
-  },
-  {
-    id: 'uhs',
-    name: 'Trường Đại học Khoa học Sức khỏe – ĐHQG TP.HCM',
-    shortName: 'UHS',
-    year: 2026,
-    status: 'formula-incomplete',
+    summary: 'Chưa research được: domain agu.edu.vn không resolve được (DNS timeout) từ môi trường hiện tại',
   },
 ];
 
@@ -64,5 +48,9 @@ export const schoolRegistry: Record<string, SchoolModule> = {
   // UEH không thuộc ĐHQG-HCM (dùng V-ACT như 1 trong 6 phương thức độc lập, không phải trọng số
   // trong công thức tổng hợp) — vẫn đăng ký chung registry, không cần phân biệt UI.
   ueh: uehModule,
+  hcmus: hcmusModule,
+  ussh: usshModule,
+  uhs: uhsModule,
+  iu: iuModule,
   ...Object.fromEntries(researchedSchools.map((school) => [school.id, school])),
 };

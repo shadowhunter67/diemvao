@@ -4,6 +4,7 @@ import { siteConfig } from '../config/site';
 import type { SchoolCapabilities, SchoolStatus } from '../core/schoolModule';
 import { useApplicantProfile } from '../core/applicantProfileContextCore';
 import { summarizeApplicantProfile } from '../core/applicantProfileSummary';
+import { deriveSchoolCtaLabel } from '../core/schoolCta';
 
 interface LandingPageProps {
   onSelectSchool: (schoolId: string) => void;
@@ -170,7 +171,7 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
           <ul className="mt-3 flex flex-col gap-2">
             {filteredSchools.map((school) => {
               const isClickable = school.Page !== undefined;
-              const buttonLabel = school.status === 'supported' ? 'Tính điểm' : 'Xem thông tin';
+              const buttonLabel = deriveSchoolCtaLabel(school);
               return (
                 <li
                   key={school.id}

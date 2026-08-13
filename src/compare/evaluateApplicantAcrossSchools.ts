@@ -15,6 +15,14 @@ import { evaluateUelAdmission, type UelEvaluationContext } from '../schools/uel/
 import { uelAdmissionMethods } from '../schools/uel/methods';
 import { evaluateUitAdmission, type UitEvaluationContext } from '../schools/uit/evaluate';
 import { uitAdmissionMethods } from '../schools/uit/methods';
+import { evaluateHcmusAdmission, type HcmusEvaluationContext } from '../schools/hcmus/evaluate';
+import { hcmusAdmissionMethods } from '../schools/hcmus/methods';
+import { evaluateUsshAdmission, type UsshEvaluationContext } from '../schools/ussh/evaluate';
+import { usshAdmissionMethods } from '../schools/ussh/methods';
+import { evaluateUhsAdmission, type UhsEvaluationContext } from '../schools/uhs/evaluate';
+import { uhsAdmissionMethods } from '../schools/uhs/methods';
+import { evaluateIuAdmission, type IuEvaluationContext } from '../schools/iu/evaluate';
+import { iuAdmissionMethods } from '../schools/iu/methods';
 
 export interface SchoolEvaluationSummary {
   schoolId: string;
@@ -40,6 +48,10 @@ export interface MultiSchoolEvaluationContext {
   uit?: UitEvaluationContext & {
     selectedProgramId?: string;
   };
+  hcmus?: HcmusEvaluationContext;
+  ussh?: UsshEvaluationContext;
+  uhs?: UhsEvaluationContext;
+  iu?: IuEvaluationContext;
 }
 
 function unavailableEvaluation(input: {
@@ -152,6 +164,10 @@ export function evaluateApplicantAcrossSchools(
     summarize('ueh', uehAdmissionMethods[0].id, uehAdmissionMethods[0].name, evaluateUehAdmission(uehInput)),
     summarize('uel', uelAdmissionMethods[0].id, uelAdmissionMethods[0].name, evaluateUelAdmission(profile, contexts.uel)),
     summarize('uit', uitAdmissionMethods[0].id, uitAdmissionMethods[0].name, evaluateUitAdmission(profile, contexts.uit)),
+    summarize('hcmus', hcmusAdmissionMethods[0].id, hcmusAdmissionMethods[0].name, evaluateHcmusAdmission(profile, contexts.hcmus)),
+    summarize('ussh', usshAdmissionMethods[0].id, usshAdmissionMethods[0].name, evaluateUsshAdmission(profile, contexts.ussh)),
+    summarize('uhs', uhsAdmissionMethods[0].id, uhsAdmissionMethods[0].name, evaluateUhsAdmission(profile, contexts.uhs)),
+    summarize('iu', iuAdmissionMethods[0].id, iuAdmissionMethods[0].name, evaluateIuAdmission(profile, contexts.iu)),
   ];
 
   return summaries;

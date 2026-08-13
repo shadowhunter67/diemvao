@@ -94,7 +94,7 @@ describe('evaluateApplicantAcrossSchools', () => {
         },
       },
     });
-    expect(summaries.map((summary) => summary.schoolId)).toEqual(['hcmut', 'ueh', 'uel', 'uit']);
+    expect(summaries.map((summary) => summary.schoolId)).toEqual(['hcmut', 'ueh', 'uel', 'uit', 'hcmus', 'ussh', 'uhs', 'iu']);
   });
 
   it('classifies actionable and official missing requirements without mutating context', () => {

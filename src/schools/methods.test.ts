@@ -36,10 +36,12 @@ describe('Method descriptor đúng capability thật đã biết (khớp evidenc
     expect(hcmutAdmissionMethods[0].capabilities.exactCalculator).toBe(true);
   });
 
-  it('UEH: exact calculator = false, scoreConversion = true (bảng ĐGNL→THPT verified, thiếu bonus/priority)', () => {
+  it('UEH: exact calculator = true (re-audit 2026-08-13, Đối tượng 1 — worked example + bảng bonus/priority đầy đủ)', () => {
     expect(uehAdmissionMethods).toHaveLength(1);
-    expect(uehAdmissionMethods[0].capabilities.exactCalculator).toBe(false);
+    expect(uehAdmissionMethods[0].capabilities.exactCalculator).toBe(true);
     expect(uehAdmissionMethods[0].capabilities.scoreConversion).toBe(true);
+    expect(uehAdmissionMethods[0].capabilities.bonus).toBe(true);
+    expect(uehAdmissionMethods[0].capabilities.priority).toBe(true);
   });
 
   it('UEL: exact calculator = false trừ khi research mới unblock (batch 6: unblock priority reduction, vẫn thiếu bảng bonus ngoại ngữ)', () => {
@@ -99,9 +101,9 @@ describe('aggregateSchoolCapabilities — OR semantics qua nhiều method', () =
 });
 
 describe('Trường identity-only (chưa implement methods.ts) vẫn hoạt động — fallback không crash', () => {
-  it('school không có capabilities field vẫn có shape hợp lệ (HCMUS/USSH/IU/AGU/UHS)', async () => {
+  it('school không có capabilities field vẫn có shape hợp lệ (AGU)', async () => {
     const { schoolRegistry } = await import('./index');
-    const identityOnly = schoolRegistry['hcmus'];
+    const identityOnly = schoolRegistry['agu'];
     expect(identityOnly).toBeDefined();
     expect(identityOnly.capabilities).toBeUndefined();
     expect(identityOnly.Page).toBeUndefined();

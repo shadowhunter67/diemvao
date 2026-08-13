@@ -4,19 +4,18 @@ import { UehExplorerPage } from './UehExplorerPage';
 import { uehAdmissionMethods } from './methods';
 
 /**
- * Module UEH — research 2026-08-11 (xem docs/admission-research-2026.md). Có bảng quy đổi
- * ĐGNL→THPT đầy đủ và verified (hiếm — UIT/HCMUS/UEL đều thiếu phần này), nên `scoreConversion`
- * = true dù `exactCalculator` vẫn false (thiếu bước quy đổi cuối sang thang 100 + bảng điểm
- * cộng/ưu tiên).
+ * Module UEH — re-audit 2026-08-13 (xem docs/CHANGELOG.md): exact calculator cho Đối tượng 1
+ * (thí sinh tốt nghiệp THPT Việt Nam) — worked example + bảng điểm cộng/ưu tiên đầy đủ từ nguồn
+ * `ueh-ksa-ksv-info-2026` không còn gap nào block công thức.
  */
 export const uehModule: SchoolModule = {
   id: 'ueh',
   name: 'Trường Đại học Kinh tế TP.HCM',
   shortName: 'UEH',
   year: 2026,
-  status: 'researching',
+  status: 'supported',
   summary:
-    'Dữ liệu tuyển sinh 2026 đầy đủ (điểm chuẩn 97 chương trình, ngưỡng đầu vào, quy đổi ĐGNL→THPT) · Calculator chính xác đang chờ bước quy đổi cuối + bảng điểm cộng',
+    'Tính điểm chính xác Phương thức xét tuyển tích hợp (Đối tượng 1 — THPT Việt Nam): điểm thi/ĐGNL, học bạ, điểm cộng, ưu tiên · Điểm chuẩn 97 chương trình 2026',
   capabilities: {
     admissionInfo: true,
     programs: true,
