@@ -87,8 +87,6 @@ export function evaluateUelAdmission(profile: ApplicantProfile, context: UelEval
     evidence: [
       {
         sourceId: 'uel-formula-2026',
-        sourceUrl: 'https://tuyensinh.uel.edu.vn/thong-tin-tuyen-sinh-dai-hoc-chinh-quy-2026/',
-        sourceTitle: 'Thông tin tuyển sinh đại học chính quy 2026 - UEL',
         location: 'Công thức xét tuyển tổng hợp và ghi chú X/Y/Z',
         verification: 'verified',
         effectiveYear: 2026,

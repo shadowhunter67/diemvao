@@ -52,7 +52,6 @@ export function evaluateUitAdmission(profile: ApplicantProfile, context: UitEval
     evidence: [
       {
         sourceId: 'uit-thresholds-2026',
-        sourceTitle: 'Ngưỡng đầu vào UIT 2026',
         location: 'Ngưỡng ĐGNL/THPT/chứng chỉ',
         verification: 'verified',
         effectiveYear: 2026,

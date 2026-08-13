@@ -4,15 +4,29 @@ import { getCutoffAvailability } from './admissionHistory';
 import type { RuleEvidence } from './evidence';
 import { assessCutoffFreshness, assessRuleEvidenceForCurrentUse, type FreshnessStatus } from './freshness';
 import type { KnowledgeGap } from './knowledgeStatus';
+import {
+  isPrimaryAdmissionSource,
+  isValidDateOnly,
+  resolveRuleEvidenceSources,
+  type AdmissionSource,
+} from './sourceRegistry';
 
 export type FreshnessAuditSeverity = 'error' | 'warning' | 'info';
-export type FreshnessAuditIssueKind = 'cutoff' | 'method' | 'rule' | 'knowledge-gap';
+export type FreshnessAuditIssueKind = 'cutoff' | 'method' | 'rule' | 'source' | 'knowledge-gap';
 export type FreshnessAuditCode =
   | 'CURRENT_CUTOFF_MISSING_SOURCE'
   | 'DUPLICATE_CURRENT_CUTOFF'
   | 'METHOD_YEAR_MISMATCH'
   | 'DUPLICATE_METHOD_DESCRIPTOR'
   | 'EXACT_METHOD_HAS_UNRESOLVED_GAPS'
+  | 'SOURCE_ID_DUPLICATE'
+  | 'SOURCE_DATE_INVALID'
+  | 'SOURCE_LIFECYCLE_INVALID'
+  | 'SOURCE_SUPERSESSION_REPLACEMENT_MISSING'
+  | 'SOURCE_SUPERSESSION_CYCLE'
+  | 'MISSING_SOURCE_REFERENCE'
+  | 'SUPERSEDED_SOURCE_REFERENCE'
+  | 'CRITICAL_RULE_WITHOUT_PRIMARY_SOURCE'
   | 'SUPERSEDED_SOURCE_IN_CURRENT_RULE'
   | 'RULE_EVIDENCE_NOT_CURRENT'
   | 'SCORE_AFFECTING_RULE_INCOMPLETE'
@@ -54,8 +68,102 @@ export interface AdmissionFreshnessAuditInput {
   methods?: AdmissionMethodDescriptor[];
   cutoffs?: AuditableCutoffRecord[];
   ruleEvidence?: RuleEvidence[];
+  sourceRegistry?: AdmissionSource[];
   knowledgeGaps?: Array<KnowledgeGap & { schoolId?: string; methodId?: string }>;
   notPublishedChecks?: Pick<NotPublishedCheck, 'year'>[];
+}
+
+function invalidDateIssue(source: AdmissionSource, field: 'publishedAt' | 'lastReviewedAt', value: string): FreshnessAuditIssue {
+  return {
+    severity: 'error',
+    kind: 'source',
+    code: 'SOURCE_DATE_INVALID',
+    schoolId: source.schoolId,
+    id: `source-date:${source.id}:${field}`,
+    entityId: source.id,
+    message: `Source ${source.id} has invalid ${field}: ${value}`,
+  };
+}
+
+export function auditSourceRegistry(sources: readonly AdmissionSource[]): FreshnessAuditIssue[] {
+  const issues: FreshnessAuditIssue[] = [];
+  const byId = new Map<string, AdmissionSource>();
+  const duplicateIds = new Set<string>();
+
+  for (const source of sources) {
+    if (byId.has(source.id)) duplicateIds.add(source.id);
+    byId.set(source.id, source);
+
+    if (source.publishedAt && !isValidDateOnly(source.publishedAt)) {
+      issues.push(invalidDateIssue(source, 'publishedAt', source.publishedAt));
+    }
+    if (source.lastReviewedAt && !isValidDateOnly(source.lastReviewedAt)) {
+      issues.push(invalidDateIssue(source, 'lastReviewedAt', source.lastReviewedAt));
+    }
+
+    if (source.lifecycle?.status === 'current' && source.lifecycle.supersededBy) {
+      issues.push({
+        severity: 'error',
+        kind: 'source',
+        code: 'SOURCE_LIFECYCLE_INVALID',
+        schoolId: source.schoolId,
+        id: `source-lifecycle:${source.id}`,
+        entityId: source.id,
+        message: `Source ${source.id} is current but also points to supersededBy=${source.lifecycle.supersededBy}.`,
+      });
+    }
+    if (source.lifecycle?.status === 'superseded' && !source.lifecycle.supersededBy) {
+      issues.push({
+        severity: 'warning',
+        kind: 'source',
+        code: 'SOURCE_LIFECYCLE_INVALID',
+        schoolId: source.schoolId,
+        id: `source-lifecycle:${source.id}`,
+        entityId: source.id,
+        message: `Source ${source.id} is superseded but does not identify a replacement source.`,
+      });
+    }
+  }
+
+  for (const id of duplicateIds) {
+    issues.push({
+      severity: 'error',
+      kind: 'source',
+      code: 'SOURCE_ID_DUPLICATE',
+      id: `source-duplicate:${id}`,
+      entityId: id,
+      message: `Duplicate source id in registry: ${id}`,
+    });
+  }
+
+  for (const source of sources) {
+    const replacementId = source.lifecycle?.supersededBy;
+    if (!replacementId) continue;
+    const replacement = byId.get(replacementId);
+    if (!replacement) {
+      issues.push({
+        severity: 'error',
+        kind: 'source',
+        code: 'SOURCE_SUPERSESSION_REPLACEMENT_MISSING',
+        schoolId: source.schoolId,
+        id: `source-supersededBy:${source.id}`,
+        entityId: source.id,
+        message: `Source ${source.id} supersededBy points to missing source ${replacementId}.`,
+      });
+    } else if (replacement.lifecycle?.supersededBy === source.id) {
+      issues.push({
+        severity: 'error',
+        kind: 'source',
+        code: 'SOURCE_SUPERSESSION_CYCLE',
+        schoolId: source.schoolId,
+        id: `source-supersededBy-cycle:${source.id}`,
+        entityId: source.id,
+        message: `Source supersession cycle detected: ${source.id} <-> ${replacement.id}.`,
+      });
+    }
+  }
+
+  return issues;
 }
 
 function cutoffContextKey(record: AuditableCutoffRecord): string {
@@ -215,6 +323,55 @@ export function auditRuleEvidence(ruleEvidence: RuleEvidence[], currentAdmission
   return issues;
 }
 
+export function auditRuleEvidenceSourceReferences(
+  ruleEvidence: readonly RuleEvidence[],
+  sources: readonly AdmissionSource[]
+): FreshnessAuditIssue[] {
+  const issues: FreshnessAuditIssue[] = [];
+
+  for (const resolved of resolveRuleEvidenceSources(ruleEvidence, sources)) {
+    const evidence = resolved.evidence;
+    const critical = evidence.criticality !== 'informational';
+    if (!resolved.source) {
+      issues.push({
+        severity: critical ? 'error' : 'warning',
+        kind: 'rule',
+        code: 'MISSING_SOURCE_REFERENCE',
+        id: `rule-source-missing:${evidence.sourceId}`,
+        entityId: evidence.sourceId,
+        message: `Rule evidence references missing source id: ${evidence.sourceId}`,
+      });
+      continue;
+    }
+
+    if (resolved.source.lifecycle?.status === 'superseded') {
+      issues.push({
+        severity: critical ? 'error' : 'warning',
+        kind: 'rule',
+        code: 'SUPERSEDED_SOURCE_REFERENCE',
+        schoolId: resolved.source.schoolId,
+        id: `rule-source-superseded:${evidence.sourceId}`,
+        entityId: evidence.sourceId,
+        message: `Rule evidence ${evidence.sourceId} references a superseded source.`,
+      });
+    }
+
+    if (critical && !isPrimaryAdmissionSource(resolved.source)) {
+      issues.push({
+        severity: 'error',
+        kind: 'rule',
+        code: 'CRITICAL_RULE_WITHOUT_PRIMARY_SOURCE',
+        schoolId: resolved.source.schoolId,
+        id: `rule-source-secondary:${evidence.sourceId}`,
+        entityId: evidence.sourceId,
+        message: `Score-affecting rule evidence ${evidence.sourceId} resolves only to a secondary source.`,
+      });
+    }
+  }
+
+  return issues;
+}
+
 export function auditKnownKnowledgeGaps(
   gaps: Array<KnowledgeGap & { schoolId?: string; methodId?: string }>
 ): FreshnessAuditIssue[] {
@@ -224,7 +381,7 @@ export function auditKnownKnowledgeGaps(
     code: gap.status === 'official-but-unparsed' ? 'UNPARSED_OFFICIAL_RULE' : 'INCOMPLETE_OFFICIAL_RULE',
     schoolId: gap.schoolId,
     id: `knowledge-gap:${gap.schoolId ?? 'unknown'}:${gap.id}`,
-    entityId: gap.methodId ? `${gap.methodId}:${gap.id}` : gap.id,
+    entityId: [gap.methodId, gap.id, gap.sourceId ? `source=${gap.sourceId}` : undefined].filter(Boolean).join(':'),
     message: gap.label,
   }));
 }
@@ -244,9 +401,11 @@ export function summarizeFreshness(issues: FreshnessAuditIssue[]): Record<Freshn
 
 export function auditAdmissionDataFreshness(input: AdmissionFreshnessAuditInput): FreshnessAuditIssue[] {
   return [
+    ...auditSourceRegistry(input.sourceRegistry ?? []),
     ...auditMethods(input.methods ?? [], input.currentAdmissionYear),
     ...auditCutoffRecords(input.cutoffs ?? [], input.currentAdmissionYear),
     ...auditRuleEvidence(input.ruleEvidence ?? [], input.currentAdmissionYear),
+    ...(input.sourceRegistry ? auditRuleEvidenceSourceReferences(input.ruleEvidence ?? [], input.sourceRegistry) : []),
     ...auditKnownKnowledgeGaps(input.knowledgeGaps ?? []),
   ];
 }

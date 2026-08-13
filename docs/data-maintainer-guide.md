@@ -45,6 +45,29 @@ npm run build
 - `warning` -> exit 0: known official-but-unparsed rule such as UEL Appendix 2, or maintainer-visible metadata concerns that do not corrupt current exact comparison.
 - `info` -> exit 0: known incomplete product gaps for non-exact methods.
 
+## Batch 15 — source-first rule provenance
+
+For score-affecting admission rules, maintain provenance in this order:
+
+1. Add or update the canonical source registry entry in `src/schools/<id>/sources.ts`.
+2. Set factual metadata there: `sourceType`, `verification`, `publishedAt`, `lastReviewedAt`, and `lifecycle` when known.
+3. Link `RuleEvidence` by `sourceId`; avoid copying title/url/date metadata into each evidence object.
+4. Add or update the school-local rule/evaluator that consumes that evidence.
+5. Run `npm run audit:data -- --school=<id>`.
+6. Run `npm run lint`, `npm run test`, and `npm run build`.
+
+Synthetic superseded example:
+
+```ts
+{
+  id: 'uel-rule-2026-old',
+  sourceType: 'official-admission',
+  lifecycle: { status: 'superseded', effectiveYear: 2026, supersededBy: 'uel-rule-2026-current' },
+}
+```
+
+UEL official-but-unparsed example: keep the source registry entry for the official PDF, link the `KnowledgeGap` with `sourceId: 'uel-admission-pdf-2026-unparsed'`, and keep `exactCalculator: false` until the Appendix 2 table is parsed into deterministic rules.
+
 Examples:
 
 - New current rule: add `RuleEvidence` with `effectiveYear = CURRENT_ADMISSION_YEAR`; add lifecycle only if there is a real lifecycle fact.

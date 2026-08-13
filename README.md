@@ -8,6 +8,8 @@ Tính & mô phỏng điểm xét tuyển đại học
 
 UniScoreVN separates official/current data, historical references, and rules that are still awaiting verification. A source can be official but superseded; a previous-year cutoff can still be a valid historical reference; a missing current-year cutoff remains `unknown` unless there is explicit `not-published` evidence.
 
+Mỗi rule quan trọng được nối tới nguồn dữ liệu cụ thể, và audit CI kiểm tra source/rule lifecycle trước deploy.
+
 Maintainers can run the offline data-health check before deploy:
 
 ```bash

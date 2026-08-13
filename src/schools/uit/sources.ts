@@ -33,7 +33,7 @@ export const uitSources: UitSource[] = [
     verification: 'verified',
   },
   {
-    id: 'uit-threshold-2026',
+    id: 'uit-thresholds-2026',
     publisher: 'Trường Đại học Công nghệ Thông tin – ĐHQG TP.HCM',
     title:
       'Thông báo ngưỡng đảm bảo chất lượng đầu vào 2026 (THPT ≥22, ĐGNL ≥717, ngành Thiết kế vi mạch cao hơn)',

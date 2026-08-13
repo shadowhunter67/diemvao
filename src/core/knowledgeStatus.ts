@@ -32,5 +32,6 @@ export interface KnowledgeGap {
   id: string;
   label: string;
   status: KnowledgeStatus;
+  sourceId?: string;
   note?: string;
 }

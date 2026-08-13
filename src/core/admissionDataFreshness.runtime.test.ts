@@ -8,6 +8,7 @@ import { uelCutoffs } from '../schools/uel/data/cutoffs';
 import { uelAdmissionMethods } from '../schools/uel/methods';
 import { uitCutoffs } from '../schools/uit/data/cutoffs';
 import { uitAdmissionMethods } from '../schools/uit/methods';
+import { allAdmissionSources } from '../schools/sourceRegistry';
 import { CURRENT_ADMISSION_YEAR } from './admissionYear';
 import { auditAdmissionDataFreshness, type AuditableCutoffRecord } from './dataFreshnessAudit';
 import type { RuleEvidence } from './evidence';
@@ -35,6 +36,7 @@ describe('runtime admission data freshness audit', () => {
         ...withSchoolId('uel', uelCutoffs),
         ...withSchoolId('uit', uitCutoffs),
       ],
+      sourceRegistry: allAdmissionSources,
     });
 
     expect(issues).toEqual([]);

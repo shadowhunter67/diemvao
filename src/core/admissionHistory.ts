@@ -18,7 +18,13 @@ export type CutoffStatus = 'final' | 'superseded';
  * hiện có (optional, additive). 'vnuhcm': Trung tâm Khảo thí & ĐBCL ĐHQG-HCM hoặc ĐHQG-HCM nói
  * chung, tách khỏi 'official-school' (thông báo riêng của từng trường thành viên).
  */
-export type SourceType = 'official-school' | 'official-admission' | 'vnuhcm' | 'government' | 'secondary';
+export type SourceType =
+  | 'official-school'
+  | 'official-admission'
+  | 'official-republication'
+  | 'vnuhcm'
+  | 'government'
+  | 'secondary';
 
 interface HistoricalCutoffLike {
   year: number;

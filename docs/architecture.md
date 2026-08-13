@@ -1,5 +1,17 @@
 # Kiến trúc UniscoreVN (batch 2, 2026-08-12)
 
+## Batch 15 (2026-08-13) — source registry traceability
+
+Rule provenance now resolves through one canonical school source registry before it reaches UI evidence rendering:
+
+```text
+School Source Registry -> sourceId -> RuleEvidence -> School Rule -> AdmissionEvaluation -> CalculationStep
+```
+
+`src/schools/sourceRegistry.ts` aggregates per-school source metadata. Runtime `RuleEvidence` keeps the stable `sourceId` next to the score-affecting rule, while `EvidenceLinks` enriches display metadata from the registry. This keeps school formulas inside `schools/<id>/` and avoids duplicating title/url/date/lifecycle fields in every evidence object.
+
+The offline audit validates both halves of the chain: source registry health (duplicate IDs, date-only metadata, lifecycle/supersession consistency) and rule references (missing source IDs, superseded sources, score-affecting rules backed only by secondary sources). The audit is still deterministic and offline.
+
 ## Batch 13 (2026-08-13) — freshness lifecycle
 
 UniScoreVN now models two independent questions:

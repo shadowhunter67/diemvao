@@ -21,6 +21,7 @@ export const uelKnowledgeGaps: KnowledgeGap[] = [
     id: 'uel-certificate-bonus-table',
     label: 'Bảng điểm cộng chứng chỉ ngoại ngữ quốc tế đầy đủ theo từng mức (chỉ có 1-2 điểm dữ liệu rời rạc: IELTS 5.5→+3.50, tối đa 5/100 — chưa đủ dựng bảng)',
     status: 'official-but-unparsed',
+    sourceId: 'uel-admission-pdf-2026-unparsed',
     note: 'Bảng đầy đủ nằm ở "Phụ lục 2" file đính kèm (PDF/Drive) trên trang tuyển sinh chính thức; link Drive đọc qua web fetch chỉ trả trang Loading, cần tải/đọc PDF gốc để xác nhận.',
   },
 ];

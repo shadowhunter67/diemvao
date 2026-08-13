@@ -1,9 +1,13 @@
 import type { RuleEvidence } from '../core/evidence';
+import type { AdmissionSource } from '../core/sourceRegistry';
+import { enrichRuleEvidenceFromRegistry, resolveRuleEvidenceSources } from '../core/sourceRegistry';
 import { formatSourceDate, lifecycleStatusLabel, sourceTypeLabel } from '../core/sourcePresentation';
 import { verificationLabel } from '../core/trust';
+import { allAdmissionSources } from '../schools/sourceRegistry';
 
 interface EvidenceLinksProps {
   evidence?: RuleEvidence[];
+  sources?: readonly AdmissionSource[];
 }
 
 /**
@@ -12,12 +16,15 @@ interface EvidenceLinksProps {
  * đã có sẵn (đã là câu tiếng Việt dễ hiểu). Nếu có `sourceUrl` thì link mở tab mới; nếu chỉ có
  * `sourceTitle`/`location` thì hiện text thuần, không tạo link giả.
  */
-export function EvidenceLinks({ evidence }: EvidenceLinksProps) {
+export function EvidenceLinks({ evidence, sources = allAdmissionSources }: EvidenceLinksProps) {
   if (!evidence || evidence.length === 0) return null;
+  const resolvedEvidence = resolveRuleEvidenceSources(evidence, sources).map((item) =>
+    enrichRuleEvidenceFromRegistry(item.evidence, item.source)
+  );
 
   return (
     <ul className="mt-1.5 flex flex-col gap-1">
-      {evidence.map((item, index) => (
+      {resolvedEvidence.map((item, index) => (
         <li key={`${item.sourceId}-${index}`} className="text-xs text-muted">
           <div className="flex flex-wrap items-center gap-1.5">
             {item.sourceUrl ? (

@@ -21,6 +21,7 @@ describe('source presentation helpers', () => {
     expect(lifecycleStatusLabel('historical')).toBe('Dữ liệu lịch sử');
     expect(lifecycleStatusLabel('superseded')).toBe('Đã được thay thế');
     expect(sourceTypeLabel('official-school')).toBe('Nguồn chính thức của trường');
+    expect(sourceTypeLabel('official-republication')).toBe('Nguồn chính thức được đăng lại');
     expect(sourceTypeLabel('secondary')).toBe('Nguồn đối chiếu');
   });
 });

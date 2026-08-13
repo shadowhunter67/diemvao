@@ -24,7 +24,7 @@ export interface DataSource {
  */
 export const hcmutSources: DataSource[] = [
   {
-    id: 'hcmut-formula-2026',
+    id: 'hcmut-admission-scheme-2026',
     publisher: 'Trường Đại học Bách khoa – ĐHQG TP.HCM',
     title: 'Công bố thông tin tuyển sinh đại học chính quy năm 2026',
     url: 'https://hcmut.edu.vn/tintuc/cong-bo-thong-tin-tuyen-sinh-dai-hoc-chinh-quy-nam-2026',
@@ -34,12 +34,13 @@ export const hcmutSources: DataSource[] = [
     verification: 'verified',
   },
   {
-    id: 'hcmut-de-an-2026',
+    id: 'hcmut-no-dgnl-research-2026',
     publisher: 'Trường Đại học Bách khoa – ĐHQG TP.HCM (republished)',
     title: 'Đề án tuyển sinh 2026 — Đối tượng 2.2 (không có ĐGNL): điểm năng lực = điểm THPT quy đổi × 0.75',
     url: 'https://diemthi.tuyensinh247.com/de-an-tuyen-sinh/dai-hoc-bach-khoa-hcm-QSB.html',
     accessedAt: '2026-08-10',
     kind: 'official-republication',
+    sourceType: 'official-republication',
     verification: 'cross-checked',
   },
   {

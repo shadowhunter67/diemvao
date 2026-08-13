@@ -107,4 +107,62 @@ describe('auditAdmissionDataFreshness', () => {
     });
     expect(exactIssues).toContainEqual(expect.objectContaining({ code: 'EXACT_METHOD_HAS_UNRESOLVED_GAPS', severity: 'error' }));
   });
+
+  it('flags missing source references for score-affecting evidence', () => {
+    const issues = auditAdmissionDataFreshness({
+      currentAdmissionYear: CURRENT_ADMISSION_YEAR,
+      sourceRegistry: [],
+      ruleEvidence: [{ sourceId: 'missing-source', verification: 'verified', effectiveYear: CURRENT_ADMISSION_YEAR }],
+    });
+
+    expect(issues).toContainEqual(expect.objectContaining({ code: 'MISSING_SOURCE_REFERENCE', severity: 'error' }));
+  });
+
+  it('flags secondary-only critical rule evidence', () => {
+    const issues = auditAdmissionDataFreshness({
+      currentAdmissionYear: CURRENT_ADMISSION_YEAR,
+      sourceRegistry: [
+        {
+          id: 'secondary-only',
+          schoolId: 'demo',
+          publisher: 'News',
+          title: 'News cross-check',
+          url: 'https://example.com/news',
+          accessedAt: '2026-08-13',
+          sourceType: 'secondary',
+        },
+      ],
+      ruleEvidence: [{ sourceId: 'secondary-only', verification: 'cross-checked', effectiveYear: CURRENT_ADMISSION_YEAR }],
+    });
+
+    expect(issues).toContainEqual(expect.objectContaining({ code: 'CRITICAL_RULE_WITHOUT_PRIMARY_SOURCE', severity: 'error' }));
+  });
+
+  it('audits source registry duplicate IDs, invalid dates, and supersession links', () => {
+    const issues = auditAdmissionDataFreshness({
+      currentAdmissionYear: CURRENT_ADMISSION_YEAR,
+      sourceRegistry: [
+        {
+          id: 'old-source',
+          publisher: 'Demo',
+          title: 'Old',
+          url: 'https://example.edu/old',
+          accessedAt: '2026-08-13',
+          publishedAt: '2026-02-29',
+          lifecycle: { effectiveYear: CURRENT_ADMISSION_YEAR, status: 'superseded', supersededBy: 'missing-new-source' },
+        },
+        {
+          id: 'old-source',
+          publisher: 'Demo',
+          title: 'Duplicate',
+          url: 'https://example.edu/duplicate',
+          accessedAt: '2026-08-13',
+        },
+      ],
+    });
+
+    expect(issues).toContainEqual(expect.objectContaining({ code: 'SOURCE_ID_DUPLICATE', severity: 'error' }));
+    expect(issues).toContainEqual(expect.objectContaining({ code: 'SOURCE_DATE_INVALID', severity: 'error' }));
+    expect(issues).toContainEqual(expect.objectContaining({ code: 'SOURCE_SUPERSESSION_REPLACEMENT_MISSING', severity: 'error' }));
+  });
 });

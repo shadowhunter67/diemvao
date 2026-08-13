@@ -9,10 +9,7 @@ export const uehDgnlConversionEvidence = {
   evidence: [
     {
       sourceId: 'ueh-conversion-table-2026',
-      sourceUrl:
-        'https://tuyensinh.ueh.edu.vn/bai-viet/huong-dan-quy-doi-diem-giua-cac-ky-thi-trong-phuong-thuc-xet-tuyen-tich-hop-khoa-52-dai-hoc-chinh-quy-ueh-2026/',
-      sourceTitle:
-        'Hướng dẫn quy đổi điểm giữa các kỳ thi trong Phương thức xét tuyển tích hợp Khóa 52 UEH 2026 — bảng 12 khoảng quy đổi ĐGNL-HCM (thang 1200) sang điểm THPT tương đương (thang 30), nội suy tuyến tính trong từng khoảng.',
+      location: 'Bảng 12 khoảng quy đổi ĐGNL-HCM sang điểm THPT tương đương',
       verification: 'verified',
       effectiveYear: 2026,
       verifiedAt: '2026-08-11',

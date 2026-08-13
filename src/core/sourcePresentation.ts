@@ -4,6 +4,7 @@ import type { SourceType } from './admissionHistory';
 const SOURCE_TYPE_LABELS: Record<SourceType, string> = {
   'official-school': 'Nguồn chính thức của trường',
   'official-admission': 'Nguồn tuyển sinh chính thức',
+  'official-republication': 'Nguồn chính thức được đăng lại',
   vnuhcm: 'Nguồn ĐHQG-HCM',
   government: 'Nguồn cơ quan quản lý',
   secondary: 'Nguồn đối chiếu',
