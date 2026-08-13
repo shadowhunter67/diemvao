@@ -1,30 +1,23 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import type { AdmissionConfig, AdmissionResult } from '../schools/hcmut/types/admission';
-import type { HcmutApplicantType } from '../schools/hcmut/types/applicantType';
+import { getAbilityScoreSourceCaption } from '../schools/hcmut/abilityScoreLabel';
 import { ScoreBreakdownDetails } from './ScoreBreakdownDetails';
 
 interface CurrentScoreCardProps {
   result: AdmissionResult | null;
   config: AdmissionConfig;
-  applicantType: HcmutApplicantType;
 }
 
 function signed(value: number): string {
   return `${value >= 0 ? '+' : ''}${value.toFixed(2)}`;
 }
 
-const ABILITY_SOURCE_LABEL: Record<HcmutApplicantType, string | null> = {
-  dgnl: 'Từ ĐGNL ĐHQG-HCM 2026',
-  'no-dgnl': 'Từ quy đổi theo phương án HCMUT 2026',
-  'international-certificate': null,
-  'foreign-high-school': null,
-  'special-program': null,
-};
-
-export function CurrentScoreCard({ result, config, applicantType }: CurrentScoreCardProps) {
+export function CurrentScoreCard({ result, config }: CurrentScoreCardProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const abilitySourceLabel = ABILITY_SOURCE_LABEL[applicantType];
+  // result !== null luôn có abilitySource hợp lệ ('dgnl-vnuhcm'/'thpt-derived') — chỉ 2 nhóm
+  // applicantType có công thức verified mới render tới component này (xem HcmutCalculatorPage).
+  const abilitySourceLabel = result ? getAbilityScoreSourceCaption(result) : null;
 
   return (
     <section className="rounded-card bg-surface p-6 shadow-card sm:p-8">

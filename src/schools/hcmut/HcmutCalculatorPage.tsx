@@ -19,17 +19,8 @@ import { FormulaExplanation } from '../../components/FormulaExplanation';
 import { getSchoolStorageKey, readWithMigration } from '../../core/storage';
 import { activeAdmissionConfig } from './config/admission-2026';
 import { hcmutPrograms } from './data/programs';
-import {
-  calculateAdmissionScore,
-  calculateAdmissionScoreNoDgnl,
-  convertThptScore,
-  convertTranscriptScore,
-} from './calculator/calculator';
-import {
-  calculateAdmissionScoreFromWeightedDgnlRaw,
-  calculateRequiredDgnl,
-  calculateRequiredDgnlFromWeightedRaw,
-} from './calculator/targetCalculator';
+import { evaluateHcmutAdmission, evaluateHcmutAdmissionFromWeightedDgnlRaw, evaluateHcmutNoDgnlAdmission } from './evaluate';
+import { calculateRequiredDgnl, calculateRequiredDgnlFromWeightedRaw } from './calculator/targetCalculator';
 import {
   addProgramToComparison,
   calculateEffectiveTarget,
@@ -326,39 +317,24 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
     [currentInput]
   );
 
-  // liveResult luôn được tính để các section con hiển thị số liệu chuẩn hóa realtime;
-  // result chỉ hiện khi có ít nhất một điểm học lực đã được nhập (tránh cảm giác "0.00" là kết quả thật).
-  // Chế độ "Nhập tổng điểm ĐGNL" không có 4 điểm thành phần thật nên không gọi calculateAdmissionScore
-  // (sẽ phải dựng DgnlInput giả) — tái sử dụng calculateAdmissionScoreFromWeightedDgnlRaw +
-  // convertThptScore/convertTranscriptScore (đều là hàm thuần đã có sẵn) để lắp lại đúng shape AdmissionResult.
-  const liveResult = useMemo(() => {
+  // liveEvaluation luôn được tính để các section con hiển thị số liệu chuẩn hóa realtime + để
+  // FormulaExplanation luôn có steps để hiện (kể cả trước khi user nhập gì — số liệu khi đó là
+  // 0.00, không gây hiểu nhầm vì FormulaExplanation ẩn dưới "Xem cách tính" chứ không tự hiện).
+  // result/evaluation (dùng cho CurrentScoreCard/StickySummaryBar/target/scenario) chỉ khác null
+  // khi có ít nhất một điểm học lực đã được nhập (hasCoreInput) — tránh cảm giác "0.00" là kết
+  // quả thật. 3 nhánh applicantType/dgnlModeState đều đi qua `evaluate.ts` (không gọi calculator
+  // trực tiếp trong UI nữa) — `evaluateHcmutAdmissionFromWeightedDgnlRaw` giữ nguyên đúng logic
+  // lắp lại AdmissionResult như trước, chỉ chuyển vị trí code sang evaluate.ts.
+  const liveEvaluation = useMemo(() => {
     if (applicantType === 'no-dgnl') {
-      return calculateAdmissionScoreNoDgnl(simulatorOtherInputs, activeAdmissionConfig);
+      return evaluateHcmutNoDgnlAdmission(simulatorOtherInputs, activeAdmissionConfig);
     }
     if (dgnlModeState.mode === 'total') {
-      const simulated = calculateAdmissionScoreFromWeightedDgnlRaw(
-        dgnlTotalValidation.value,
-        simulatorOtherInputs,
-        activeAdmissionConfig
-      );
-      return {
-        dgnl: {
-          rawScore: 0,
-          weightedMath: 0,
-          weightedScore: simulated.dgnlWeightedRawScore,
-          normalizedScore: simulated.dgnlNormalizedScore,
-        },
-        thpt: convertThptScore(currentInput.thpt, activeAdmissionConfig),
-        transcript: convertTranscriptScore(currentInput.transcript, activeAdmissionConfig),
-        academic: simulated.academic,
-        bonus: simulated.bonus,
-        priority: simulated.priority,
-        baseScore: simulated.baseScore,
-        finalScore: simulated.finalScore,
-      };
+      return evaluateHcmutAdmissionFromWeightedDgnlRaw(dgnlTotalValidation.value, simulatorOtherInputs, activeAdmissionConfig);
     }
-    return calculateAdmissionScore(currentInput, activeAdmissionConfig);
+    return evaluateHcmutAdmission(currentInput, activeAdmissionConfig);
   }, [applicantType, dgnlModeState.mode, dgnlTotalValidation.value, currentInput, simulatorOtherInputs]);
+  const liveResult = liveEvaluation.result;
   const result = hasCoreInput ? liveResult : null;
 
   const requiredResult = useMemo(() => {
@@ -521,7 +497,7 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
 
   const heroElement = (
     <DashboardHero
-      scoreCard={<CurrentScoreCard result={result} config={activeAdmissionConfig} applicantType={applicantType} />}
+      scoreCard={<CurrentScoreCard result={result} config={activeAdmissionConfig} />}
       programCard={
         <SelectedProgramCard
           selectedProgram={selectedProgram}
@@ -651,7 +627,7 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
               onRemoveComparison={handleRemoveComparison}
             />
 
-            <FormulaExplanation config={activeAdmissionConfig} />
+            <FormulaExplanation steps={liveEvaluation.explanation} />
           </div>
         </main>
         )}
