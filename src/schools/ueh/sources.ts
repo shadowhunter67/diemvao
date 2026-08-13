@@ -1,3 +1,4 @@
+import type { SourceLifecycle } from '../../core/freshness';
 import type { VerificationLevel } from '../../core/trust';
 
 export interface UehSource {
@@ -7,6 +8,7 @@ export interface UehSource {
   url: string;
   accessedAt: string;
   verification: VerificationLevel;
+  lifecycle?: SourceLifecycle;
   lastReviewedAt?: string;
 }
 

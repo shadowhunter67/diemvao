@@ -1,5 +1,6 @@
 import type { KnowledgeGap } from './knowledgeStatus';
 import type { SchoolCapabilities } from './schoolModule';
+import type { RuleLifecycle } from './freshness';
 
 /**
  * Capability ở mức PHƯƠNG THỨC xét tuyển — chi tiết hơn `SchoolCapabilities` (school-level).
@@ -29,6 +30,7 @@ export interface AdmissionMethodDescriptor {
   schoolId?: string;
   name: string;
   year: number;
+  lifecycle?: RuleLifecycle;
   applicantTypes?: string[];
   capabilities: AdmissionMethodCapabilities;
   /** Những gì đang CHẶN `exactCalculator` (nếu false) — machine-readable, cùng nguồn dữ liệu UI

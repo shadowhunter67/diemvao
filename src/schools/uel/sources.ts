@@ -1,3 +1,4 @@
+import type { SourceLifecycle } from '../../core/freshness';
 import type { VerificationLevel } from '../../core/trust';
 
 export interface UelSource {
@@ -7,6 +8,7 @@ export interface UelSource {
   url: string;
   accessedAt: string;
   verification: VerificationLevel;
+  lifecycle?: SourceLifecycle;
   lastReviewedAt?: string;
 }
 

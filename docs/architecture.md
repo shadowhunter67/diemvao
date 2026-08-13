@@ -1,5 +1,44 @@
 # Kiến trúc UniscoreVN (batch 2, 2026-08-12)
 
+## Batch 13 (2026-08-13) — freshness lifecycle
+
+UniScoreVN now models two independent questions:
+
+```text
+Verification: do we trust this source/rule?
+Freshness: is this source/rule still valid for CURRENT_ADMISSION_YEAR?
+```
+
+New core pieces:
+
+- `admissionYear.ts`: `CURRENT_ADMISSION_YEAR`, intentionally maintainer-controlled.
+- `freshness.ts`: `FreshnessStatus`, `RuleLifecycle`, `SourceLifecycle`, and pure assessment helpers.
+- `dataFreshnessAudit.ts`: dev-facing audit for method year drift, cutoff source coverage, duplicate current cutoff conflicts, and superseded rule evidence.
+
+Rule flow:
+
+```text
+RuleEvidence + optional RuleLifecycle
+        ↓
+assessRuleEvidenceForCurrentUse()
+        ↓
+AdmissionEvaluation exact/partial/unavailable decision
+```
+
+Cutoff flow:
+
+```text
+CutoffRecord(status/source/context)
+        ↓
+CutoffPublicationStatus: published / not-published / unknown / superseded
+        ↓
+findCutoffComparison()
+```
+
+`findCutoffComparison()` only selects current records whose `status` is `final` (or omitted for legacy final). A current-year record marked `superseded` is never used as the current cutoff; if a final replacement exists, it is selected, otherwise the publication state remains `superseded` instead of falling back to `unknown`.
+
+Historical cutoff is not stale by default. It can remain a valid reference when it is final, older than `CURRENT_ADMISSION_YEAR`, and comparable in context/scale/method.
+
 Tài liệu này mô tả các abstraction dùng chung được thêm ở batch 2 — bổ sung cho README.md (chạy
 dự án) và CLAUDE.md (lịch sử phase chi tiết theo ngày). Mục tiêu sản phẩm:
 

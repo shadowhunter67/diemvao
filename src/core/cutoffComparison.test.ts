@@ -186,4 +186,36 @@ describe('findCutoffComparison', () => {
     });
     expect(records).toEqual([{ year: 2026, programId: 'cs', methodId: 'combined', score: 80, scoreScale: 100 }]);
   });
+
+  it('current superseded + final replacement -> chooses final replacement', () => {
+    const comparison = findCutoffComparison({
+      records: [
+        { year: 2026, programId: 'cs', methodId: 'combined', score: 80, scoreScale: 100, status: 'superseded' },
+        { year: 2026, programId: 'cs', methodId: 'combined', score: 81, scoreScale: 100, status: 'final' },
+      ],
+      targetYear: 2026,
+      applicantScore: 82.5,
+      applicantScale: 100,
+      selection: { programId: 'cs', methodId: 'combined' },
+    });
+
+    expect(comparison.availability).toBe('published');
+    expect(comparison.referenceType).toBe('current');
+    expect(comparison.cutoff).toBe(81);
+    expect(comparison.difference).toBe(1.5);
+  });
+
+  it('current superseded without final replacement is not silently treated as unknown', () => {
+    const comparison = findCutoffComparison({
+      records: [{ year: 2026, programId: 'cs', methodId: 'combined', score: 80, scoreScale: 100, status: 'superseded' }],
+      targetYear: 2026,
+      applicantScore: 82.5,
+      applicantScale: 100,
+      selection: { programId: 'cs', methodId: 'combined' },
+    });
+
+    expect(comparison.availability).toBe('superseded');
+    expect(comparison.referenceType).toBe('none');
+    expect(comparison.difference).toBeUndefined();
+  });
 });

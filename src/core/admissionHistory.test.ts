@@ -86,8 +86,8 @@ describe('getCutoffAvailability', () => {
     expect(getCutoffAvailability(records, 2026, [{ year: 2026 }])).toBe('published');
   });
 
-  it("'unknown' khi record duy nhất của năm đó đã superseded và không có check nào", () => {
+  it("'superseded' khi record duy nhất của năm đó đã bị thay thế và chưa có final replacement", () => {
     const records: FakeCutoff[] = [{ year: 2026, score: 60, status: 'superseded' }];
-    expect(getCutoffAvailability(records, 2026)).toBe('unknown');
+    expect(getCutoffAvailability(records, 2026)).toBe('superseded');
   });
 });

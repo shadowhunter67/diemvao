@@ -6,6 +6,8 @@ Tính & mô phỏng điểm xét tuyển đại học
 - **GitHub**: https://github.com/shadowhunter67/uniscore _(tên repo chưa đổi theo brand mới — external action ngoài phạm vi code, xem CLAUDE.md Batch 7)_
 - **Issues**: https://github.com/shadowhunter67/uniscore/issues
 
+UniScoreVN separates official/current data, historical references, and rules that are still awaiting verification. A source can be official but superseded; a previous-year cutoff can still be a valid historical reference; a missing current-year cutoff remains `unknown` unless there is explicit `not-published` evidence.
+
 ## Giới thiệu
 
 UniscoreVN (rebrand từ **Uniscore**, Batch 7 — trước đó nữa là **DiemVao** ở Phase 13) là công cụ tính điểm xét tuyển đại học, chạy hoàn toàn phía client (không backend, không database, không đăng nhập), realtime khi người dùng nhập điểm gốc. Ngoài tính điểm, UniscoreVN còn hỗ trợ đặt mục tiêu điểm số, mô phỏng kịch bản, và so sánh với điểm chuẩn tham khảo của các năm trước.

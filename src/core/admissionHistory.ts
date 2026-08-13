@@ -78,7 +78,8 @@ export interface NotPublishedCheck {
   notes?: string;
 }
 
-export type CutoffAvailability = 'published' | 'not-published' | 'unknown';
+export type CutoffPublicationStatus = 'published' | 'not-published' | 'unknown' | 'superseded';
+export type CutoffAvailability = CutoffPublicationStatus;
 
 /**
  * 'published': có record 'final' cho năm đó.
@@ -92,6 +93,7 @@ export function getCutoffAvailability<T extends HistoricalCutoffLike>(
   notPublishedChecks: Pick<NotPublishedCheck, 'year'>[] = []
 ): CutoffAvailability {
   if (isYearPublished(records, year)) return 'published';
+  if (records.some((record) => record.year === year && record.status === 'superseded')) return 'superseded';
   if (notPublishedChecks.some((check) => check.year === year)) return 'not-published';
   return 'unknown';
 }

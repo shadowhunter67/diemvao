@@ -1,3 +1,4 @@
+import type { EvidenceCriticality, RuleLifecycle } from './freshness';
 import type { VerificationLevel } from './trust';
 
 /**
@@ -14,6 +15,12 @@ export interface RuleEvidence {
   location?: string;
   verification: VerificationLevel;
   effectiveYear: number;
+  lifecycle?: RuleLifecycle;
+  /**
+   * Only score-affecting evidence can block exact evaluation when stale/superseded.
+   * Omitted = score-affecting for existing formula provenance.
+   */
+  criticality?: EvidenceCriticality;
   verifiedAt?: string;
   lastReviewedAt?: string;
   /** Ghi chú về hạn chế hoặc assumption. */

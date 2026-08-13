@@ -72,6 +72,16 @@ function compareScoreToCutoff(input: {
   return { ...base, comparable: true, difference: round2(input.applicantScore - input.cutoff.score) };
 }
 
+function getMissingCutoffReason(availability: CutoffAvailability): string {
+  if (availability === 'not-published') {
+    return 'Năm hiện tại đã kiểm tra và chưa công bố điểm chuẩn cùng ngữ cảnh.';
+  }
+  if (availability === 'superseded') {
+    return 'Điểm chuẩn năm hiện tại có bản đã bị thay thế, nhưng chưa có bản final thay thế đủ xác minh.';
+  }
+  return 'UniscoreVN chưa có dữ liệu điểm chuẩn xác minh cùng ngữ cảnh.';
+}
+
 export function findCutoffComparison(input: {
   records: ComparableCutoffRecord[];
   targetYear: number;
@@ -130,10 +140,7 @@ export function findCutoffComparison(input: {
     applicantScale: input.applicantScale,
     year: input.targetYear,
     comparable: false,
-    reasonNotComparable:
-      availability === 'not-published'
-        ? 'Năm hiện tại đã kiểm tra và chưa công bố điểm chuẩn cùng ngữ cảnh.'
-        : 'UniscoreVN chưa có dữ liệu điểm chuẩn xác minh cùng ngữ cảnh.',
+    reasonNotComparable: getMissingCutoffReason(availability),
     availability,
     referenceType: 'none',
   };

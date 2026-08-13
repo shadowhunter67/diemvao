@@ -1,5 +1,27 @@
 # Ghi chú cho admin / data maintainer
 
+## Batch 13 — freshness / lifecycle
+
+`VerificationLevel` trả lời "nguồn này đáng tin đến đâu"; `FreshnessStatus` trả lời "nguồn/rule đó còn phù hợp với admission year hiện hành không". Một nguồn có thể vừa `verification: 'verified'` vừa `freshness: 'superseded'`; khi đó không được dùng để power current-year exact evaluation.
+
+Các model chính:
+
+- `CURRENT_ADMISSION_YEAR` ở `src/core/admissionYear.ts`: domain config, không derive từ ngày hệ thống.
+- `FreshnessStatus = 'current' | 'needs-review' | 'stale' | 'superseded' | 'historical' | 'unknown'`.
+- `RuleLifecycle` / `SourceLifecycle`: `effectiveYear`, `publishedAt`, `lastReviewedAt`, `status`, `supersededBy`.
+- `CutoffPublicationStatus = 'published' | 'not-published' | 'unknown' | 'superseded'`.
+- `criticality: 'score-affecting' | 'informational'`: chỉ score-affecting evidence mới có quyền block/downgrade exact score.
+
+Quy tắc bảo trì:
+
+- Thêm current-year rule: gắn `effectiveYear = CURRENT_ADMISSION_YEAR`, giữ `verification` đúng mức bằng chứng, và chỉ gắn lifecycle khi có metadata thật.
+- Supersede source/rule: không xóa bản cũ; đặt `status: 'superseded'` và `supersededBy`, rồi thêm bản replacement verified/current nếu có.
+- Historical cutoff không phải stale. Nó vẫn là mốc tham khảo hợp lệ nếu `status: 'final'`, `year < CURRENT_ADMISSION_YEAR`, cùng context/scale/method và `comparableToPrevious !== false`.
+- `not-published` chỉ dùng khi có `NotPublishedCheck`; thiếu record mà chưa kiểm tra đủ là `unknown`.
+- Không có policy "30 ngày là stale". Calendar age chỉ là hint cho maintainer khi có basis sản phẩm rõ ràng.
+
+`auditAdmissionDataFreshness()` ở `src/core/dataFreshnessAudit.ts` là helper pure/dev-facing. Tests dùng helper này để bắt method runtime sai năm, current final cutoff thiếu nguồn, duplicate current cutoff conflict, và score-affecting rule evidence bị superseded.
+
 Dữ liệu tuyển sinh (ngưỡng đầu vào, công thức, quy đổi, điểm cộng, ưu tiên, danh sách ngành,
 điểm chuẩn) có thể thay đổi nhiều lần trong cùng một mùa tuyển sinh. Trước khi dùng dữ liệu để
 tính điểm hoặc hiển thị, luôn ưu tiên thông báo chính thức mới nhất — không cache "sự thật" quá
