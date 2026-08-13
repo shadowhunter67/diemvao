@@ -8,9 +8,8 @@ export const UEL_THPT_QUY_DOI_THRESHOLD = 50;
 
 /**
  * Điểm ưu tiên khu vực, thang 100 — nguồn cùng thông báo trên. CHỈ dùng để tra cứu/hiển thị
- * tham khảo, KHÔNG wire vào một "điểm cuối cùng": UniscoreVN chưa xác nhận được UEL có áp quy tắc
- * giảm dần điểm ưu tiên khi tổng điểm đạt ngưỡng cao (như HCMUT) hay không — chưa tìm thấy nguồn
- * nói rõ, không suy đoán để tránh tính sai cho thí sinh có điểm cao.
+ * tham khảo, KHÔNG wire vào một "điểm cuối cùng": quy tắc giảm dần đã verified ở
+ * `priorityReduction.ts`, nhưng exact calculator vẫn blocked vì thiếu bảng điểm cộng ngoại ngữ.
  */
 export const UEL_PRIORITY_BY_ZONE_SCALE_100 = {
   kv1: 9.17,

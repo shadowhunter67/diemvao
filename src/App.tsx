@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Footer } from './components/Footer';
 import { LandingPage } from './components/LandingPage';
+import { MultiSchoolComparisonPage } from './components/MultiSchoolComparisonPage';
 import { useRoute } from './hooks/useRoute';
 import { schoolRegistry } from './schools';
 import { setPageMeta } from './core/pageMeta';
@@ -39,13 +40,21 @@ function AppShell() {
   const school = schoolId ? schoolRegistry[schoolId] : undefined;
 
   useEffect(() => {
+    if (pathname === '/compare') {
+      setPageMeta(`So sánh hồ sơ nhiều trường | ${siteConfig.name}`, siteConfig.description);
+      return;
+    }
     if (!school) {
       setPageMeta(`${siteConfig.name} — Điểm xét tuyển đại học`, siteConfig.description);
       return;
     }
     const suffix = school.status === 'supported' ? 'Tính điểm xét tuyển' : 'Điểm chuẩn & tuyển sinh';
     setPageMeta(`${school.shortName} ${school.year} — ${suffix} | ${siteConfig.name}`);
-  }, [school]);
+  }, [pathname, school]);
+
+  if (pathname === '/compare') {
+    return <MultiSchoolComparisonPage onBackHome={() => navigate('/')} onOpenSchool={(id) => navigate(`/${id}`)} />;
+  }
 
   if (school?.Page) {
     const Page = school.Page;
@@ -55,7 +64,7 @@ function AppShell() {
   return (
     <div className="min-h-svh bg-bg">
       <div className="mx-auto max-w-3xl px-4 pb-16">
-        <LandingPage onSelectSchool={(id) => navigate(`/${id}`)} />
+        <LandingPage onSelectSchool={(id) => navigate(`/${id}`)} onOpenCompare={() => navigate('/compare')} />
         <Footer />
       </div>
     </div>

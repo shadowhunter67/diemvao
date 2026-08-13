@@ -12,8 +12,9 @@ export interface UelSource {
 
 /**
  * Nguồn đã xác minh cho UEL 2026 — research 2026-08-11 (xem docs/admission-research-2026.md).
- * Bảng điểm cộng chứng chỉ ngoại ngữ chi tiết ("Phụ lục 2") KHÔNG liệt kê ở đây vì chưa đọc được
- * dạng text/ảnh rõ (chỉ có mô tả gián tiếp qua báo chí) — xem UelExplorerPage.tsx phần blocked.
+ * Bảng điểm cộng chứng chỉ ngoại ngữ chi tiết ("Phụ lục 2") có artifact chính thức trong Google
+ * Drive PDF trên trang UEL, nhưng chưa đọc được dạng text/ảnh rõ qua fetch tự động — xem
+ * `knowledgeGaps.ts`.
  */
 export const uelSources: UelSource[] = [
   {
@@ -48,6 +49,15 @@ export const uelSources: UelSource[] = [
     title: 'Điểm cộng chứng chỉ ngoại ngữ quốc tế UEL 2026 — biết khoảng 2–5/100 cho IELTS≥5.0 tương đương, chưa có bảng chi tiết theo mức',
     url: 'https://vnexpress.net/cong-thuc-tinh-diem-xet-tuyen-chi-tiet-cua-dai-hoc-kinh-te-luat-nam-2026-5041582-p3.html',
     accessedAt: '2026-08-11',
+    verification: 'incomplete',
+  },
+  {
+    id: 'uel-admission-pdf-2026-unparsed',
+    publisher: 'Trường Đại học Kinh tế - Luật – ĐHQG TP.HCM',
+    title:
+      'File thông tin tuyển sinh đại học chính quy 2026 trên Google Drive — artifact chính thức có Phụ lục 2, chưa parse được bảng điểm cộng ngoại ngữ',
+    url: 'https://drive.google.com/file/d/1yJayo1846puqpgQYtZTAs4AZCHeT5XRk/view?usp=sharing',
+    accessedAt: '2026-08-13',
     verification: 'incomplete',
   },
 ];

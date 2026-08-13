@@ -6,7 +6,7 @@ import { uelAdmissionMethods } from './methods';
 /**
  * Module UEL — research 2026-08-11 (xem docs/admission-research-2026.md). Công thức 3 thành
  * phần (ĐGNL/THPT/học bạ) đã biết đầy đủ cách quy đổi, nhưng thiếu bảng điểm cộng ngoại ngữ chi
- * tiết + quy tắc giảm điểm ưu tiên nên CHƯA có exact calculator — giống UIT, `status` giữ
+ * tiết nên CHƯA có exact calculator — giống UIT, `status` giữ
  * 'researching' (formula phần lớn verified, info/cutoff/eligibility thật, calculator blocked).
  *
  * `eligibility`/`scoreConversion`/`exactCalculator` derive từ `uelAdmissionMethods` (batch 6,
@@ -23,7 +23,7 @@ export const uelModule: SchoolModule = {
   year: 2026,
   status: 'researching',
   summary:
-    'Dữ liệu tuyển sinh 2026 đầy đủ (điểm chuẩn 38 ngành, ngưỡng đầu vào, điều kiện điểm cộng) · Calculator chính xác đang chờ bảng điểm cộng ngoại ngữ + quy tắc ưu tiên',
+    'Dữ liệu tuyển sinh 2026 đầy đủ (điểm chuẩn 38 ngành, ngưỡng đầu vào, điều kiện điểm cộng) · Calculator chính xác đang chờ bảng điểm cộng ngoại ngữ',
   capabilities: {
     admissionInfo: true,
     programs: true,

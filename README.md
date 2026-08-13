@@ -16,7 +16,7 @@ UniscoreVN **không** dự đoán chắc chắn đậu hay đảm bảo trúng t
 
 - **HCMUT** — Trường Đại học Bách khoa – ĐHQG TP.HCM, phương thức Xét tuyển Tổng hợp 2026 — **exact calculator đầy đủ** (`status: 'supported'`)
 - **UEH** — Trường Đại học Kinh tế TP.HCM (ngoài ĐHQG-HCM) — explorer: trang thông tin, điểm chuẩn 97 chương trình, bảng quy đổi ĐGNL→THPT **đã verified** (đọc lại ĐGNL từ hồ sơ điểm dùng chung, không cần nhập lại), **chưa có exact calculator** (thiếu bước quy đổi cuối sang thang 100 + bảng điểm cộng)
-- **UEL** — Trường Đại học Kinh tế - Luật – ĐHQG TP.HCM — explorer: trang thông tin, điểm chuẩn 38 ngành, ngưỡng đầu vào, công cụ quy đổi ĐGNL→thang 100 (đọc từ hồ sơ điểm dùng chung, công thức chính thức verified), công cụ tính điểm ưu tiên giảm dần khi tổng điểm cao, **chưa có exact calculator** (chỉ còn thiếu bảng điểm cộng ngoại ngữ + quy tắc ưu tiên)
+- **UEL** — Trường Đại học Kinh tế - Luật – ĐHQG TP.HCM — explorer: trang thông tin, điểm chuẩn 38 ngành, ngưỡng đầu vào, công cụ quy đổi ĐGNL→thang 100 (đọc từ hồ sơ điểm dùng chung, công thức chính thức verified), reuse điểm thi THPT theo tổ hợp user chọn, công cụ tính điểm ưu tiên giảm dần khi tổng điểm cao, **chưa có exact calculator** (chỉ còn thiếu bảng điểm cộng ngoại ngữ)
 - **UIT** — Trường Đại học Công nghệ Thông tin – ĐHQG TP.HCM — trang thông tin, bonus/eligibility checker, điểm chuẩn 19 ngành 2026 thật, **chưa có exact calculator** (thiếu bảng bách phân vị)
 - **HCMUS, USSH** — đã research công thức (xem `docs/admission-research-2026.md`), chưa implement trang riêng
 - **IU, AGU, UHS** — mới khai báo định danh trong registry, research công thức chưa đủ nguồn tin cậy
@@ -33,10 +33,14 @@ khai tay riêng lẻ dễ lệch với thực tế.
 - Đặt mục tiêu điểm số, tính ngược ĐGNL cần đạt (binary search)
 - Mô phỏng kịch bản điểm ĐGNL giả định
 - So sánh với điểm chuẩn tham khảo nhiều ngành, nhiều năm
+- So sánh cùng một hồ sơ trên nhiều trường qua `/compare`: exact/partial/unavailable cho từng
+  trường, không ép ra điểm cuối nếu thiếu dữ liệu hoặc thiếu nguồn chính thức
 - Chia sẻ kết quả qua URL (query params), không cần tài khoản
 - Lưu input gần nhất vào localStorage của trình duyệt
 - Nhập điểm gốc (ĐGNL/THPT/học bạ) một lần ở HCMUT — UEH/UEL tự đọc lại ĐGNL từ `ApplicantProfile`
   dùng chung (`core/applicantProfile.ts`, runtime qua `ApplicantProfileContext`), không cần nhập lại.
+  UEL bắt đầu reuse thật điểm thi THPT theo tổ hợp user chọn (vd A01 đọc Toán/Lý/Anh), chỉ hỏi môn
+  còn thiếu và ghi ngược điểm thi raw mới nhập vào hồ sơ dùng chung.
   Hồ sơ dùng chung chỉ chứa **điểm gốc/factual** (ĐGNL thô, điểm thi THPT, điểm học bạ) — KHÔNG bao
   giờ chứa điểm đã quy đổi/điểm xét tuyển cuối cùng của riêng một trường. Nếu 2 trường ghi 2 con số
   ĐGNL xung đột nhau, UniscoreVN tự phát hiện và báo rõ thay vì âm thầm giữ cả hai (xem
@@ -65,6 +69,7 @@ src/
 ├── config/
 │   └── site.ts     # Brand: tên, slug, canonicalUrl, tagline, description
 ├── components/      # UI dùng chung (bao gồm ApplicantProfileContext runtime), không chứa business logic riêng trường nào
+├── compare/         # Orchestrator/presentation adapter cho /compare, không chứa công thức trường
 └── App.tsx
 ```
 
@@ -73,7 +78,10 @@ Nguyên tắc:
 - Logic/công thức riêng của một trường nằm trong `schools/<id>/`, không tràn ra `components/` hay `core/`.
 - Mỗi trường có input schema, thang điểm, phương thức xét tuyển riêng — **không** ép về một "universal formula engine". `SchoolModule` (`src/core/schoolModule.ts`) chỉ chứa thông tin định danh (id, tên, năm, status) để đăng ký vào `schoolRegistry`, không ép `calculate()` chung chữ ký.
 - Khả năng thật của từng phương thức xét tuyển (eligibility/quy đổi/điểm cộng/điểm ưu tiên/exact calculator) khai báo qua `AdmissionMethodDescriptor` (`core/admissionMethod.ts`) — đây là **nguồn sự thật** ở các trường đã migrate sang cơ chế này (UEH/UEL/UIT); `SchoolModule.capabilities` cấp trường chỉ derive (OR) từ đó qua `aggregateSchoolCapabilities`, tránh khai tay 2 nơi dễ lệch nhau.
-- Trường nào cần đọc lại điểm gốc đã nhập ở trường khác thì tự viết `applicantProfileAdapter.ts` đọc `ApplicantProfile` (`core/applicantProfile.ts`) qua `useApplicantProfile()` — hồ sơ này chỉ chứa dữ liệu factual dùng chung nhiều trường, không phải kết quả tính của riêng trường nào.
+- Trường nào cần đọc lại điểm gốc đã nhập ở trường khác thì tự viết `applicantProfileAdapter.ts` đọc `ApplicantProfile` (`core/applicantProfile.ts`) qua `useApplicantProfile()` — hồ sơ này chỉ chứa dữ liệu factual dùng chung nhiều trường, không phải kết quả tính của riêng trường nào. Context riêng của trường (vd UEL chọn tổ hợp A01) nằm ở page/adapter của trường, không ghi vào profile.
+- `/compare` gọi school evaluator/adapter riêng của HCMUT/UEH/UEL/UIT rồi render `AdmissionEvaluation`
+  dưới dạng card. Đây là lớp orchestration/presentation, **không** phải universal formula engine,
+  không normalize tất cả trường về một thang chung và không so cutoff nếu scale/ngữ cảnh không comparable.
 - Thêm trường mới = tạo `schools/<id>/` theo cấu trúc tương tự + thêm 1 dòng vào `schoolRegistry` (`src/schools/index.ts`). Route dạng `/hcmut`, `/uit` xử lý bởi `src/hooks/useRoute.ts` (hand-rolled, không thêm router lib).
 
 ## HCMUT module
@@ -164,6 +172,12 @@ universal hóa công thức tuyển sinh, mỗi trường vẫn tự tính riên
 - Học bạ chưa xử lý trường hợp thí sinh đổi môn trong tổ hợp giữa lớp 10/11/12.
 - localStorage dùng namespace `uniscorevn:hcmut:*` (vd `uniscorevn:hcmut:input:v1`) + hồ sơ dùng chung `uniscorevn:applicant-profile:v1` (Batch 7). Khác Phase 13 (đổi brand DiemVao→Uniscore KHÔNG migrate, cố ý phá dữ liệu cũ), lần rebrand Uniscore→UniscoreVN này CÓ migrate tự động — đọc được cả key cũ `uniscore:*` (brand trước) lẫn các đời flat key cũ hơn (`uniscore-*-v1`, `hcmut-score-*`, `hcmut-applicant-type-*`), ưu tiên key mới nếu đã tồn tại. Xem `src/core/storage.ts`, `src/core/applicantProfileStorage.ts`.
 - Chưa có: database ngành động, biểu đồ, AI recommendation, xác suất trúng tuyển, login, server, analytics.
+
+## Cutoff comparison safety
+
+`/compare` chỉ tính chênh lệch với điểm chuẩn khi có final exact score cùng context chương
+trình/phương thức/thang điểm. Điểm quy đổi partial (vd UEH ĐGNL→THPT, UEL ĐGNL/THPT→100) không được
+hiển thị như chênh lệch trực tiếp với điểm chuẩn trúng tuyển cuối.
 
 ## Disclaimer
 

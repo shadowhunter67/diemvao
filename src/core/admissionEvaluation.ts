@@ -8,6 +8,20 @@ import type { RuleEvidence } from './evidence';
  */
 export type ResultConfidence = 'exact-verified' | 'exact-cross-checked' | 'partial' | 'unavailable';
 
+export type MissingRequirementKind = 'profile-input' | 'school-context' | 'official-rule' | 'unsupported';
+
+export interface MissingRequirementAction {
+  href: string;
+  label: string;
+}
+
+export interface MissingRequirement {
+  kind: MissingRequirementKind;
+  code: string;
+  label: string;
+  action?: MissingRequirementAction;
+}
+
 /**
  * Output contract dùng chung ở ranh giới domain/presentation — KHÔNG universalize input/công
  * thức (mỗi trường vẫn tự tính theo cách riêng, xem `schools/<id>/evaluate.ts`). Nguyên tắc bắt
@@ -29,6 +43,7 @@ export interface AdmissionEvaluation {
   };
   missingInputs: string[];
   missingRules: string[];
+  missingRequirements?: MissingRequirement[];
   explanation: CalculationStep[];
   evidence: RuleEvidence[];
 }

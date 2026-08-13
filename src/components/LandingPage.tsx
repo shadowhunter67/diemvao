@@ -7,6 +7,7 @@ import { summarizeApplicantProfile } from '../core/applicantProfileSummary';
 
 interface LandingPageProps {
   onSelectSchool: (schoolId: string) => void;
+  onOpenCompare: () => void;
 }
 
 /** Wording hướng tới thí sinh/phụ huynh — tránh thuật ngữ kỹ thuật ("calculator", "formula
@@ -34,7 +35,7 @@ const CAPABILITY_LABELS: { key: keyof SchoolCapabilities; label: string }[] = [
   { key: 'exactCalculator', label: 'Tính điểm chính xác' },
 ];
 
-export function LandingPage({ onSelectSchool }: LandingPageProps) {
+export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps) {
   const [query, setQuery] = useState('');
   const schools = useMemo(
     () => Object.values(schoolRegistry).sort((a, b) => a.shortName.localeCompare(b.shortName, 'vi')),
@@ -95,6 +96,45 @@ export function LandingPage({ onSelectSchool }: LandingPageProps) {
               .filter(Boolean)
               .join(' · ')}
           </p>
+          <details className="mt-2 rounded-md border border-accent/15 bg-surface/70 px-3 py-2">
+            <summary className="cursor-pointer text-xs font-medium text-ink">Xem hồ sơ đã lưu</summary>
+            <dl className="mt-2 grid gap-2 text-xs text-muted sm:grid-cols-3">
+              <div>
+                <dt className="font-medium text-ink">ĐGNL</dt>
+                <dd>{profileSummary.vactTotal !== undefined ? profileSummary.vactTotal : 'Chưa có'}</dd>
+              </div>
+              <div>
+                <dt className="font-medium text-ink">THPT</dt>
+                <dd>
+                  {profileSummary.thptSubjects.length > 0
+                    ? profileSummary.thptSubjects.map((subject) => `${subject.label}: ${subject.score}`).join(' · ')
+                    : 'Chưa có'}
+                </dd>
+              </div>
+              <div>
+                <dt className="font-medium text-ink">Học bạ</dt>
+                <dd>
+                  {profileSummary.transcriptSubjects.length > 0
+                    ? profileSummary.transcriptSubjects.map((subject) => subject.label).join(' · ')
+                    : 'Chưa có'}
+                </dd>
+              </div>
+            </dl>
+          </details>
+          <button
+            type="button"
+            onClick={onOpenCompare}
+            className="mt-3 rounded-md border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20"
+          >
+            Xem tại tất cả trường
+          </button>
+        </div>
+      )}
+
+      {!profileSummary.hasData && (
+        <div className="mx-auto mt-8 max-w-2xl rounded-card border border-ink/10 bg-surface px-4 py-3 text-sm shadow-card">
+          <p className="font-medium text-ink">Xem hồ sơ ở tất cả trường</p>
+          <p className="mt-1 text-xs text-muted">Nhập điểm ở một trường trước, rồi UniscoreVN sẽ tổng hợp exact/partial/unavailable cho từng trường.</p>
         </div>
       )}
 

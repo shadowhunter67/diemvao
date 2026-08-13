@@ -1,4 +1,4 @@
-import type { AdmissionEvaluation } from '../../core/admissionEvaluation';
+import type { AdmissionEvaluation, MissingRequirement } from '../../core/admissionEvaluation';
 import type { CalculationStep } from '../../core/calculationStep';
 import { convertDgnlToThpt } from './dgnlConversion';
 import { checkUehThreshold } from './eligibility';
@@ -24,6 +24,8 @@ export interface UehPartialInput {
  */
 export function evaluateUehAdmission(input: UehPartialInput): AdmissionEvaluation {
   const explanation: CalculationStep[] = [];
+  const missingInputs: string[] = [];
+  const missingRequirements: MissingRequirement[] = [];
 
   if (input.dgnlScore !== undefined) {
     const thptEquivalent = convertDgnlToThpt(input.dgnlScore);
@@ -36,6 +38,10 @@ export function evaluateUehAdmission(input: UehPartialInput): AdmissionEvaluatio
       formula: 'Nội suy tuyến tính theo bảng 12 khoảng công bố',
       evidence: uehDgnlConversionEvidence.evidence,
     });
+  } else {
+    const label = 'Điểm ĐGNL ĐHQG-HCM để dùng công cụ quy đổi UEH.';
+    missingInputs.push(label);
+    missingRequirements.push({ kind: 'profile-input', code: 'ueh-dgnl', label });
   }
 
   const eligibility =
@@ -57,8 +63,12 @@ export function evaluateUehAdmission(input: UehPartialInput): AdmissionEvaluatio
     eligibility,
     // Cố tình KHÔNG set `score` — UEH chưa có exact calculator, không được suy đoán/làm tròn ra
     // một con số trông giống điểm xét tuyển thật.
-    missingInputs: [],
+    missingInputs,
     missingRules: uehKnowledgeGaps.map((gap) => gap.label),
+    missingRequirements: [
+      ...missingRequirements,
+      ...uehKnowledgeGaps.map((gap) => ({ kind: 'official-rule' as const, code: gap.id, label: gap.label })),
+    ],
     explanation,
     evidence: uehDgnlConversionEvidence.evidence,
   };

@@ -9,6 +9,8 @@ describe('summarizeApplicantProfile', () => {
       vactTotal: undefined,
       thptSubjectCount: 0,
       transcriptSubjectCount: 0,
+      thptSubjects: [],
+      transcriptSubjects: [],
     });
   });
 
@@ -22,6 +24,10 @@ describe('summarizeApplicantProfile', () => {
     const profile: ApplicantProfile = { thpt: { scores: { math: 9, physics: undefined, chemistry: 7 } } };
     const summary = summarizeApplicantProfile(profile);
     expect(summary.thptSubjectCount).toBe(2);
+    expect(summary.thptSubjects).toEqual([
+      { subjectId: 'math', label: 'Toán', score: 9 },
+      { subjectId: 'chemistry', label: 'Hóa học', score: 7 },
+    ]);
     expect(summary.hasData).toBe(true);
   });
 
@@ -33,6 +39,11 @@ describe('summarizeApplicantProfile', () => {
         grade12: { math: 9, physics: 8 },
       },
     };
-    expect(summarizeApplicantProfile(profile).transcriptSubjectCount).toBe(2);
+    const summary = summarizeApplicantProfile(profile);
+    expect(summary.transcriptSubjectCount).toBe(2);
+    expect(summary.transcriptSubjects).toEqual([
+      { subjectId: 'math', label: 'Toán', grades: { grade10: 9, grade11: 9, grade12: 9 } },
+      { subjectId: 'physics', label: 'Vật lý', grades: { grade10: 8, grade11: 8, grade12: 8 } },
+    ]);
   });
 });

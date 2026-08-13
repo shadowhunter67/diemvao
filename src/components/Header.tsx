@@ -35,6 +35,12 @@ export function Header({ school, onReset, buildShareUrl, onChangeSchool }: Heade
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
+        <a
+          href="/compare"
+          className="inline-flex items-center rounded-md border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20 focus:outline-none focus:ring-2 focus:ring-accent/30"
+        >
+          Xem tất cả trường
+        </a>
         <ShareButton buildShareUrl={buildShareUrl} />
         {onReset && (
           <button

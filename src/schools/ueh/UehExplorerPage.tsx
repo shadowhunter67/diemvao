@@ -158,7 +158,7 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
           </div>
         </section>
 
-        <section className="mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
+        <section id="dgnl" className="mt-5 scroll-mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
           <div className="flex items-center gap-2">
             <ArrowRightLeft size={20} className="text-accent" aria-hidden="true" />
             <h2 className="text-lg font-semibold text-ink">Quy đổi điểm ĐGNL-HCM → thang THPT</h2>
@@ -233,7 +233,7 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
           )}
         </section>
 
-        <section className="mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
+        <section id="programs" className="mt-5 scroll-mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
           <div className="flex items-center gap-2">
             <ShieldCheck size={20} className="text-accent" aria-hidden="true" />
             <h2 className="text-lg font-semibold text-ink">Ngưỡng đầu vào chính thức</h2>

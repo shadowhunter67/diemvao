@@ -710,6 +710,7 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
           <div className="flex flex-col gap-5 lg:order-2 lg:sticky lg:top-5 lg:h-fit">{heroElement}</div>
 
           <div className="flex flex-col gap-5 lg:order-1">
+            <div id="programs" className="scroll-mt-5">
             <ProgramSection
               programs={hcmutPrograms}
               selectedProgramId={programState.selectedProgramId}
@@ -718,6 +719,7 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
               comparisonProgramIds={programState.comparisonProgramIds}
               onToggleComparison={handleToggleComparison}
             />
+            </div>
 
             <TargetSection
               config={activeAdmissionConfig}
@@ -739,6 +741,7 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
               onUseAsTarget={(score) => handleTargetChange(String(score))}
             />
 
+            <div id="dgnl" className="scroll-mt-5">
             <DgnlSection
               config={activeAdmissionConfig}
               values={formState.dgnl}
@@ -752,8 +755,11 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
               onTotalChange={handleDgnlTotalChange}
               applicantType={applicantType}
             />
+            </div>
             {applicantType === 'dgnl' && dgnlModeState.mode === 'detail' && <SharedProfileNotice />}
 
+            <div id="subject-context" className="scroll-mt-5">
+            <div id="transcript" className="scroll-mt-5">
             <TranscriptSection
               config={activeAdmissionConfig}
               values={formState.transcript}
@@ -763,6 +769,9 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
               subjectContext={subjectContext}
               onSubjectContextChange={handleSubjectContextChange}
             />
+            </div>
+            </div>
+            <div id="thpt" className="scroll-mt-5">
             <ThptSection
               config={activeAdmissionConfig}
               values={formState.thpt}
@@ -773,6 +782,7 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
               subject2Label={subjectContext.subject2 ? `Môn 2 (${SUBJECT_LABELS[subjectContext.subject2]})` : undefined}
               subject3Label={subjectContext.subject3 ? `Môn 3 (${SUBJECT_LABELS[subjectContext.subject3]})` : undefined}
             />
+            </div>
 
             <BonusPrioritySection
               config={activeAdmissionConfig}

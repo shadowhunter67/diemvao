@@ -98,6 +98,84 @@ Share URL (`urlState.ts`) và localStorage HCMUT hiện chỉ chứa điểm s�
 không có tên/CCCD/ngày sinh/SĐT/email. Guardrail test ở `urlState.test.ts` (`privacy guardrail`)
 chặn regression nếu sau này có field nhạy cảm vô tình được serialize.
 
+## Batch 8 (2026-08-13) — UEL stays partial + THPT reuse consumer
+
+### UEL exact decision gate
+
+Research targeted lại official UEL 2026 kết luận: công thức điểm học lực, normalization X/Y/Z,
+trọng số theo đối tượng, cap điểm cộng, điểm ưu tiên theo khu vực/đối tượng và quy tắc giảm điểm
+ưu tiên khi tổng điểm cao đều đã đọc được từ trang tuyển sinh chính thức. Blocker còn lại là bảng
+điểm cộng chứng chỉ ngoại ngữ quốc tế đầy đủ theo từng mức. Trang chính thức chỉ expose ví dụ
+`IELTS 5.5 → +3.50` và trỏ tới `Phụ lục 2` trong file Google Drive PDF; link Drive chưa parse được
+qua fetch tự động. Vì vậy `uelAdmissionMethods[0].capabilities.exactCalculator` tiếp tục `false`,
+`uelKnowledgeGaps[0].status = 'official-but-unparsed'`.
+
+### THPT profile reuse thật ở UEL
+
+`schools/uel/applicantProfileAdapter.ts` giờ nhận `UelSubjectContext` riêng của UEL:
+
+```text
+ApplicantProfile.thpt.scores = { math: 8.8, physics: 8.4, english: 9.0 }
+School context = A01
+Adapter/UI dùng Math + Physics + English → tổng THPT 26.20/30
+```
+
+Tổ hợp xét tuyển KHÔNG ghi vào `ApplicantProfile`; nó là state riêng của trang UEL. Nếu profile chỉ
+có 2/3 môn, UI chỉ yêu cầu môn thiếu. Nếu user nhập môn còn thiếu ở UEL, vì đó là điểm thi THPT
+factual raw, giá trị được write-back vào `ApplicantProfile.thpt.scores`. Điểm quy đổi thang 100 và
+kết quả kiểm tra ngưỡng KHÔNG ghi ngược vào profile.
+
+Regression mới khóa các invariant:
+
+- UEL đọc V-ACT total như cũ, không đọc components.
+- UEL đọc đúng tổng THPT theo tổ hợp user chọn.
+- Missing subject không bị coi là 0.
+- Điểm thật bằng 0 vẫn được giữ là factual value.
+
+### Landing profile details
+
+`summarizeApplicantProfile(profile)` trả thêm danh sách fact ngắn cho THPT/học bạ để `LandingPage`
+hiện `<details>` "Xem hồ sơ đã lưu" mà không inspect nested state trong JSX. UI chỉ hiện fact gốc:
+ĐGNL raw, điểm thi THPT theo môn, và môn học bạ đã có dữ liệu; không hiện điểm chuẩn hóa hay điểm
+cuối riêng trường.
+
+## Batch 9 (2026-08-13) — `/compare`: một hồ sơ, nhiều evaluator
+
+Batch 9 thêm trải nghiệm user-facing "Xem hồ sơ của tôi ở tất cả trường":
+
+```text
+ApplicantProfile
+      ↓
+School-specific evaluators/adapters
+      ↓
+AdmissionEvaluation[]
+      ↓
+Comparison page/cards
+```
+
+`src/compare/evaluateApplicantAcrossSchools.ts` là orchestrator pure: nhận `ApplicantProfile` +
+`MultiSchoolEvaluationContext`, gọi evaluator/adapter riêng của từng trường, trả
+`SchoolEvaluationSummary[]`. Nó KHÔNG chứa công thức tính điểm trường nào và KHÔNG mutate profile.
+HCMUT đi qua `buildHcmutAdmissionInput` + `evaluateHcmutAdmission`; UEH đi qua
+`buildUehEvaluationInput` + `evaluateUehAdmission`; UEL có `schools/uel/evaluate.ts` partial
+adapter; UIT có `schools/uit/evaluate.ts` partial/unavailable adapter.
+
+`src/components/MultiSchoolComparisonPage.tsx` render `/compare`: card theo status presentation
+`exact` / `partial` / `unavailable`, sort exact trước rồi partial rồi unavailable, nhưng không
+ranking khả năng trúng tuyển. User có thể cung cấp school-local context (HCMUT tổ hợp/điểm
+cộng/ưu tiên, UEL tổ hợp, selected program từng trường) ngay trên trang; context này không ghi vào
+`ApplicantProfile`.
+
+`src/core/cutoffComparison.ts` giữ guardrail so điểm chuẩn:
+
+- chỉ tính chênh lệch khi applicant score và cutoff cùng thang;
+- historical cutoff chỉ dùng khi `comparableToPrevious !== false`;
+- phân biệt `published` / `not-published` / `unknown`;
+- không fallback sang cutoff khác program/method — caller phải lọc đúng context trước khi gọi.
+
+Comparison là presentation/orchestration layer, không phải universal scoring engine. Partial/
+unavailable evaluation không bao giờ có `score`, nên `/compare` không thể vô tình fake final score.
+
 ## Batch 6 (2026-08-13) — Method-level capability runtime + THPT profile guardrail
 
 ### Capability hierarchy: method-level là truth, school-level chỉ là summary
@@ -172,14 +250,12 @@ và UI hiện chọn "mức đạt" theo range hiển thị (vd "≥ 8.0") khôn
 định KHÔNG đoán/làm tròn ép để lấp khoảng trống, chỉ fix phần chắc chắn đúng (chặn contamination).
 Chưa có consumer nào đọc `certificates.*` nên không mất giá trị thực tế nào.
 
-### Cross-school THPT reuse — CHƯA implement (có chủ đích)
+### Cross-school THPT reuse — Batch 6 chưa implement, Batch 8 đã có consumer UEL
 
-Workstream M cân nhắc UEH/UEL đọc `ApplicantProfile.thpt.scores` (cả 2 công thức đều dùng "THPT
-quy đổi thang 100 = tổng 3 môn tổ hợp × 100/30"). KHÔNG implement trong batch này: cần thêm UI
-chọn tổ hợp môn (giống `HcmutSubjectContext`) cho UEH/UEL — 2 trang mới, độ phức tạp tương đương
-công việc batch 4 đã làm cho HCMUT, rủi ro làm batch phình to mà không xong dứt điểm phần capability
-model (ưu tiên #1 theo yêu cầu batch 6). V-ACT vẫn là field factual DUY NHẤT thật sự dùng chung
-runtime giữa 3 trường ở batch này — ghi rõ để không nhầm là đã làm.
+Workstream M của batch 6 đã cố ý chưa làm vì cần UI chọn tổ hợp môn. Batch 8 đã mở consumer thật ở
+UEL: user chọn tổ hợp trong `UelExplorerPage.tsx`, adapter đọc `ApplicantProfile.thpt.scores` theo
+`SubjectId`, chỉ yêu cầu môn thiếu và write-back điểm thi THPT factual mới nhập. UEH vẫn chưa reuse
+THPT vì flow hiện tại chưa có ngữ cảnh tổ hợp/method đủ rõ trong UI.
 
 ### Landing: hồ sơ dùng chung hiển thị + xóa được (workstream O/P/Q/R)
 
@@ -431,6 +507,41 @@ mất phần chip trực quan (Tiếng Việt/Tiếng Anh/Toán×2...) của thi
   `UehExplorerPage.tsx` (batch 4) đã đọc/ghi `ApplicantProfile` trực tiếp qua
   `buildUehEvaluationInput` cho phần input, nhưng phần hiển thị kết quả vẫn gọi thẳng
   `convertDgnlToThpt`/`checkUehThreshold` (đủ đơn giản, chưa cần lớp evaluation đầy đủ).
+
+## Batch 11 (2026-08-13) — program-aware comparison + strict cutoff safety
+
+Luồng `/compare` hiện là `ApplicantProfile → school-local context → school-specific evaluator/adapters
+→ AdmissionEvaluation + missingRequirements → actionable comparison → strict cutoff comparison`.
+
+`ApplicantProfile` vẫn factual-only. Program/method/combination selection là school context và được
+persist riêng theo namespace trường (`uniscorevn:<school>:program:v1`,
+`uniscorevn:uel:subject-context:v1`, HCMUT reuse context storage hiện có), không ghi vào profile.
+
+Cutoff comparison chỉ hợp lệ khi chứng minh được cùng semantic score: evaluation phải có final `score`
+exact; cùng thang điểm; cùng program/method nếu cutoff record có dimension đó; cùng campus/applicant
+type/combination nếu dataset có; historical fallback chỉ dùng khi `comparableToPrevious !== false`.
+
+Một partial conversion như UEH ĐGNL→THPT hoặc UEL ĐGNL/THPT→100 **không bao giờ** được hiển thị như
+chênh lệch trực tiếp với final admission cutoff. Nếu không chứng minh được cùng context, UI phải nói
+"Chưa thể so trực tiếp" hoặc "Chưa có mốc điểm chuẩn phù hợp để so", thay vì tạo một gap màu xanh/đỏ.
+
+## Batch 12 (2026-08-13) — compare cleanup + regression hardening
+
+`MultiSchoolComparisonPage.tsx` chỉ còn giữ state/context orchestration. Presentation của `/compare`
+được tách vào `components/compare/`:
+
+- `ComparisonOverview.tsx`: H1, status counts derive từ evaluation hiện tại, factual profile summary.
+- `SchoolComparisonCard.tsx`: card rendering, context badges, missing requirements, next actions,
+  cutoff wording, calculation details.
+- `ComparisonStatusBadge.tsx`: status text + icon, không color-only.
+
+Cutoff safety có thêm helper `compare/cutoffEligibility.ts`: chỉ `exact-verified` hoặc
+`exact-cross-checked` có final finite `score` mới được đi vào cutoff comparison. Test khóa cả trường
+hợp future bug gắn `score` vào `partial`/`unavailable`.
+
+Regression coverage cũng khóa các case stale context và cleared profile: school-local context có thể
+còn trong localStorage, nhưng evaluator luôn đọc lại factual `ApplicantProfile`; thiếu fact thì HCMUT
+không thể trả exact/cutoff stale.
 - ~~UEH ghi ngược `exams.vact.total` khi user "Thay đổi" nhưng KHÔNG có UI xác nhận rõ ràng~~ — đã
   fix ở batch 5 (xem mục "UX rõ ràng khi ghi/xung đột" bên trên): có dòng thông báo cập nhật hồ sơ
   dùng chung + cảnh báo khi components bị xóa do xung đột.

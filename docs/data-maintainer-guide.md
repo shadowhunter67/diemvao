@@ -50,6 +50,9 @@ lâu trong đầu.
   `docs/admission-research-2026.md`).
 - Chưa đủ nguồn chính thức cho một fact → đánh dấu `verification: 'incomplete'`, KHÔNG suy đoán
   số liệu để lấp khoảng trống.
+- Nếu official source/artifact có tồn tại nhưng chưa đọc được bảng số liệu an toàn (vd UEL Phụ lục
+  2 trong Google Drive PDF chỉ load được shell Drive qua fetch), dùng `KnowledgeStatus:
+  'official-but-unparsed'` cho gap và vẫn giữ calculator blocked cho rule đó.
 
 ## `lastReviewedAt`
 

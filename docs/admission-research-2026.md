@@ -53,12 +53,12 @@ Chi tiết đầy đủ 15 câu hỏi/trường (thành phần, quy đổi, môn
 - **UEL**: `ĐGNL 55% + THPT 35% + Học bạ 10%` (nhóm đủ cả 2 loại điểm); nhóm chỉ 1 loại: 90%/10%. Bảng ưu tiên KV/ĐT đầy đủ trên thang 100 (KV1=9,17/KV2NT=8,33/KV2=7,5/KV3=6,67). Điểm cộng IELTS/TOEFL "theo Phụ lục 2" — chưa đọc được bảng. Có Phương thức 5 riêng cho SAT/ACT/IB/A-Level. Nguồn: `uel.edu.vn` + `tuyensinh.uel.edu.vn` (chính thức).
   - **Research bổ sung 2026-08-11** (đọc trực tiếp `tuyensinh.uel.edu.vn/thong-tin-tuyen-sinh-dai-hoc-chinh-quy-2026/` + ảnh công bố điểm chuẩn gốc, xem `schools/uel/`):
     - Công thức đầy đủ theo Đối tượng: ĐT1 (có ĐGNL) = `X·β1 + Y·β2 + Z·β3`; ĐT2 (không ĐGNL) = `(Y·α)·β1 + Y·β2 + Z·β3` (α=100% → rút gọn = 90%Y + 10%Z); ĐT3 (chỉ ĐGNL, tự do) = `X·β1 + X·β2 + Z·β3` (= 90%X + 10%Z); ĐT4 = chứng chỉ quốc tế (SAT/ACT/IB/A-Level) quy đổi — **chưa có công thức quy đổi cụ thể, KHÔNG implement**.
-    - Quy đổi thang 100: `X (ĐGNL) = raw × 100/1200`; `Y (THPT) = tổng 3 môn tổ hợp × 100/30`; `Z (học bạ) = tổng điểm TB 3 môn tổ hợp (mỗi môn = TB cả năm lớp 10+11+12) × 100/30`. **Đây là công thức normalization RÕ RÀNG HƠN UIT** (UIT chỉ nêu tên "phương pháp bách phân vị", không có công thức) — đã implement `schools/uel/eligibility.ts` (ngưỡng THPT ≥50/100) nhưng KHÔNG mở exact final-score calculator vì 2 phần còn thiếu dưới đây vẫn có thể làm sai điểm cuối.
+    - Quy đổi thang 100: `X (ĐGNL) = raw × 100/1200`; `Y (THPT) = tổng 3 môn tổ hợp × 100/30`; `Z (học bạ) = tổng điểm TB 3 môn tổ hợp (mỗi môn = TB cả năm lớp 10+11+12) × 100/30`. **Đây là công thức normalization RÕ RÀNG HƠN UIT** (UIT chỉ nêu tên "phương pháp bách phân vị", không có công thức) — đã implement `schools/uel/eligibility.ts` (ngưỡng THPT ≥50/100) nhưng KHÔNG mở exact final-score calculator vì bảng điểm cộng ngoại ngữ còn thiếu vẫn có thể làm sai điểm cuối.
     - Ngưỡng đầu vào: tổng 3 môn THPT tổ hợp quy đổi thang 100 ≥ 50.
     - Điểm cộng: cap tổng 10/100 (xác nhận). Nhóm 149 trường THPT ưu tiên ĐHQG-HCM: **+5/100 cố định** (verified) — đã implement như bonus eligibility category (`schools/uel/data/bonus.ts`, cùng chính sách eligibility-only với UIT, không trả awarded score). Nhóm chứng chỉ ngoại ngữ quốc tế (IELTS≥5.0 tương đương): biết khoảng 2–5/100 (qua VnExpress dẫn "Phụ lục 2"), nhưng bảng chi tiết theo từng mức chứng chỉ nằm trong ảnh lazy-load không trích xuất được qua fetch tool — **KHÔNG implement như category có số cụ thể**, chỉ ghi chú blocked.
-    - Điểm ưu tiên khu vực thang 100 (KV1=9,17/KV2-NT=8,33/KV2=7,5/KV3=6,67): verified, nhưng **không tìm thấy nguồn xác nhận UEL có áp quy tắc giảm dần khi tổng điểm cao** (như HCMUT) hay không — hiển thị như bảng tra cứu tham khảo (`UelExplorerPage.tsx`), KHÔNG cộng vào một điểm cuối cùng.
+    - Điểm ưu tiên khu vực thang 100 (KV1=9,17/KV2-NT=8,33/KV2=7,5/KV3=6,67): verified. Batch 6 đã fetch lại trang chính thức và xác nhận quy tắc giảm dần khi tổng điểm học lực + điểm cộng ≥75/100; hiện có tool riêng `priorityReduction.ts`, nhưng vẫn KHÔNG cộng vào một điểm cuối cùng vì bảng điểm cộng ngoại ngữ chưa đủ.
     - **Điểm chuẩn 38 ngành/chuyên ngành 2026**: đọc trực tiếp ảnh gốc full-resolution `UEL_Cong-bo-diem-chuan-2026-724x1024.png` (tải về, đọc bằng công cụ đọc ảnh, đối chiếu số lượng 38/38 và khoảng điểm 65,01–90,01 khớp báo chí cùng ngày) — đã implement `schools/uel/data/cutoffs.ts`, đủ chuẩn tương đương cách HCMUT/UIT đọc ảnh gốc.
-    - **Kết luận**: implement Admission Explorer thật (info + cutoff đầy đủ + ngưỡng đầu vào + bonus eligibility + bảng ưu tiên tham khảo + source), `status: 'researching'`, exact calculator tiếp tục blocked cho tới khi có bảng điểm cộng ngoại ngữ chi tiết + xác nhận quy tắc ưu tiên.
+    - **Kết luận**: implement Admission Explorer thật (info + cutoff đầy đủ + ngưỡng đầu vào + bonus eligibility + bảng ưu tiên/tool giảm dần + source), `status: 'researching'`, exact calculator tiếp tục blocked cho tới khi có bảng điểm cộng ngoại ngữ chi tiết.
   - **Research bổ sung 2026-08-13 (batch 6, workstream T)** — targeted, fetch trực tiếp
     `tuyensinh.uel.edu.vn/thong-tin-tuyen-sinh-dai-hoc-chinh-quy-2026/` (khác lần trước, fetch lại
     đúng trang chính thức thay vì chỉ qua báo chí):
@@ -69,13 +69,27 @@ Chi tiết đầy đủ 15 câu hỏi/trường (thành phần, quy đổi, môn
       hợp riêng UEL. Implement `schools/uel/priorityReduction.ts` (`calculateUelEffectivePriority`,
       pure function, 5 test) + UI "nâng cao" trong `UelExplorerPage.tsx`. `AdmissionMethodCapabilities.priority`
       đổi `false → true`.
-    - **Bảng điểm cộng ngoại ngữ: VẪN incomplete** — trang chính thức chỉ có 1 ví dụ minh họa rời
+    - **Bảng điểm cộng ngoại ngữ: VẪN blocked** — trang chính thức chỉ có 1 ví dụ minh họa rời
       rạc trong phần tính điểm mẫu ("Điểm cộng (IELTS 5.5) + 3,50"), bảng đầy đủ ("Phụ lục 2") nằm
       trong file đính kèm dạng Google Drive PDF, không đọc được qua fetch tự động (chặn đăng nhập/
       chưa render). Cross-check báo chí (VnExpress, batch 5) nói "IELTS≥5.0 tối đa 5/100" — 2 nguồn
       không đủ chi tiết để dựng bảng nhiều mức, và có chênh nhẹ về ngưỡng tối thiểu (5.0 vs ví dụ
-      5.5) — giữ nguyên `incomplete`, KHÔNG suy đoán các mức còn lại. `exactCalculator` tiếp tục
-      `false` (chỉ 1/2 blocker được gỡ, vẫn đủ để ra điểm cuối sai nếu bật).
+      5.5) — chuyển gap sang `official-but-unparsed`, KHÔNG suy đoán các mức còn lại. `exactCalculator`
+      tiếp tục `false`.
+  - **Research/implementation bổ sung 2026-08-13 (batch 8)**:
+    - Targeted search lại official UEL/UEL tuyển sinh/Drive PDF không lấy được bảng Phụ lục 2 dạng
+      parseable. Kết luận exact calculator vẫn bị chặn bởi **1 unknown rule**: bảng điểm cộng chứng
+      chỉ ngoại ngữ quốc tế đầy đủ theo từng mức và tương tác điểm cộng thực nhận từ bảng đó với cap
+      10/100.
+    - THPT factual reuse đã có consumer thật ở UEL: `UelExplorerPage.tsx` cho user chọn tổ hợp
+      A00/A01/B00/D01, đọc `ApplicantProfile.thpt.scores` theo `SubjectId`, chỉ yêu cầu môn còn
+      thiếu, và write-back điểm thi THPT raw mới nhập. Tổ hợp là school context, không lưu vào
+      `ApplicantProfile`; điểm THPT quy đổi thang 100 không write-back.
+  - **Targeted attempt 2026-08-13 (batch 9)**:
+    - Thử direct-download official Google Drive artifact `1yJayo1846puqpgQYtZTAs4AZCHeT5XRk` bằng
+      `drive.google.com/uc?export=download` trong sandbox và ngoài sandbox; cả hai lần timeout
+      trước khi lấy được PDF thật. Không có bảng Phụ lục 2 parseable mới, nên UEL exact tiếp tục
+      blocked. Không research tiếp qua nguồn SEO/blog để tránh kéo dài vô hạn.
 - **HCMUS**: `0.8×(THPT hoặc ĐGNL, chọn cao hơn) + 0.2×Học bạ`, tính trên thang 30 rồi quy đổi ×100/30 để công bố. Điểm cộng ≤1,5/30. Ưu tiên theo khung chuẩn quốc gia (giống cách HCMUT/UniscoreVN đã làm). Điều kiện riêng theo ngành (vd Thiết kế vi mạch yêu cầu Toán nhóm 20% cao nhất). Nguồn: `tuyensinh.hcmus.edu.vn` (chính thức, 3 trang khác nhau).
   - **Research bổ sung 2026-08-11** (đọc trực tiếp `tuyensinh.hcmus.edu.vn/2026-thong-bao-ve-phuong-thuc-xet-tuyen-2/`):
     - Xác nhận chính xác: `w1=w3=0.8`, `w2=w4=0.2`. `Điểm học lực = max(w1×THPT + w2×Học bạ, w3×ĐGNL_quy_đổi + w4×Học bạ)` — về mặt toán học tương đương `0.8×max(THPT, ĐGNL_quy_đổi) + 0.2×Học bạ` (vì Học bạ giống nhau ở cả 2 nhánh).
