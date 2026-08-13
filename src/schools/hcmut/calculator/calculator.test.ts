@@ -94,6 +94,7 @@ describe('calculateAdmissionScore - academic score', () => {
     const result = calculateAdmissionScore(input, config);
     expect(result.academic.score).toBe(100);
     expect(result.finalScore).toBe(100);
+    expect(result.abilitySource).toBe('dgnl-vnuhcm');
   });
 });
 
@@ -116,6 +117,8 @@ describe('calculateAdmissionScoreNoDgnl (Đối tượng 2.2 — không có ĐGN
     // academic = 75*0.7 + 100*0.2 + 100*0.1 = 82.5 — không thể đạt 100 khi không có ĐGNL.
     expect(result.academic.score).toBe(82.5);
     expect(result.finalScore).toBe(82.5);
+    // abilitySource đánh dấu rõ đây KHÔNG phải điểm ĐGNL thật (workstream B — domain smell fix).
+    expect(result.abilitySource).toBe('thpt-derived');
   });
 
   it('matches the worked example: THPT 9/8/7 -> ability 61.88, academic 69.82', () => {

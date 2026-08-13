@@ -7,7 +7,8 @@ import { uehPrograms } from './data/programs';
 import { uehCutoffs } from './data/cutoffs';
 import { uehSources } from './sources';
 import { convertDgnlToThpt } from './dgnlConversion';
-import { checkUehThreshold } from './eligibility';
+import { checkUehThreshold, UEH_THRESHOLD_HCMC, UEH_THRESHOLD_MEKONG } from './eligibility';
+import { uehKnowledgeGaps } from './knowledgeGaps';
 
 interface UehExplorerPageProps {
   onChangeSchool: () => void;
@@ -107,8 +108,9 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
               Bảng quy đổi ĐGNL/V-SAT và công thức học bạ đã rõ, nhưng vẫn còn thiếu:
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
-              <li>Bước quy đổi cuối cùng từ (điểm thi thang 30 + học bạ) sang điểm xét thang 100 — nguồn chưa nêu rõ hệ số cụ thể</li>
-              <li>Bảng điểm cộng/điểm ưu tiên chính thức (mới thấy ví dụ minh họa, chưa phải bảng đầy đủ)</li>
+              {uehKnowledgeGaps.map((gap) => (
+                <li key={gap.id}>{gap.label}</li>
+              ))}
             </ul>
             <p className="mt-2 leading-relaxed">
               Trong lúc chờ, bạn có thể dùng công cụ quy đổi ĐGNL→THPT bên dưới (đã verified), kiểm tra ngưỡng đầu
@@ -152,36 +154,54 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
         <section className="mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
           <div className="flex items-center gap-2">
             <ShieldCheck size={20} className="text-accent" aria-hidden="true" />
-            <h2 className="text-lg font-semibold text-ink">Kiểm tra ngưỡng đầu vào</h2>
+            <h2 className="text-lg font-semibold text-ink">Ngưỡng đầu vào chính thức</h2>
           </div>
-          <p className="mt-1 text-sm text-muted">Điểm xét tuyển thang 100 (chưa gồm ưu tiên/điểm cộng), theo cơ sở đào tạo.</p>
-          <div className="mt-3 flex flex-wrap items-end gap-3">
-            <div className="max-w-xs">
-              <input
-                type="number"
-                inputMode="decimal"
-                min={0}
-                max={100}
-                value={thresholdInput}
-                onChange={(e) => setThresholdInput(e.target.value)}
-                placeholder="0 - 100"
-                className="w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
-              />
-            </div>
-            <select
-              value={campus}
-              onChange={(e) => setCampus(e.target.value as 'hcmc' | 'mekong')}
-              className="rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
-            >
-              <option value="hcmc">TP.HCM (KSA)</option>
-              <option value="mekong">UEH Mekong – Vĩnh Long (KSV)</option>
-            </select>
-          </div>
-          {thresholdResult && (
-            <p className={`mt-2 text-sm ${thresholdResult.pass ? 'text-success' : 'text-muted'}`}>
-              {thresholdResult.requiredText} — {thresholdResult.pass ? 'đạt' : 'chưa đạt'}
+          <p className="mt-1 text-sm text-muted">
+            Uniscore <strong className="text-ink">chưa tự tính được</strong> điểm xét tuyển cuối cùng của bạn cho UEH
+            (thiếu bước quy đổi cuối, xem cảnh báo phía trên) — nên không thể tự kết luận bạn đạt hay chưa đạt ngưỡng.
+            Ngưỡng chính thức là:
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink">
+            <li>TP.HCM (mã KSA): điểm xét tuyển thang 100 (chưa gồm ưu tiên/điểm cộng) ≥ <strong>{UEH_THRESHOLD_HCMC}</strong></li>
+            <li>UEH Mekong – Vĩnh Long (mã KSV): ≥ <strong>{UEH_THRESHOLD_MEKONG}</strong></li>
+          </ul>
+
+          <details className="mt-4 rounded-md border border-ink/10 bg-surface p-3">
+            <summary className="cursor-pointer text-sm font-medium text-ink">
+              Đã tự có điểm xét tuyển từ nguồn khác? So sánh nhanh tại đây (nâng cao)
+            </summary>
+            <p className="mt-2 text-xs text-muted">
+              Chỉ dùng khi bạn đã biết điểm xét tuyển thang 100 của mình (vd UEH đã công bố cho bạn) — Uniscore không
+              tính giúp số này.
             </p>
-          )}
+            <div className="mt-3 flex flex-wrap items-end gap-3">
+              <div className="max-w-xs">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  max={100}
+                  value={thresholdInput}
+                  onChange={(e) => setThresholdInput(e.target.value)}
+                  placeholder="0 - 100"
+                  className="w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+                />
+              </div>
+              <select
+                value={campus}
+                onChange={(e) => setCampus(e.target.value as 'hcmc' | 'mekong')}
+                className="rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+              >
+                <option value="hcmc">TP.HCM (KSA)</option>
+                <option value="mekong">UEH Mekong – Vĩnh Long (KSV)</option>
+              </select>
+            </div>
+            {thresholdResult && (
+              <p className={`mt-2 text-sm ${thresholdResult.pass ? 'text-success' : 'text-muted'}`}>
+                {thresholdResult.requiredText} — {thresholdResult.pass ? 'đạt' : 'chưa đạt'}
+              </p>
+            )}
+          </details>
         </section>
 
         <section className="mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">

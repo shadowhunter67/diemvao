@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { isForbiddenShareKey } from '../../core/privacy';
 import { activeAdmissionConfig } from './config/admission-2026';
 import { defaultAdmissionFormState } from './types/form';
 import type { HcmutProgram } from './types/programs';
@@ -151,5 +152,30 @@ describe('applicant type (at=)', () => {
     const params = new URLSearchParams();
     serializeApplicantTypeToSearchParams(params, 'no-dgnl');
     expect(params.get('at')).toBe('no-dgnl');
+  });
+});
+
+describe('privacy guardrail (workstream L)', () => {
+  it('không có key nào trong share URL khớp pattern nhạy cảm (tên/CCCD/ngày sinh/SĐT/email/địa chỉ)', () => {
+    const fullForm = {
+      ...defaultAdmissionFormState,
+      dgnl: { vietnamese: '250', english: '240', math: '260', scientificThinking: '230' },
+      thpt: { math: '9', subject2: '8', subject3: '7' },
+      transcript: {
+        grade10: { math: '9', subject2: '8', subject3: '7' },
+        grade11: { math: '9', subject2: '8', subject3: '7' },
+        grade12: { math: '9', subject2: '8', subject3: '7' },
+      },
+      bonus: { reward: '2', considerationReward: '1', encouragement: '1' },
+      priorityRaw30Scale: '2',
+    };
+    const params = serializeStateToSearchParams(fullForm, '85', config);
+    serializeProgramStateToSearchParams(params, { programId: 'a', buffer: 1, comparisonProgramIds: ['a', 'b'] }, testPrograms);
+    serializeApplicantTypeToSearchParams(params, 'no-dgnl');
+
+    expect([...params.keys()].length).toBeGreaterThan(0);
+    for (const key of params.keys()) {
+      expect(isForbiddenShareKey(key), `key "${key}" khớp pattern nhạy cảm`).toBe(false);
+    }
   });
 });

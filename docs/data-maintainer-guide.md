@@ -60,6 +60,18 @@ lâu trong đầu.
   tuyển sinh đang diễn ra — chưa có tooling tự động phân loại `fresh`/`review-needed`/`outdated`
   trong phase này, chỉ có data model sẵn sàng cho việc đó sau.
 
+## Provenance ở mức RULE, không chỉ dataset (batch 2)
+
+`core/evidence.ts` (`RuleEvidence`/`SourcedRule<T>`) và `core/knowledgeStatus.ts`
+(`KnowledgeStatus`/`KnowledgeGap`) bổ sung cho model ở trên khi cần gắn nguồn vào MỘT hằng số cụ
+thể trong công thức (vd hệ số 0.75, ngưỡng 75) thay vì chỉ ở mức dataset/cutoff. Xem
+`schools/hcmut/evidence.ts`, `schools/ueh/evidence.ts` để biết cách dùng thật, và
+`docs/architecture.md` cho tổng quan đầy đủ các model mới. Khi thêm 1 hằng số quan trọng mới vào
+`AdmissionConfig` của bất kỳ trường nào, cân nhắc thêm luôn evidence tương ứng thay vì chỉ ghi
+comment tự do — comment dễ đọc nhưng không machine-readable, evidence thì có thể lắp vào
+`CalculationStep`/`AdmissionEvaluation` (xem `schools/hcmut/evaluate.ts`) để hiển thị "vì sao" cho
+người dùng cuối sau này.
+
 ## Legal/data safety
 
 - UniScore không phải nguồn gốc dữ liệu — chỉ tổng hợp, chuẩn hóa, tính toán, đối chiếu, giải

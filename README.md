@@ -15,7 +15,11 @@ Uniscore **không** dự đoán chắc chắn đậu hay đảm bảo trúng tuy
 ## Trường đang hỗ trợ
 
 - **HCMUT** — Trường Đại học Bách khoa – ĐHQG TP.HCM, phương thức Xét tuyển Tổng hợp 2026 — có calculator đầy đủ
-- **UIT** — Trường Đại học Công nghệ Thông tin – ĐHQG TP.HCM — có trang thông tin + điểm chuẩn 19 ngành 2026 thật, **chưa có calculator** (thiếu nguồn công khai cho cách chuẩn hóa chi tiết từng thành phần điểm)
+- **UIT** — Trường Đại học Công nghệ Thông tin – ĐHQG TP.HCM — có trang thông tin, bonus/eligibility checker, điểm chuẩn 19 ngành 2026 thật, **chưa có calculator chính xác** (thiếu bảng bách phân vị)
+- **UEL** — Trường Đại học Kinh tế - Luật – ĐHQG TP.HCM — có trang thông tin, điểm chuẩn 38 ngành, ngưỡng đầu vào, **chưa có calculator chính xác** (thiếu bảng điểm cộng ngoại ngữ + quy tắc ưu tiên)
+- **UEH** — Trường Đại học Kinh tế TP.HCM (ngoài ĐHQG-HCM) — có trang thông tin, điểm chuẩn 97 chương trình, bảng quy đổi ĐGNL→THPT đầy đủ, **chưa có calculator chính xác** (thiếu bước quy đổi cuối + bảng điểm cộng)
+- **HCMUS, USSH** — đã research công thức (xem `docs/admission-research-2026.md`), chưa implement trang riêng
+- **IU, AGU, UHS** — mới khai báo định danh trong registry, research công thức chưa đủ nguồn tin cậy
 
 ## Tính năng
 
@@ -120,9 +124,17 @@ Có thể import repository trực tiếp vào Vercel (framework preset: Vite).
 
 Dataset ngành/điểm chuẩn HCMUT (`src/schools/hcmut/data/`) dẫn nguồn báo chí trích công bố chính thức của trường (bảng điểm gốc trên hcmut.edu.vn nhúng dạng ảnh, không fetch trực tiếp được). Mỗi cutoff có `sourceLabel`/`sourceUrl`/`accessedAt`. Bảng quy đổi chứng chỉ tiếng Anh dẫn nguồn hcmut.edu.vn/tintuc/quy-doi-chung-chi-tieng-anh.
 
+## Kiến trúc / model dùng chung
+
+Xem [docs/architecture.md](docs/architecture.md) cho tổng quan các abstraction dùng chung (evidence/
+provenance, rounding policy, ApplicantProfile, AdmissionEvaluation, explanation steps...) — không
+universal hóa công thức tuyển sinh, mỗi trường vẫn tự tính riêng trong `src/schools/<id>/`.
+
 ## Giới hạn hiện tại
 
-- Kiến trúc multi-school mới chuẩn bị sẵn, **chưa** implement UIT/HCMUS/UEL hay trường nào khác ngoài HCMUT.
+- Chỉ HCMUT có exact calculator đầy đủ wire vào UI. UIT/UEL/UEH có trang thông tin + eligibility/
+  conversion tool thật nhưng chưa có exact calculator (thiếu công thức nguồn — xem
+  `docs/admission-research-2026.md`). HCMUS/USSH/IU/AGU/UHS mới ở mức research/định danh.
 - Dataset ngành/điểm chuẩn HCMUT mới có 29/70+ chương trình; chỉ 4 ngành có đủ 2025+2026 để so sánh lịch sử có ý nghĩa.
 - Điểm ưu tiên khu vực/đối tượng có dropdown gợi ý điền nhanh (theo bảng chung Bộ GD&ĐT), nhưng ô nhập tay thang 30 vẫn còn để override.
 - Quy đổi chứng chỉ tiếng Anh chỉ áp dụng cho điểm thi THPT, chưa áp dụng cho học bạ.

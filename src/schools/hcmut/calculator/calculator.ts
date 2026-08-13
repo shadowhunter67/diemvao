@@ -161,6 +161,7 @@ export function calculateAdmissionScore(input: AdmissionInput, config: Admission
     priority,
     baseScore: baseScoreForPriority,
     finalScore,
+    abilitySource: 'dgnl-vnuhcm',
   };
 }
 
@@ -205,5 +206,6 @@ export function calculateAdmissionScoreNoDgnl(
     priority,
     baseScore: baseScoreForPriority,
     finalScore,
+    abilitySource: 'thpt-derived',
   };
 }

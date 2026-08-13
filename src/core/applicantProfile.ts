@@ -1,0 +1,51 @@
+import type { SubjectId } from './subjects';
+
+/**
+ * Dữ liệu FACTUAL của một thí sinh — nhập 1 lần, nhiều school adapter (`schools/<id>/
+ * applicantProfileAdapter.ts`) đọc và map sang input riêng của trường/phương thức đó. KHÔNG
+ * phải universal formula input — school vẫn tự quyết map field nào dùng, bỏ field nào. Chỉ
+ * field đã có consumer thật (xem `schools/hcmut/applicantProfileAdapter.ts`) mới coi là "đã
+ * dùng"; field còn lại (certificates ngoài ielts, achievements...) để sẵn cho adapter sau, chưa
+ * bắt buộc implement ngay.
+ */
+export interface ApplicantProfile {
+  graduationYear?: number;
+
+  thpt?: {
+    scores: Partial<Record<SubjectId, number>>;
+  };
+
+  transcript?: {
+    grade10?: Partial<Record<SubjectId, number>>;
+    grade11?: Partial<Record<SubjectId, number>>;
+    grade12?: Partial<Record<SubjectId, number>>;
+  };
+
+  exams?: {
+    /** ĐGNL ĐHQG-HCM — 4 phần thi, không map theo SubjectId vì không phải môn học phổ thông. */
+    vact?: {
+      total?: number;
+      components?: {
+        vietnamese?: number;
+        english?: number;
+        math?: number;
+        scientificThinking?: number;
+      };
+    };
+  };
+
+  certificates?: {
+    ielts?: number;
+    toeflIbt?: number;
+    toeic?: number;
+    sat?: number;
+    act?: number;
+    ib?: number;
+  };
+
+  /** Chỉ lưu category/region dạng mã (vd 'KV1', 'UT1') — KHÔNG lưu lý do/hoàn cảnh cá nhân. */
+  priority?: {
+    region?: string;
+    category?: string;
+  };
+}

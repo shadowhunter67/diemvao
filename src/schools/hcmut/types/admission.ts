@@ -77,6 +77,15 @@ export interface AcademicResult {
   score: number;
 }
 
+/**
+ * Nguồn thật sự của "điểm năng lực" trong `AdmissionResult.dgnl` — field đó VẪN tên `dgnl` vì
+ * đổi tên sẽ lan khắp UI (CurrentScoreCard, ScoreBreakdownDetails, StickySummaryBar...), nhưng
+ * domain layer không còn ngầm định nó luôn là điểm thi ĐGNL thật. 'thpt-derived' = đối tượng
+ * 2.2 (không dự thi ĐGNL), điểm suy từ THPT × noDgnl.abilityMultiplier — xem
+ * `calculateAdmissionScoreNoDgnl`.
+ */
+export type AbilityScoreSource = 'dgnl-vnuhcm' | 'thpt-derived';
+
 export interface AdmissionResult {
   dgnl: DgnlResult;
   thpt: ThptResult;
@@ -86,6 +95,9 @@ export interface AdmissionResult {
   priority: PriorityResult;
   baseScore: number;
   finalScore: number;
+  /** Optional — thêm ở batch 2, mặc định hiểu là 'dgnl-vnuhcm' nếu bỏ trống (không breaking cho
+   * test/consumer cũ chưa set field này). */
+  abilitySource?: AbilityScoreSource;
 }
 
 /**

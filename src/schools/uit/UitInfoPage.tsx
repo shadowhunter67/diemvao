@@ -8,6 +8,7 @@ import { uitSources } from './sources';
 import { EligibilityChecker } from './components/EligibilityChecker';
 import { BonusChecker } from './components/BonusChecker';
 import { DirectAdmissionSection } from './components/DirectAdmissionSection';
+import { uitKnowledgeGaps } from './knowledgeGaps';
 
 interface UitInfoPageProps {
   onChangeSchool: () => void;
@@ -57,10 +58,9 @@ export function UitInfoPage({ onChangeSchool }: UitInfoPageProps) {
               số thành phần vẫn chưa có nguồn dạng text đọc được (chỉ tồn tại dạng ảnh/PDF) — cụ thể còn thiếu:
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
-              <li>Công thức/bảng quy đổi bách phân vị giữa THPT và ĐGNL</li>
-              <li>Cách tính điểm Học bạ</li>
-              <li>Cách quy đổi SAT/ACT sang thành phần ĐGNL</li>
-              <li>Cách quy đổi IB/A-Level sang thành phần THPT</li>
+              {uitKnowledgeGaps.map((gap) => (
+                <li key={gap.id}>{gap.label}</li>
+              ))}
             </ul>
             <p className="mt-2 leading-relaxed">
               Đang chờ nguồn chính thức đọc được trực tiếp — không suy đoán công thức để tránh hiển thị kết quả sai.
