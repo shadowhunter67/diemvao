@@ -1,5 +1,12 @@
 # Kiến trúc UniscoreVN (batch 2, 2026-08-12)
 
+## Release Candidate note (2026-08-13)
+
+Core architecture is considered stable for release. Future schools should plug into the existing
+school adapters/evaluators, `ApplicantProfile` factual profile, `AdmissionEvaluation`, and source
+provenance/audit workflow rather than expanding core abstractions unless a verified rule truly
+requires it.
+
 ## Batch 15 (2026-08-13) — source registry traceability
 
 Rule provenance now resolves through one canonical school source registry before it reaches UI evidence rendering:

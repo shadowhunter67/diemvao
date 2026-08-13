@@ -79,7 +79,7 @@ export function ProgramHistoryCompare({
                       Điểm chuẩn
                     </th>
                     <th scope="col" className="py-2 pr-3">
-                      Điểm của bạn
+                      Điểm xét tuyển của bạn
                     </th>
                     <th scope="col" className="py-2">
                       Chênh lệch

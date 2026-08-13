@@ -70,6 +70,10 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
       <div className="text-center">
         <h1 className="text-3xl font-bold text-ink sm:text-4xl">{siteConfig.name}</h1>
         <p className="mt-2 text-base text-muted sm:text-lg">{siteConfig.tagline}</p>
+        <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-muted">
+          Nhập điểm một lần, rồi xem nhiều trường tự áp dụng quy tắc riêng: trường nào tính được chính xác,
+          trường nào mới tính được một phần, và nguồn nào đang được dùng.
+        </p>
       </div>
 
       {profileSummary.hasData && (
@@ -126,7 +130,7 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
             onClick={onOpenCompare}
             className="mt-3 rounded-md border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20"
           >
-            Xem tại tất cả trường
+            Xem hồ sơ ở tất cả trường
           </button>
         </div>
       )}
@@ -134,7 +138,9 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
       {!profileSummary.hasData && (
         <div className="mx-auto mt-8 max-w-2xl rounded-card border border-ink/10 bg-surface px-4 py-3 text-sm shadow-card">
           <p className="font-medium text-ink">Xem hồ sơ ở tất cả trường</p>
-          <p className="mt-1 text-xs text-muted">Nhập điểm ở một trường trước, rồi UniscoreVN sẽ tổng hợp exact/partial/unavailable cho từng trường.</p>
+          <p className="mt-1 text-xs text-muted">
+            Nhập điểm ở một trường trước, rồi UniscoreVN sẽ tổng hợp chính xác/một phần/chưa hỗ trợ cho từng trường.
+          </p>
         </div>
       )}
 

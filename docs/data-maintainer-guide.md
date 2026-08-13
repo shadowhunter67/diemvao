@@ -1,5 +1,15 @@
 # Ghi chú cho admin / data maintainer
 
+## Release candidate merge checklist
+
+Before merging admission-data changes:
+
+1. Update the school source registry first.
+2. Link score-affecting rule evidence by `sourceId`.
+3. Keep known official gaps as `KnowledgeGap` entries instead of guessing.
+4. Run `npm run audit:data`.
+5. Run `npm run test` and `npm run build`.
+
 ## Batch 13 — freshness / lifecycle
 
 `VerificationLevel` trả lời "nguồn này đáng tin đến đâu"; `FreshnessStatus` trả lời "nguồn/rule đó còn phù hợp với admission year hiện hành không". Một nguồn có thể vừa `verification: 'verified'` vừa `freshness: 'superseded'`; khi đó không được dùng để power current-year exact evaluation.

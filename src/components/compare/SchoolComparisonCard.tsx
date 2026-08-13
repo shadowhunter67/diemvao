@@ -198,7 +198,7 @@ function CutoffComparisonBlock({
             {comparison.comparable && comparison.difference !== undefined ? (
               <>
                 <p className="mt-1 text-muted">
-                  Điểm của bạn:{' '}
+                  Điểm xét tuyển đã tính được:{' '}
                   <span className="font-medium text-ink">
                     {comparison.applicantScore.toFixed(2)} / {comparison.applicantScale}
                   </span>
