@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { schoolRegistry } from './index';
 import { hcmutModule } from './hcmut';
+import readme from '../../README.md?raw';
 
 describe('schoolRegistry', () => {
   it('có hcmut đăng ký với id đúng', () => {
@@ -38,5 +39,11 @@ describe('schoolRegistry', () => {
   it('có đủ các trường đã research (ĐHQG-HCM + UEH ngoài hệ thống)', () => {
     const ids = Object.keys(schoolRegistry).sort();
     expect(ids).toEqual(['agu', 'hcmus', 'hcmut', 'iu', 'ueh', 'uel', 'uhs', 'uit', 'ussh']);
+  });
+
+  it('README.md mục "Trường đang hỗ trợ" nhắc tên mọi trường trong registry (phát hiện drift)', () => {
+    for (const school of Object.values(schoolRegistry)) {
+      expect(readme, `README thiếu shortName "${school.shortName}"`).toContain(school.shortName);
+    }
   });
 });
