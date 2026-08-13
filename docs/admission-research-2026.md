@@ -1,14 +1,14 @@
-# Research tuyển sinh 2026 — Uniscore
+# Research tuyển sinh 2026 — UniscoreVN
 
-Research phục vụ quyết định trường/công thức nào đủ điều kiện implement calculator trong Uniscore. Nguyên tắc: **research trước, code sau; không suy đoán công thức; official source luôn ưu tiên cao nhất**. Ngày research: 2026-08-10.
+Research phục vụ quyết định trường/công thức nào đủ điều kiện implement calculator trong UniscoreVN. Nguyên tắc: **research trước, code sau; không suy đoán công thức; official source luôn ưu tiên cao nhất**. Ngày research: 2026-08-10.
 
 Thứ tự ưu tiên nguồn: (1) website tuyển sinh chính thức của trường → (2) website chính thức trường → (3) website ĐHQG-HCM → (4) đề án tuyển sinh chính thức → (5) thông báo tuyển sinh/điểm chuẩn chính thức → (6) PDF/ảnh từ trường → (7) báo chí uy tín (chỉ cross-check hoặc đọc bảng khó truy cập, không dùng làm nguồn chính duy nhất). Không dùng: blog SEO, forum, Facebook cá nhân, trang tổng hợp không dẫn nguồn, Google snippet không có link xác minh được.
 
 ## Phần A — HCMUT: mở rộng nhóm thí sinh
 
-HCMUT 2026 định nghĩa **8 "đối tượng" (2.1–2.8)** trong phương thức Xét tuyển Tổng hợp, gộp thành 5 nhóm UI trong Uniscore:
+HCMUT 2026 định nghĩa **8 "đối tượng" (2.1–2.8)** trong phương thức Xét tuyển Tổng hợp, gộp thành 5 nhóm UI trong UniscoreVN:
 
-| Đối tượng HCMUT | Nhóm UI Uniscore | Công thức | Trạng thái |
+| Đối tượng HCMUT | Nhóm UI UniscoreVN | Công thức | Trạng thái |
 |---|---|---|---|
 | 2.1 — có ĐGNL ĐHQG-HCM 2026 | `dgnl` | Điểm năng lực = ĐGNL chuẩn hóa (không đổi, hành vi cũ) | ✅ Supported |
 | 2.2 — không có ĐGNL | `no-dgnl` | Điểm năng lực = Điểm THPT quy đổi × **0.75** | ✅ Supported (mới) |
@@ -29,7 +29,7 @@ HCMUT 2026 định nghĩa **8 "đối tượng" (2.1–2.8)** trong phương th�
 
 ## Phần B — 8 trường thành viên ĐHQG-HCM
 
-| Trường | Dùng ĐGNL? | Xét không ĐGNL? | Xét tổng hợp? | Trọng số (khi có ĐGNL) | Formula verified | Trạng thái Uniscore |
+| Trường | Dùng ĐGNL? | Xét không ĐGNL? | Xét tổng hợp? | Trọng số (khi có ĐGNL) | Formula verified | Trạng thái UniscoreVN |
 |---|---|---|---|---|---|---|
 | **HCMUT** | Có | Có (0.75×THPT) | Có | ĐGNL 70% + THPT 20% + Học bạ 10% | ✅ true | **Supported** |
 | **UIT** | Có | Có (THPT, kể cả quy đổi IB/A-Level) | Có | THPT 47,5% + ĐGNL 47,5% + Học bạ 5% | ✅ true (2 nguồn độc lập khớp) | Researching — ứng viên #1 |
@@ -45,7 +45,7 @@ Chi tiết đầy đủ 15 câu hỏi/trường (thành phần, quy đổi, môn
 - **UIT**: `Hs1(THPT) 47,5% + Hs2(ĐGNL) 47,5% + Hs3(học bạ) 5%`, thang 100. Điểm cộng ≤10/100 (huy chương Olympic/giải quốc gia). Có ngưỡng SAT≥1170-1200/ACT≥26/IB≥30/A-Level 70% PUM. Ngưỡng riêng ngành Thiết kế vi mạch cao hơn. Nguồn: `tuyensinh.uit.edu.vn` (thông báo ngưỡng chính thức) + Cổng TTĐT Chính phủ (cross-check trọng số, khớp VnExpress). **Research bổ sung 2026-08-10** (đọc trực tiếp toàn bộ 6 thông báo chính thức UIT do user cung cấp URL, xem `schools/uit/`):
   - Cấu trúc công thức đầy đủ hơn (Cổng TTĐT Chính phủ, đọc nguyên văn): `THPT = Max(THPT_ĐT, THPT_QĐ, THPT_QT)`, `ĐGNL = Max(ĐGNL_ĐT, ĐGNL_QĐ, ĐGNL_QT)`. Quy đổi THPT↔ĐGNL theo "phương pháp bách phân vị" — **có nêu tên phương pháp, KHÔNG có bảng/công thức cụ thể** → vẫn blocked cho exact calculator.
   - **Bảng điểm cộng đầy đủ** (thông báo 20/05/2026, đọc nguyên văn text — không phải ảnh): 4 nhóm, mỗi nhóm mức trần cố định 10/5/5/5, tổng cap 10/100. Nhóm 1 (Olympic quốc tế/HSG quốc gia/HSG Tỉnh-Thành) có bảng môn↔ngành loại trừ (KTMT + TKVM không Văn; TTĐPT không Hóa, có thêm Sử/Địa; 4 ngành Khoa học Dữ liệu/Mạng máy tính/HTTT/HTTT-tiên tiến có thêm Sinh; CNTT Việt Nhật có thêm Nhật). Nhóm 2 (OLP/VOAI), nhóm 3 (chứng chỉ ngoại ngữ IELTS≥5.0/TOEFL≥50/TOEIC 650+250/JLPT≥N3), nhóm 4 (149 trường THPT ưu tiên ĐHQG-HCM). Nguồn nói mỗi nhóm không có thang trượt theo hạng — đạt điều kiện là nhận trọn mức trần → ban đầu implement như bonus calculator trả thẳng điểm cộng (`schools/uit/bonus.ts`).
-    - **2026-08-11 — hạ cấp xuống Bonus Eligibility Checker** (`calculateUitBonusEligibility`, xem `schools/uit/bonus.ts`): quyết định policy thận trọng, KHÔNG phải bằng chứng mới phủ định research trên. `maxPoints` từng nhóm nay chỉ dùng như upper bound hiển thị, không trả `awardedPoints`/tổng điểm cộng suy ra. Lý do: hồ sơ xét duyệt thật (minh chứng, hội đồng) có thể có bước xác nhận/điều chỉnh ngoài phạm vi 1 thông báo web đã đọc, nên UniScore chọn under-claim thay vì hiển thị một con số cuối cùng có thể sai. Nếu sau này có thêm nguồn xác nhận quy trình xét duyệt không có bước điều chỉnh nào khác, có thể cân nhắc phục hồi lại exact bonus calculator.
+    - **2026-08-11 — hạ cấp xuống Bonus Eligibility Checker** (`calculateUitBonusEligibility`, xem `schools/uit/bonus.ts`): quyết định policy thận trọng, KHÔNG phải bằng chứng mới phủ định research trên. `maxPoints` từng nhóm nay chỉ dùng như upper bound hiển thị, không trả `awardedPoints`/tổng điểm cộng suy ra. Lý do: hồ sơ xét duyệt thật (minh chứng, hội đồng) có thể có bước xác nhận/điều chỉnh ngoài phạm vi 1 thông báo web đã đọc, nên UniscoreVN chọn under-claim thay vì hiển thị một con số cuối cùng có thể sai. Nếu sau này có thêm nguồn xác nhận quy trình xét duyệt không có bước điều chỉnh nào khác, có thể cân nhắc phục hồi lại exact bonus calculator.
   - **Ngưỡng chứng chỉ quốc tế: 2 tầng riêng biệt, khác mục đích** — ngưỡng đăng ký minh chứng (thông báo 20/05/2026, thấp hơn: SAT≥1080/ACT≥21/A-Level PUM≥67%/IB≥29) và ngưỡng đảm bảo chất lượng đầu vào (thông báo 08/07/2026, cao hơn: SAT≥1170/ACT≥26/A-Level≥70%/IB≥30) — đã implement `schools/uit/eligibility.ts` phân biệt rõ 2 kết quả, không gộp.
   - **Tuyển thẳng (Điều 8)**: route tuyển sinh tách biệt hoàn toàn khỏi combined-score, có bảng điều kiện môn/ngành riêng (thông báo 20/05/2026) — đã implement `schools/uit/data/directAdmission.ts`, hiển thị info-only, không cộng vào công thức.
   - **Điểm chuẩn 19 ngành**: đối chiếu lại dữ liệu đã lưu từ phase trước với nguồn gốc — khớp 100%, không sửa.
@@ -59,7 +59,24 @@ Chi tiết đầy đủ 15 câu hỏi/trường (thành phần, quy đổi, môn
     - Điểm ưu tiên khu vực thang 100 (KV1=9,17/KV2-NT=8,33/KV2=7,5/KV3=6,67): verified, nhưng **không tìm thấy nguồn xác nhận UEL có áp quy tắc giảm dần khi tổng điểm cao** (như HCMUT) hay không — hiển thị như bảng tra cứu tham khảo (`UelExplorerPage.tsx`), KHÔNG cộng vào một điểm cuối cùng.
     - **Điểm chuẩn 38 ngành/chuyên ngành 2026**: đọc trực tiếp ảnh gốc full-resolution `UEL_Cong-bo-diem-chuan-2026-724x1024.png` (tải về, đọc bằng công cụ đọc ảnh, đối chiếu số lượng 38/38 và khoảng điểm 65,01–90,01 khớp báo chí cùng ngày) — đã implement `schools/uel/data/cutoffs.ts`, đủ chuẩn tương đương cách HCMUT/UIT đọc ảnh gốc.
     - **Kết luận**: implement Admission Explorer thật (info + cutoff đầy đủ + ngưỡng đầu vào + bonus eligibility + bảng ưu tiên tham khảo + source), `status: 'researching'`, exact calculator tiếp tục blocked cho tới khi có bảng điểm cộng ngoại ngữ chi tiết + xác nhận quy tắc ưu tiên.
-- **HCMUS**: `0.8×(THPT hoặc ĐGNL, chọn cao hơn) + 0.2×Học bạ`, tính trên thang 30 rồi quy đổi ×100/30 để công bố. Điểm cộng ≤1,5/30. Ưu tiên theo khung chuẩn quốc gia (giống cách HCMUT/Uniscore đã làm). Điều kiện riêng theo ngành (vd Thiết kế vi mạch yêu cầu Toán nhóm 20% cao nhất). Nguồn: `tuyensinh.hcmus.edu.vn` (chính thức, 3 trang khác nhau).
+  - **Research bổ sung 2026-08-13 (batch 6, workstream T)** — targeted, fetch trực tiếp
+    `tuyensinh.uel.edu.vn/thong-tin-tuyen-sinh-dai-hoc-chinh-quy-2026/` (khác lần trước, fetch lại
+    đúng trang chính thức thay vì chỉ qua báo chí):
+    - **Quy tắc giảm điểm ưu tiên: UNBLOCKED** — trang chính thức nêu nguyên văn khi tổng (điểm học
+      lực + điểm cộng) ≥75/100: `(100 – Điểm học lực – Điểm cộng)/25 × Điểm ưu tiên quy đổi, làm
+      tròn đến 0.01` — đúng cấu trúc công thức chuẩn quốc gia (ngưỡng 75, chia 25) mà HCMUT cũng
+      dùng (`admission-2026.ts`: `reductionThreshold: 75, reductionDivisor: 25`), không phải trùng
+      hợp riêng UEL. Implement `schools/uel/priorityReduction.ts` (`calculateUelEffectivePriority`,
+      pure function, 5 test) + UI "nâng cao" trong `UelExplorerPage.tsx`. `AdmissionMethodCapabilities.priority`
+      đổi `false → true`.
+    - **Bảng điểm cộng ngoại ngữ: VẪN incomplete** — trang chính thức chỉ có 1 ví dụ minh họa rời
+      rạc trong phần tính điểm mẫu ("Điểm cộng (IELTS 5.5) + 3,50"), bảng đầy đủ ("Phụ lục 2") nằm
+      trong file đính kèm dạng Google Drive PDF, không đọc được qua fetch tự động (chặn đăng nhập/
+      chưa render). Cross-check báo chí (VnExpress, batch 5) nói "IELTS≥5.0 tối đa 5/100" — 2 nguồn
+      không đủ chi tiết để dựng bảng nhiều mức, và có chênh nhẹ về ngưỡng tối thiểu (5.0 vs ví dụ
+      5.5) — giữ nguyên `incomplete`, KHÔNG suy đoán các mức còn lại. `exactCalculator` tiếp tục
+      `false` (chỉ 1/2 blocker được gỡ, vẫn đủ để ra điểm cuối sai nếu bật).
+- **HCMUS**: `0.8×(THPT hoặc ĐGNL, chọn cao hơn) + 0.2×Học bạ`, tính trên thang 30 rồi quy đổi ×100/30 để công bố. Điểm cộng ≤1,5/30. Ưu tiên theo khung chuẩn quốc gia (giống cách HCMUT/UniscoreVN đã làm). Điều kiện riêng theo ngành (vd Thiết kế vi mạch yêu cầu Toán nhóm 20% cao nhất). Nguồn: `tuyensinh.hcmus.edu.vn` (chính thức, 3 trang khác nhau).
   - **Research bổ sung 2026-08-11** (đọc trực tiếp `tuyensinh.hcmus.edu.vn/2026-thong-bao-ve-phuong-thuc-xet-tuyen-2/`):
     - Xác nhận chính xác: `w1=w3=0.8`, `w2=w4=0.2`. `Điểm học lực = max(w1×THPT + w2×Học bạ, w3×ĐGNL_quy_đổi + w4×Học bạ)` — về mặt toán học tương đương `0.8×max(THPT, ĐGNL_quy_đổi) + 0.2×Học bạ` (vì Học bạ giống nhau ở cả 2 nhánh).
     - Học bạ = tổng điểm TB 3 năm (lớp 10+11+12) của 3 môn thuộc tổ hợp có giá trị LỚN NHẤT trong các tổ hợp ngành đăng ký — rõ ràng, có thể implement nếu biết danh sách tổ hợp từng ngành.

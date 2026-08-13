@@ -5,7 +5,7 @@ export interface UitBonusEligibilitySummary {
   /** Mức trần (upper bound) của từng nhóm đã chọn — KHÔNG phải điểm thực nhận. */
   categoryCaps: Partial<Record<UitBonusCategoryId, number>>;
   overallCap: number;
-  /** Luôn false: UniScore chưa có đủ nguồn để khẳng định điểm thực nhận đúng bằng mức trần. */
+  /** Luôn false: UniscoreVN chưa có đủ nguồn để khẳng định điểm thực nhận đúng bằng mức trần. */
   exactPointsKnown: false;
 }
 

@@ -2,12 +2,13 @@ import type { ApplicantProfile } from '../../core/applicantProfile';
 import type { UehPartialInput } from './evaluate';
 
 /**
- * Đọc `profile.exams.vact.total` — điểm ĐGNL-HCM TỔNG (thang ~450-1200, đúng cách UEH công bố
- * bảng quy đổi) — KHÁC hẳn `profile.exams.vact.components` mà HCMUT adapter đọc (4 phần thi,
- * thang 300 mỗi phần, tổng có hệ số ra thang 1500). Đây là 2 con số CÙNG một kỳ thi ĐGNL ĐHQG-HCM
- * nhưng 2 cách trường công bố khác nhau — KHÔNG có bảng quy đổi verified giữa 2 thang này, nên
- * KHÔNG tự suy ra `.total` từ `.components` (sẽ là bịa số). `ApplicantProfile` giữ cả 2 field
- * riêng biệt đúng vì lý do này — mỗi trường chỉ đọc field mà trường đó thật sự dùng.
+ * Đọc `profile.exams.vact.total` — điểm ĐGNL ĐHQG-HCM thô, thang 0-1200 (4 phần thi × 300, KHÔNG
+ * nhân hệ số Toán×2 của riêng HCMUT). Đây đúng là thang UEH dùng trong bảng quy đổi (450-1200) —
+ * cùng thang UEL ("X = raw × 100/1200") và FTU ("ngưỡng 850/1200") cũng dùng, xem
+ * docs/admission-research-2026.md. KHÔNG đọc `profile.exams.vact.components` (breakdown 4 phần
+ * thi của HCMUT) — UEH chỉ cần tổng, không cần biết chi tiết từng phần. `schools/hcmut/
+ * applicantProfileMapper.ts` tự tính `.total` = tổng 4 component KHÔNG trọng số khi ghi profile —
+ * UEH không cần tự suy hay quy đổi gì thêm, chỉ đọc thẳng.
  */
 export function buildUehEvaluationInput(
   profile: ApplicantProfile,

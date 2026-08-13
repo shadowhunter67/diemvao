@@ -64,7 +64,7 @@ export function BonusChecker() {
               Tổng điểm cộng theo quy định không vượt quá <strong className="text-ink">{eligibility.overallCap}/100</strong>.
             </p>
             <p className="mt-2 text-xs text-muted">
-              Uniscore chưa có đủ bảng chính thức để xác định số điểm thực nhận — mức trần từng nhóm chỉ là giới hạn
+              UniscoreVN chưa có đủ bảng chính thức để xác định số điểm thực nhận — mức trần từng nhóm chỉ là giới hạn
               trên, không phải điểm cộng đảm bảo.
             </p>
           </>

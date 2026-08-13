@@ -16,10 +16,13 @@ import { ScenarioSimulator } from '../../components/ScenarioSimulator';
 import { ProgramSection } from '../../components/ProgramSection';
 import { ProgramHistoryCompare } from '../../components/ProgramHistoryCompare';
 import { FormulaExplanation } from '../../components/FormulaExplanation';
+import { SharedProfileNotice } from '../../components/SharedProfileNotice';
 import { getSchoolStorageKey, readWithMigration } from '../../core/storage';
+import { useApplicantProfile } from '../../core/applicantProfileContextCore';
 import { activeAdmissionConfig } from './config/admission-2026';
 import { hcmutPrograms } from './data/programs';
 import { evaluateHcmutAdmission, evaluateHcmutAdmissionFromWeightedDgnlRaw, evaluateHcmutNoDgnlAdmission } from './evaluate';
+import { buildApplicantProfileFromHcmutForm } from './applicantProfileMapper';
 import { calculateRequiredDgnl, calculateRequiredDgnlFromWeightedRaw } from './calculator/targetCalculator';
 import {
   addProgramToComparison,
@@ -35,13 +38,17 @@ import {
   applySearchParamsToForm,
   parseApplicantTypeFromSearchParams,
   parseProgramStateFromSearchParams,
+  parseSubjectContextFromSearchParams,
   parseTargetFromSearchParams,
   serializeApplicantTypeToSearchParams,
   serializeProgramStateToSearchParams,
   serializeStateToSearchParams,
+  serializeSubjectContextToSearchParams,
 } from './urlState';
 import type { AdmissionInput } from './types/admission';
 import { DEFAULT_APPLICANT_TYPE, SUPPORTED_APPLICANT_TYPES, type HcmutApplicantType } from './types/applicantType';
+import { defaultHcmutSubjectContext, type HcmutSubjectContext } from './types/subjectContext';
+import { SELECTABLE_SUBJECT_IDS, SUBJECT_LABELS, type SubjectId } from '../../core/subjects';
 import {
   defaultAdmissionFormState,
   type AdmissionFormState,
@@ -58,12 +65,24 @@ const TARGET_STORAGE_KEY = getSchoolStorageKey(SCHOOL_ID, 'target', 1);
 const PROGRAM_STORAGE_KEY = getSchoolStorageKey(SCHOOL_ID, 'program', 1);
 const DGNL_MODE_STORAGE_KEY = getSchoolStorageKey(SCHOOL_ID, 'dgnl-mode', 1);
 const APPLICANT_TYPE_STORAGE_KEY = getSchoolStorageKey(SCHOOL_ID, 'applicant-type', 1);
+const SUBJECT_CONTEXT_STORAGE_KEY = getSchoolStorageKey(SCHOOL_ID, 'subject-context', 1);
 
-const FORM_LEGACY_KEYS = ['uniscore-input-v1', 'hcmut-score-input-v2'];
-const TARGET_LEGACY_KEYS = ['uniscore-target-v1', 'hcmut-score-target-v1'];
-const PROGRAM_LEGACY_KEYS = ['uniscore-program-v1', 'hcmut-score-program-v1'];
-const DGNL_MODE_LEGACY_KEYS = ['uniscore-dgnl-mode-v1', 'hcmut-score-dgnl-mode-v1'];
-const APPLICANT_TYPE_LEGACY_KEYS = ['uniscore-applicant-type-v1', 'hcmut-applicant-type-v1'];
+// Batch 7 — rebrand Uniscore → UniscoreVN thêm 1 đời legacy mới ở ĐẦU mỗi chain: key namespaced
+// cũ `uniscore:hcmut:<domain>:v1` (Phase 15, brand "Uniscore") đứng trước 2 đời cũ hơn (`uniscore-
+// *-v1` flat key Phase 13, `hcmut-score-*` Phase 9) — `readWithMigration` thử theo đúng thứ tự
+// khai báo, key gần nhất hợp lệ trước tiên. KHÔNG xóa/sửa 2 đời cũ hơn.
+const FORM_LEGACY_KEYS = ['uniscore:hcmut:input:v1', 'uniscore-input-v1', 'hcmut-score-input-v2'];
+const TARGET_LEGACY_KEYS = ['uniscore:hcmut:target:v1', 'uniscore-target-v1', 'hcmut-score-target-v1'];
+const PROGRAM_LEGACY_KEYS = ['uniscore:hcmut:program:v1', 'uniscore-program-v1', 'hcmut-score-program-v1'];
+const DGNL_MODE_LEGACY_KEYS = ['uniscore:hcmut:dgnl-mode:v1', 'uniscore-dgnl-mode-v1', 'hcmut-score-dgnl-mode-v1'];
+const APPLICANT_TYPE_LEGACY_KEYS = [
+  'uniscore:hcmut:applicant-type:v1',
+  'uniscore-applicant-type-v1',
+  'hcmut-applicant-type-v1',
+];
+// Field thêm ở batch 4 (sau Phase 15) — chỉ có 1 đời legacy: key namespaced cũ dưới brand
+// "Uniscore" trước khi rebrand sang "UniscoreVN".
+const SUBJECT_CONTEXT_LEGACY_KEYS: string[] = ['uniscore:hcmut:subject-context:v1'];
 
 interface DgnlModeState {
   mode: DgnlInputMode;
@@ -169,6 +188,37 @@ function loadInitialApplicantType(): HcmutApplicantType {
   return params.has('at') ? parseApplicantTypeFromSearchParams(params) : base;
 }
 
+function parseSubjectContext(raw: string): HcmutSubjectContext | null {
+  try {
+    const parsed = JSON.parse(raw) as Partial<HcmutSubjectContext>;
+    return {
+      subject2: SELECTABLE_SUBJECT_IDS.find((id) => id === parsed.subject2) ?? null,
+      subject3: SELECTABLE_SUBJECT_IDS.find((id) => id === parsed.subject3) ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function loadStoredSubjectContext(): HcmutSubjectContext {
+  return (
+    readWithMigration(SUBJECT_CONTEXT_STORAGE_KEY, SUBJECT_CONTEXT_LEGACY_KEYS, parseSubjectContext) ??
+    defaultHcmutSubjectContext
+  );
+}
+
+/** URL (sj2/sj3) có precedence cao hơn localStorage, chỉ ghi đè field nào URL thật sự cung cấp. */
+function loadInitialSubjectContext(): HcmutSubjectContext {
+  const base = loadStoredSubjectContext();
+  if (typeof window === 'undefined') return base;
+  const params = new URLSearchParams(window.location.search);
+  const fromUrl = parseSubjectContextFromSearchParams(params);
+  return {
+    subject2: params.has('sj2') ? fromUrl.subject2 : base.subject2,
+    subject3: params.has('sj3') ? fromUrl.subject3 : base.subject3,
+  };
+}
+
 /** URL query params có precedence cao hơn localStorage: field nào URL cung cấp hợp lệ thì ghi đè lên. */
 function loadInitialFormState(): AdmissionFormState {
   const base = loadStoredFormState();
@@ -247,6 +297,45 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
   const [programState, setProgramState] = useState<ProgramState>(loadInitialProgramState);
   const [dgnlModeState, setDgnlModeState] = useState<DgnlModeState>(loadStoredDgnlModeState);
   const [applicantType, setApplicantType] = useState<HcmutApplicantType>(loadInitialApplicantType);
+  const [subjectContext, setSubjectContext] = useState<HcmutSubjectContext>(loadInitialSubjectContext);
+  const { updateProfile } = useApplicantProfile();
+  // Batch 5, workstream H/I: form hydrate từ localStorage khi mount CÓ THỂ đã cũ hơn shared
+  // ApplicantProfile (vd UEH vừa sửa `exams.vact.total` sau lần cuối user rời trang HCMUT) — nếu
+  // effect đồng bộ profile chạy ngay khi mount dựa trên `hasCoreInput`, nó sẽ âm thầm ghi đè fact
+  // mới hơn bằng dữ liệu cục bộ cũ chỉ vì mount, không phải vì user thật sự sửa gì. 2 cờ dưới đây
+  // chỉ bật khi đúng handler tương ứng chạy (event thật từ user), KHÔNG bật khi hydrate ban đầu —
+  // effect ghi profile chỉ chạy khi 1 trong 2 cờ true, và chỉ ghi ĐÚNG phần user vừa đụng tới
+  // (sửa THPT không kéo theo ghi đè ĐGNL bằng giá trị hydrate cũ, và ngược lại).
+  // Link chia sẻ (?dg_v=...) là "hydration source rõ ràng" (user chủ động mở link có số thật) —
+  // khác hydrate ngầm từ localStorage cũ, nên coi như đã "edited" ngay từ đầu để profile được đồng
+  // bộ đúng dữ liệu link mang theo (không bắt user gõ lại 1 field mới coi là "edited").
+  const [hasUserEditedDgnlFields, setHasUserEditedDgnlFields] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    return ['dg_v', 'dg_e', 'dg_m', 'dg_s'].some((key) => params.has(key));
+  });
+  // Batch 7: tách riêng cờ THPT/học bạ (trước đây gộp chung `hasUserEditedAcademicFields` — sửa
+  // THPT làm effect bên dưới ghi luôn transcript hydrate cũ/rỗng đè lên profile, coi field chưa
+  // nhập là `0`. Xem CLAUDE.md Batch 7 mục B + `applicantProfileMapper.ts`.
+  const [hasUserEditedThptFields, setHasUserEditedThptFields] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    return ['th_m', 'th_2', 'th_3'].some((key) => params.has(key));
+  });
+  const [hasUserEditedTranscriptFields, setHasUserEditedTranscriptFields] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    return ['tr10_m', 'tr11_m', 'tr12_m'].some((key) => params.has(key));
+  });
+  // Batch 6, workstream K — Môn 2/3 THPT có thể được điền từ bảng quy đổi chứng chỉ tiếng Anh
+  // quốc tế (`ThptSection` → `onCertificateFill`) thay vì điểm thi thật user tự gõ. Track riêng
+  // để KHÔNG ghi giá trị đó vào ApplicantProfile.thpt (dùng chung nhiều trường) như thể là điểm
+  // thi thật — vẫn dùng bình thường cho `currentInput`/`evaluate()` vì HCMUT công nhận quy đổi
+  // này. Gõ tay lại field đó (`handleThptChange`) sẽ tự clear cờ tương ứng (coi là điểm thật lại).
+  const [certFilledThptFields, setCertFilledThptFields] = useState<{ subject2: boolean; subject3: boolean }>({
+    subject2: false,
+    subject3: false,
+  });
   // Chỉ tăng khi bấm "Đặt lại": buộc ScenarioSimulator remount để đồng bộ lại slider
   // theo điểm hiện tại (state slider là state riêng, không tự nghe formState mỗi lần gõ phím).
   const [resetToken, setResetToken] = useState(0);
@@ -278,6 +367,10 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
   useEffect(() => {
     localStorage.setItem(APPLICANT_TYPE_STORAGE_KEY, applicantType);
   }, [applicantType]);
+
+  useEffect(() => {
+    localStorage.setItem(SUBJECT_CONTEXT_STORAGE_KEY, JSON.stringify(subjectContext));
+  }, [subjectContext]);
 
   const isSupportedApplicantType = SUPPORTED_APPLICANT_TYPES.includes(applicantType);
 
@@ -317,14 +410,69 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
     [currentInput]
   );
 
-  // liveEvaluation luôn được tính để các section con hiển thị số liệu chuẩn hóa realtime + để
-  // FormulaExplanation luôn có steps để hiện (kể cả trước khi user nhập gì — số liệu khi đó là
-  // 0.00, không gây hiểu nhầm vì FormulaExplanation ẩn dưới "Xem cách tính" chứ không tự hiện).
-  // result/evaluation (dùng cho CurrentScoreCard/StickySummaryBar/target/scenario) chỉ khác null
+  // Batch 4 — ghi factual scores vào ApplicantProfile dùng chung (workstream F+G). Đây là
+  // "shadow sync" một chiều form → profile, KHÔNG đổi đường tính điểm hiện tại (evaluate() vẫn
+  // nhận currentInput trực tiếp như trước, đã có parity test — xem calculator.parity.test.ts).
+  // Lý do KHÔNG route evaluate() qua ApplicantProfile + buildHcmutAdmissionInput: adapter đó cố
+  // tình throw khi thiếu field (đúng nguyên tắc "không âm thầm điền 0" cho use case profile đầy
+  // đủ), trong khi form realtime cần tolerate input rỗng/thiếu ở mọi thời điểm khi gõ phím — ép
+  // vào cùng 1 đường sẽ phải làm 1 trong 2 rủi ro hơn (hoặc phá tolerance form, hoặc phá
+  // throw-on-missing của adapter). Xem docs/architecture.md mục "3 tầng state".
+  // Chỉ ghi exams.vact khi đang ở đối tượng có ĐGNL + chế độ "Nhập chi tiết" (mới có 4 điểm thành
+  // phần thật — chế độ "Nhập tổng điểm" chỉ có 1 số weighted, không phải factual component). Chỉ
+  // ghi khi `hasUserEditedDgnlFields`/`hasUserEditedAcademicFields` true — KHÔNG chỉ dựa vào
+  // `hasCoreInput` (vốn có thể true ngay khi mount do hydrate localStorage, xem comment ở khai báo
+  // 2 cờ trên) — đúng yêu cầu batch 5 "mở trang không được âm thầm ghi đè fact mới hơn của trường
+  // khác chỉ vì mount".
+  useEffect(() => {
+    if (!hasCoreInput) return;
+    if (!hasUserEditedDgnlFields && !hasUserEditedThptFields && !hasUserEditedTranscriptFields) return;
+    const dgnlForProfile =
+      hasUserEditedDgnlFields && applicantType === 'dgnl' && dgnlModeState.mode === 'detail' ? currentInput.dgnl : undefined;
+    // Batch 7: truyền field-level `{ value, isEmpty }` (từ `errors`, KHÔNG phải `currentInput` đã
+    // làm tròn rỗng về 0) — mapper tự loại field `isEmpty` để không ghi `0` giả. THPT/transcript
+    // độc lập: chỉ ghi cái vừa được user sửa.
+    const thptForProfile = hasUserEditedThptFields ? errors.thpt : undefined;
+    const transcriptForProfile = hasUserEditedTranscriptFields ? errors.transcript : undefined;
+    if (!dgnlForProfile && !thptForProfile && !transcriptForProfile) return;
+    const thptNonFactualSubjectIds: SubjectId[] = [];
+    if (certFilledThptFields.subject2 && subjectContext.subject2) thptNonFactualSubjectIds.push(subjectContext.subject2);
+    if (certFilledThptFields.subject3 && subjectContext.subject3) thptNonFactualSubjectIds.push(subjectContext.subject3);
+    updateProfile((current) =>
+      buildApplicantProfileFromHcmutForm(
+        current,
+        {
+          dgnl: dgnlForProfile,
+          thpt: thptForProfile,
+          transcript: transcriptForProfile,
+          thptNonFactualSubjectIds,
+        },
+        subjectContext
+      )
+    );
+  }, [
+    hasCoreInput,
+    hasUserEditedDgnlFields,
+    hasUserEditedThptFields,
+    hasUserEditedTranscriptFields,
+    applicantType,
+    dgnlModeState.mode,
+    currentInput,
+    errors,
+    subjectContext,
+    certFilledThptFields,
+    updateProfile,
+  ]);
+
+  // liveEvaluation luôn được tính để các section con hiển thị số liệu chuẩn hóa realtime (mỗi
+  // section tự có UI riêng cho "chưa nhập gì" — không liên quan bug này). result/evaluation dùng
+  // cho CurrentScoreCard/StickySummaryBar/target/scenario/FormulaExplanation chỉ khác null/rỗng
   // khi có ít nhất một điểm học lực đã được nhập (hasCoreInput) — tránh cảm giác "0.00" là kết
-  // quả thật. 3 nhánh applicantType/dgnlModeState đều đi qua `evaluate.ts` (không gọi calculator
-  // trực tiếp trong UI nữa) — `evaluateHcmutAdmissionFromWeightedDgnlRaw` giữ nguyên đúng logic
-  // lắp lại AdmissionResult như trước, chỉ chuyển vị trí code sang evaluate.ts.
+  // quả thật (batch 4, workstream A: trước đó FormulaExplanation vẫn hiện 7 bước với số liệu
+  // 0.00 kể cả khi form trống, gây hiểu nhầm đây là kết quả thật). 3 nhánh applicantType/
+  // dgnlModeState đều đi qua `evaluate.ts` (không gọi calculator trực tiếp trong UI nữa) —
+  // `evaluateHcmutAdmissionFromWeightedDgnlRaw` giữ nguyên đúng logic lắp lại AdmissionResult
+  // như trước, chỉ chuyển vị trí code sang evaluate.ts.
   const liveEvaluation = useMemo(() => {
     if (applicantType === 'no-dgnl') {
       return evaluateHcmutNoDgnlAdmission(simulatorOtherInputs, activeAdmissionConfig);
@@ -391,16 +539,26 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
       hcmutPrograms
     );
     serializeApplicantTypeToSearchParams(params, applicantType);
+    serializeSubjectContextToSearchParams(params, subjectContext);
     const query = params.toString();
     return `${window.location.origin}/hcmut${query ? `?${query}` : ''}`;
   }
 
   function handleDgnlChange(key: keyof DgnlFormState, value: string) {
+    setHasUserEditedDgnlFields(true);
     setFormState((prev) => ({ ...prev, dgnl: { ...prev.dgnl, [key]: value } }));
   }
 
   function handleThptChange(key: keyof ThptFormState, value: string) {
+    setHasUserEditedThptFields(true);
+    if (key === 'subject2' || key === 'subject3') {
+      setCertFilledThptFields((prev) => ({ ...prev, [key]: false }));
+    }
     setFormState((prev) => ({ ...prev, thpt: { ...prev.thpt, [key]: value } }));
+  }
+
+  function handleThptCertificateFill(field: 'subject2' | 'subject3') {
+    setCertFilledThptFields((prev) => ({ ...prev, [field]: true }));
   }
 
   function handleTranscriptChange(
@@ -408,6 +566,7 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
     subject: keyof TranscriptFormState['grade10'],
     value: string
   ) {
+    setHasUserEditedTranscriptFields(true);
     setFormState((prev) => ({
       ...prev,
       transcript: {
@@ -431,6 +590,14 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
 
   function handleApplicantTypeChange(type: HcmutApplicantType) {
     setApplicantType(type);
+  }
+
+  function handleSubjectContextChange(patch: Partial<HcmutSubjectContext>) {
+    // Đổi tổ hợp môn (subject2/subject3 identity) ảnh hưởng cách map CẢ THPT lẫn học bạ sang
+    // ApplicantProfile (key SubjectId đổi) — bật cả 2 cờ, không phải chỉ 1 trong 2.
+    setHasUserEditedThptFields(true);
+    setHasUserEditedTranscriptFields(true);
+    setSubjectContext((prev) => ({ ...prev, ...patch }));
   }
 
   function handleDgnlModeChange(mode: DgnlInputMode) {
@@ -482,11 +649,16 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
     localStorage.removeItem(PROGRAM_STORAGE_KEY);
     localStorage.removeItem(DGNL_MODE_STORAGE_KEY);
     localStorage.removeItem(APPLICANT_TYPE_STORAGE_KEY);
+    localStorage.removeItem(SUBJECT_CONTEXT_STORAGE_KEY);
     setFormState(defaultAdmissionFormState);
     setTargetScore('');
     setProgramState(defaultProgramState);
     setDgnlModeState(defaultDgnlModeState);
     setApplicantType(DEFAULT_APPLICANT_TYPE);
+    setSubjectContext(defaultHcmutSubjectContext);
+    setHasUserEditedDgnlFields(false);
+    setHasUserEditedThptFields(false);
+    setHasUserEditedTranscriptFields(false);
     setResetToken((token) => token + 1);
     setSimulatorSeed(null);
     setSimulatorKey(0);
@@ -580,6 +752,7 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
               onTotalChange={handleDgnlTotalChange}
               applicantType={applicantType}
             />
+            {applicantType === 'dgnl' && dgnlModeState.mode === 'detail' && <SharedProfileNotice />}
 
             <TranscriptSection
               config={activeAdmissionConfig}
@@ -587,6 +760,8 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
               errors={errors.transcript}
               result={liveResult.transcript}
               onChange={handleTranscriptChange}
+              subjectContext={subjectContext}
+              onSubjectContextChange={handleSubjectContextChange}
             />
             <ThptSection
               config={activeAdmissionConfig}
@@ -594,6 +769,9 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
               errors={errors.thpt}
               result={liveResult.thpt}
               onChange={handleThptChange}
+              onCertificateFill={handleThptCertificateFill}
+              subject2Label={subjectContext.subject2 ? `Môn 2 (${SUBJECT_LABELS[subjectContext.subject2]})` : undefined}
+              subject3Label={subjectContext.subject3 ? `Môn 3 (${SUBJECT_LABELS[subjectContext.subject3]})` : undefined}
             />
 
             <BonusPrioritySection
@@ -627,7 +805,7 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
               onRemoveComparison={handleRemoveComparison}
             />
 
-            <FormulaExplanation steps={liveEvaluation.explanation} />
+            <FormulaExplanation steps={hasCoreInput ? liveEvaluation.explanation : []} />
           </div>
         </main>
         )}

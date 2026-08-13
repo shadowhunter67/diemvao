@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { schoolRegistry } from '../schools';
 import { siteConfig } from '../config/site';
 import type { SchoolCapabilities, SchoolStatus } from '../core/schoolModule';
+import { useApplicantProfile } from '../core/applicantProfileContextCore';
+import { summarizeApplicantProfile } from '../core/applicantProfileSummary';
 
 interface LandingPageProps {
   onSelectSchool: (schoolId: string) => void;
@@ -39,6 +41,19 @@ export function LandingPage({ onSelectSchool }: LandingPageProps) {
     []
   );
 
+  // Batch 6, workstream O/P — cho user thấy rõ họ đang có "hồ sơ điểm dùng chung" (đã nhập ở 1
+  // trường, có thể dùng lại ở trường khác) + cách xóa nếu muốn. Không build dashboard lớn — chỉ 1
+  // dòng summary cực ngắn, im lặng hoàn toàn nếu profile rỗng (không hint giả).
+  const { profile, clearProfile } = useApplicantProfile();
+  const profileSummary = summarizeApplicantProfile(profile);
+
+  function handleClearProfile() {
+    if (typeof window !== 'undefined' && !window.confirm('Xóa toàn bộ hồ sơ điểm dùng chung đã lưu? Hành động này không thể hoàn tác.')) {
+      return;
+    }
+    clearProfile();
+  }
+
   const normalizedQuery = normalizeForSearch(query.trim());
   const filteredSchools =
     normalizedQuery === ''
@@ -56,7 +71,34 @@ export function LandingPage({ onSelectSchool }: LandingPageProps) {
         <p className="mt-2 text-base text-muted sm:text-lg">{siteConfig.tagline}</p>
       </div>
 
-      <div className="mx-auto mt-10 max-w-2xl">
+      {profileSummary.hasData && (
+        <div className="mx-auto mt-8 max-w-2xl rounded-card border border-accent/20 bg-accent/5 px-4 py-3 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-ink">
+              <span className="font-medium">Đã lưu hồ sơ điểm dùng chung.</span>{' '}
+              <span className="text-muted">Điểm đã nhập có thể được dùng lại khi bạn xem trường khác.</span>
+            </p>
+            <button
+              type="button"
+              onClick={handleClearProfile}
+              className="shrink-0 text-xs font-medium text-muted underline-offset-2 hover:text-danger hover:underline"
+            >
+              Xóa hồ sơ đã lưu
+            </button>
+          </div>
+          <p className="mt-1.5 text-xs text-muted">
+            {[
+              profileSummary.vactTotal !== undefined ? `ĐGNL: ${profileSummary.vactTotal}` : null,
+              profileSummary.thptSubjectCount > 0 ? `THPT: ${profileSummary.thptSubjectCount} môn đã lưu` : null,
+              profileSummary.transcriptSubjectCount > 0 ? `Học bạ: ${profileSummary.transcriptSubjectCount} môn đã lưu` : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </p>
+        </div>
+      )}
+
+      <div className="mx-auto mt-8 max-w-2xl">
         <h2 className="text-sm font-semibold text-ink">Chọn trường để bắt đầu</h2>
         <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted">ĐHQG-HCM</p>
 

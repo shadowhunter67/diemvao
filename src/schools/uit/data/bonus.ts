@@ -3,7 +3,7 @@
  * id 'uit-bonus-2026'), đọc text thuần, verification 'verified'. Research gốc (2026-05-20) ghi
  * nhận nguồn nói mỗi nhóm có mức trần cố định, không thang trượt trong nhóm.
  *
- * Dù vậy, UniScore chủ động KHÔNG hiển thị "đạt điều kiện ⇒ nhận trọn mức trần" như một điểm số
+ * Dù vậy, UniscoreVN chủ động KHÔNG hiển thị "đạt điều kiện ⇒ nhận trọn mức trần" như một điểm số
  * cuối cùng: đây là quyết định policy thận trọng (thà under-claim), không phải bằng chứng mới
  * phủ định research cũ — hồ sơ xét duyệt thực tế (minh chứng, hội đồng) vẫn có thể có bước xác
  * nhận/điều chỉnh ngoài phạm vi thông báo đã đọc. `maxPoints` dưới đây là UPPER BOUND của từng

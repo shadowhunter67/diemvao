@@ -21,6 +21,9 @@ export function FormulaExplanation({ steps }: FormulaExplanationProps) {
         </span>
       </summary>
 
+      {steps.length === 0 ? (
+        <p className="mt-6 text-sm text-muted">Nhập điểm để xem cách tính từng bước.</p>
+      ) : (
       <ol className="mt-6 flex flex-col gap-3">
         {steps.map((step, index) => (
           <li key={step.id} className="rounded-lg border border-ink/10 bg-surface p-4">
@@ -49,6 +52,7 @@ export function FormulaExplanation({ steps }: FormulaExplanationProps) {
           </li>
         ))}
       </ol>
+      )}
 
       <p className="mt-6 text-xs leading-relaxed text-muted">
         Công cụ chỉ nhằm hỗ trợ tính toán. Thí sinh nên đối chiếu thông tin tuyển sinh chính thức

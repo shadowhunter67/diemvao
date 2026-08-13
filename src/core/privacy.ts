@@ -1,6 +1,6 @@
 /**
  * Guardrail cho share URL/localStorage: field nào KHÔNG được phép serialize (danh tính, ngày
- * sinh, đối tượng chính sách dạng text...). Uniscore hiện client-only, không backend/login —
+ * sinh, đối tượng chính sách dạng text...). UniscoreVN hiện client-only, không backend/login —
  * lợi thế privacy này phải giữ khi `ApplicantProfile` (workstream C) mở rộng field trong tương
  * lai. Danh sách dưới đây là "danh sách cấm" kiểm bằng test (xem
  * `schools/hcmut/urlState.test.ts` mục privacy guardrail) trên MỌI key thật sự được ghi vào

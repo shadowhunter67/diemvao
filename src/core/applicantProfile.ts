@@ -1,4 +1,5 @@
 import type { SubjectId } from './subjects';
+import type { VactProfile } from './vactProfile';
 
 /**
  * Dữ liệu FACTUAL của một thí sinh — nhập 1 lần, nhiều school adapter (`schools/<id>/
@@ -22,16 +23,11 @@ export interface ApplicantProfile {
   };
 
   exams?: {
-    /** ĐGNL ĐHQG-HCM — 4 phần thi, không map theo SubjectId vì không phải môn học phổ thông. */
-    vact?: {
-      total?: number;
-      components?: {
-        vietnamese?: number;
-        english?: number;
-        math?: number;
-        scientificThinking?: number;
-      };
-    };
+    /** ĐGNL ĐHQG-HCM — 4 phần thi, không map theo SubjectId vì không phải môn học phổ thông. Xem
+     * `core/vactProfile.ts` cho invariant/reconciliation policy giữa `total` và `components`
+     * (batch 5) — KHÔNG tự gán 2 field này rời rạc ở nơi khác, luôn qua
+     * `reconcileVactFromComponents`/`reconcileVactFromTotal`. */
+    vact?: VactProfile;
   };
 
   certificates?: {

@@ -8,9 +8,9 @@ import { uehKnowledgeGaps } from './knowledgeGaps';
 
 export interface UehPartialInput {
   dgnlScore?: number;
-  /** Điểm xét tuyển thang 100 người dùng tự biết từ nguồn khác — KHÔNG do Uniscore tự tính (xem
-   * UehExplorerPage — Uniscore chưa có bước quy đổi cuối). Chỉ dùng để check eligibility, không
-   * bao giờ hiển thị như một `score` do Uniscore "tính ra". */
+  /** Điểm xét tuyển thang 100 người dùng tự biết từ nguồn khác — KHÔNG do UniscoreVN tự tính (xem
+   * UehExplorerPage — UniscoreVN chưa có bước quy đổi cuối). Chỉ dùng để check eligibility, không
+   * bao giờ hiển thị như một `score` do UniscoreVN "tính ra". */
   knownAdmissionScore100?: number;
   campus?: 'hcmc' | 'mekong';
 }

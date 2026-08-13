@@ -11,6 +11,15 @@ interface ThptSectionProps {
   errors: Record<keyof ThptFormState, FieldValidationResult>;
   result: ThptResult;
   onChange: (key: keyof ThptFormState, value: string) => void;
+  /** Batch 6, workstream K — tách khỏi `onChange` để caller biết giá trị này đến từ bảng quy đổi
+   * chứng chỉ (không phải điểm thi thật user tự gõ), tránh ghi nhầm vào ApplicantProfile.thpt như
+   * thể đó là điểm thi thật. Không truyền thì fallback gọi `onChange` như trước (không bắt buộc
+   * caller phải phân biệt nếu chưa cần). */
+  onCertificateFill?: (field: 'subject2' | 'subject3', score: number) => void;
+  /** Nhãn hiển thị — lấy từ HcmutSubjectContext (chọn ở TranscriptSection, dùng chung tổ hợp).
+   * Mặc định "Môn 2"/"Môn 3" nếu chưa chọn — không bắt buộc. */
+  subject2Label?: string;
+  subject3Label?: string;
 }
 
 /**
@@ -170,7 +179,16 @@ function EnglishCertConverter({ onFill }: { onFill: (field: 'subject2' | 'subjec
   );
 }
 
-export function ThptSection({ config, values, errors, result, onChange }: ThptSectionProps) {
+export function ThptSection({
+  config,
+  values,
+  errors,
+  result,
+  onChange,
+  onCertificateFill,
+  subject2Label = 'Môn 2',
+  subject3Label = 'Môn 3',
+}: ThptSectionProps) {
   const maxHint = `0 - ${config.thpt.maxPerSubject}`;
 
   return (
@@ -188,7 +206,7 @@ export function ThptSection({ config, values, errors, result, onChange }: ThptSe
         />
         <ScoreInput
           id="thpt-subject2"
-          label="Môn 2"
+          label={subject2Label}
           hint={maxHint}
           value={values.subject2}
           error={errors.subject2.error}
@@ -196,7 +214,7 @@ export function ThptSection({ config, values, errors, result, onChange }: ThptSe
         />
         <ScoreInput
           id="thpt-subject3"
-          label="Môn 3"
+          label={subject3Label}
           hint={maxHint}
           value={values.subject3}
           error={errors.subject3.error}
@@ -212,7 +230,12 @@ export function ThptSection({ config, values, errors, result, onChange }: ThptSe
         </span>
       </div>
 
-      <EnglishCertConverter onFill={(field, score) => onChange(field, String(score))} />
+      <EnglishCertConverter
+        onFill={(field, score) => {
+          onChange(field, String(score));
+          onCertificateFill?.(field, score);
+        }}
+      />
     </section>
   );
 }

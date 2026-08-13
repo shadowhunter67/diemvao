@@ -33,3 +33,34 @@ export const COMMON_SUBJECT_COMBINATIONS: readonly SubjectCombination[] = [
   { id: 'B00', subjects: ['math', 'chemistry', 'biology'] },
   { id: 'D01', subjects: ['math', 'literature', 'english'] },
 ];
+
+/** Nhãn tiếng Việt — dùng ở bất kỳ trường nào cần hiển thị tên môn cho người dùng chọn. */
+export const SUBJECT_LABELS: Record<SubjectId, string> = {
+  math: 'Toán',
+  literature: 'Ngữ văn',
+  english: 'Tiếng Anh',
+  physics: 'Vật lý',
+  chemistry: 'Hóa học',
+  biology: 'Sinh học',
+  history: 'Lịch sử',
+  geography: 'Địa lý',
+  informatics: 'Tin học',
+  technology: 'Công nghệ',
+  'civic-economic-law': 'Giáo dục Kinh tế và Pháp luật',
+  other: 'Môn khác',
+};
+
+/** Danh sách chọn trong dropdown — loại 'math' (HCMUT luôn cố định Toán, không cho chọn lại). */
+export const SELECTABLE_SUBJECT_IDS: readonly SubjectId[] = [
+  'literature',
+  'english',
+  'physics',
+  'chemistry',
+  'biology',
+  'history',
+  'geography',
+  'informatics',
+  'technology',
+  'civic-economic-law',
+  'other',
+];

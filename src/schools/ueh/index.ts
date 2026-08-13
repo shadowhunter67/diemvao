@@ -1,5 +1,7 @@
 import type { SchoolModule } from '../../core/schoolModule';
+import { aggregateSchoolCapabilities } from '../../core/admissionMethod';
 import { UehExplorerPage } from './UehExplorerPage';
+import { uehAdmissionMethods } from './methods';
 
 /**
  * Module UEH — research 2026-08-11 (xem docs/admission-research-2026.md). Có bảng quy đổi
@@ -18,10 +20,8 @@ export const uehModule: SchoolModule = {
   capabilities: {
     admissionInfo: true,
     programs: true,
-    eligibility: true,
     cutoffs: true,
-    scoreConversion: true,
-    exactCalculator: false,
+    ...aggregateSchoolCapabilities(uehAdmissionMethods),
   },
   Page: UehExplorerPage,
 };

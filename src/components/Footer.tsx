@@ -15,7 +15,7 @@ export function Footer() {
           </p>
         </div>
 
-        <nav aria-label="Liên kết Uniscore" className="flex flex-col gap-2 sm:items-end">
+        <nav aria-label={`Liên kết ${siteConfig.name}`} className="flex flex-col gap-2 sm:items-end">
           <a href={siteConfig.githubUrl} target="_blank" rel="noopener noreferrer" className={LINK_CLASS}>
             GitHub
           </a>

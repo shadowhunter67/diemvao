@@ -1,6 +1,9 @@
+import { useId } from 'react';
 import type { AdmissionConfig, TranscriptResult } from '../schools/hcmut/types/admission';
 import type { TranscriptFormState, TranscriptYearFormState } from '../schools/hcmut/types/form';
+import type { HcmutSubjectContext } from '../schools/hcmut/types/subjectContext';
 import type { FieldValidationResult } from '../schools/hcmut/validation';
+import { SELECTABLE_SUBJECT_IDS, SUBJECT_LABELS, type SubjectId } from '../core/subjects';
 import { ScoreInput } from './ScoreInput';
 import { SectionHeader } from './SectionHeader';
 
@@ -13,6 +16,8 @@ interface TranscriptSectionProps {
   errors: Record<GradeKey, Record<SubjectKey, FieldValidationResult>>;
   result: TranscriptResult;
   onChange: (grade: GradeKey, subject: SubjectKey, value: string) => void;
+  subjectContext: HcmutSubjectContext;
+  onSubjectContextChange: (patch: Partial<HcmutSubjectContext>) => void;
 }
 
 const grades: { key: GradeKey; label: string }[] = [
@@ -21,17 +26,89 @@ const grades: { key: GradeKey; label: string }[] = [
   { key: 'grade12', label: 'Lớp 12' },
 ];
 
-export function TranscriptSection({ config, values, errors, result, onChange }: TranscriptSectionProps) {
+/** Dropdown chọn môn thật cho "Môn 2"/"Môn 3" — dùng chung cho cả Học bạ lẫn Thi THPT (cùng tổ
+ * hợp), nên chỉ đặt UI chọn một lần ở đây (Học bạ luôn hiện trước Thi THPT trong bố cục hiện
+ * tại). Optional — không chọn vẫn tính điểm bình thường, chỉ cần khi build ApplicantProfile. */
+function SubjectIdentityPicker({
+  subjectContext,
+  onSubjectContextChange,
+}: {
+  subjectContext: HcmutSubjectContext;
+  onSubjectContextChange: (patch: Partial<HcmutSubjectContext>) => void;
+}) {
+  const subject2Id = useId();
+  const subject3Id = useId();
+
+  return (
+    <div className="mt-4 rounded-lg border border-ink/10 bg-surface-soft p-3">
+      <p className="text-xs text-muted">
+        Cho UniscoreVN biết "Môn 2"/"Môn 3" của bạn là môn gì (áp dụng cho cả Học bạ và Thi THPT bên dưới) — không bắt
+        buộc để tính điểm, chỉ cần nếu bạn muốn lưu hồ sơ điểm dùng chung cho nhiều trường.
+      </p>
+      <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <label htmlFor={subject2Id} className="text-xs font-medium text-ink">
+            Môn 2 là môn gì?
+          </label>
+          <select
+            id={subject2Id}
+            value={subjectContext.subject2 ?? ''}
+            onChange={(e) => onSubjectContextChange({ subject2: (e.target.value || null) as SubjectId | null })}
+            className="mt-1 h-9 w-full rounded-md border border-ink/10 bg-surface px-2.5 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+          >
+            <option value="">— Chưa chọn —</option>
+            {SELECTABLE_SUBJECT_IDS.map((id) => (
+              <option key={id} value={id}>
+                {SUBJECT_LABELS[id]}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor={subject3Id} className="text-xs font-medium text-ink">
+            Môn 3 là môn gì?
+          </label>
+          <select
+            id={subject3Id}
+            value={subjectContext.subject3 ?? ''}
+            onChange={(e) => onSubjectContextChange({ subject3: (e.target.value || null) as SubjectId | null })}
+            className="mt-1 h-9 w-full rounded-md border border-ink/10 bg-surface px-2.5 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+          >
+            <option value="">— Chưa chọn —</option>
+            {SELECTABLE_SUBJECT_IDS.map((id) => (
+              <option key={id} value={id}>
+                {SUBJECT_LABELS[id]}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function TranscriptSection({
+  config,
+  values,
+  errors,
+  result,
+  onChange,
+  subjectContext,
+  onSubjectContextChange,
+}: TranscriptSectionProps) {
+  const subject2Label = subjectContext.subject2 ? `Môn 2 (${SUBJECT_LABELS[subjectContext.subject2]})` : 'Môn 2';
+  const subject3Label = subjectContext.subject3 ? `Môn 3 (${SUBJECT_LABELS[subjectContext.subject3]})` : 'Môn 3';
   const subjects: { key: SubjectKey; label: string }[] = [
     { key: 'math', label: `Toán (×${config.transcript.mathMultiplier})` },
-    { key: 'subject2', label: 'Môn 2' },
-    { key: 'subject3', label: 'Môn 3' },
+    { key: 'subject2', label: subject2Label },
+    { key: 'subject3', label: subject3Label },
   ];
   const maxHint = `0 - ${config.transcript.maxPerSubject}`;
 
   return (
     <section className="rounded-card bg-surface p-6 shadow-card sm:p-8">
       <SectionHeader index="02" title="Học bạ" subtitle={`${maxHint} mỗi môn, mỗi năm`} />
+      <SubjectIdentityPicker subjectContext={subjectContext} onSubjectContextChange={onSubjectContextChange} />
 
       <div className="mt-6 overflow-x-auto">
         <table className="w-full min-w-[420px] border-separate border-spacing-x-3 border-spacing-y-3">

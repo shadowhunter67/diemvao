@@ -1,6 +1,6 @@
 /**
  * Vòng đời tri thức/dữ liệu — khác `VerificationLevel` (chất lượng của MỘT nguồn cụ thể).
- * `KnowledgeStatus` mô tả trạng thái của một RULE/FACT mà Uniscore đang biết (hay chưa biết):
+ * `KnowledgeStatus` mô tả trạng thái của một RULE/FACT mà UniscoreVN đang biết (hay chưa biết):
  * "nguồn official nhưng chưa parse được" khác hẳn "không có nguồn nào"; "trường tự ghi dự kiến"
  * khác hẳn "final"; "2 nguồn official mâu thuẫn nhau" là state riêng, không được ngầm chọn 1
  * trong 2. Không thay thế `VerificationLevel` — dùng như 1 dimension khác, có thể đi kèm nhau.

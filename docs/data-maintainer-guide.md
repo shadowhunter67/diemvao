@@ -72,10 +72,21 @@ comment tự do — comment dễ đọc nhưng không machine-readable, evidence
 `CalculationStep`/`AdmissionEvaluation` (xem `schools/hcmut/evaluate.ts`) để hiển thị "vì sao" cho
 người dùng cuối sau này.
 
+## Method-level capability (batch 6)
+
+- `schools/<id>/methods.ts` (`AdmissionMethodDescriptor[]`) là nguồn sự thật cho "trường/phương
+  thức này tính được đến đâu" — `SchoolModule.capabilities` (school-level) derive từ đây qua
+  `aggregateSchoolCapabilities()` (`core/admissionMethod.ts`), không hard-code song song nữa.
+- Khi bật thêm 1 capability (vd unblock `priority`/`bonus`/`exactCalculator` sau khi có evidence
+  mới): sửa `capabilities` trong `methods.ts` — `SchoolModule.capabilities` tự cập nhật theo, không
+  cần sửa 2 chỗ.
+- `knowledgeGaps` trong `methods.ts` nên trỏ về CÙNG file `schools/<id>/knowledgeGaps.ts` mà UI
+  dùng để render "chưa tính được: ..." — không tạo 2 danh sách gap khác nhau cho cùng 1 trường.
+
 ## Legal/data safety
 
-- UniScore không phải nguồn gốc dữ liệu — chỉ tổng hợp, chuẩn hóa, tính toán, đối chiếu, giải
+- UniscoreVN không phải nguồn gốc dữ liệu — chỉ tổng hợp, chuẩn hóa, tính toán, đối chiếu, giải
   thích. Ưu tiên lưu factual values, paraphrase wording, dẫn source chính thức thay vì copy
   nguyên bài/ảnh/PDF.
-- Không dùng logo trường theo cách khiến người dùng tưởng UniScore là sản phẩm chính thức của
+- Không dùng logo trường theo cách khiến người dùng tưởng UniscoreVN là sản phẩm chính thức của
   trường.

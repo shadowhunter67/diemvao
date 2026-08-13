@@ -8,7 +8,7 @@ export const UEL_THPT_QUY_DOI_THRESHOLD = 50;
 
 /**
  * Điểm ưu tiên khu vực, thang 100 — nguồn cùng thông báo trên. CHỈ dùng để tra cứu/hiển thị
- * tham khảo, KHÔNG wire vào một "điểm cuối cùng": UniScore chưa xác nhận được UEL có áp quy tắc
+ * tham khảo, KHÔNG wire vào một "điểm cuối cùng": UniscoreVN chưa xác nhận được UEL có áp quy tắc
  * giảm dần điểm ưu tiên khi tổng điểm đạt ngưỡng cao (như HCMUT) hay không — chưa tìm thấy nguồn
  * nói rõ, không suy đoán để tránh tính sai cho thí sinh có điểm cao.
  */

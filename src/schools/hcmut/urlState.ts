@@ -1,7 +1,9 @@
 import type { AdmissionConfig } from './types/admission';
 import type { AdmissionFormState, TranscriptFormState } from './types/form';
 import type { HcmutProgram } from './types/programs';
+import type { HcmutSubjectContext } from './types/subjectContext';
 import { HCMUT_APPLICANT_TYPES, DEFAULT_APPLICANT_TYPE, type HcmutApplicantType } from './types/applicantType';
+import { SELECTABLE_SUBJECT_IDS } from '../../core/subjects';
 import { BUFFER_OPTIONS } from './programs';
 import {
   validateBonusComponent,
@@ -255,4 +257,23 @@ export function parseApplicantTypeFromSearchParams(params: URLSearchParams): Hcm
   const raw = params.get(APPLICANT_TYPE_KEY);
   const found = HCMUT_APPLICANT_TYPES.find((type) => type === raw);
   return found ?? DEFAULT_APPLICANT_TYPE;
+}
+
+const SUBJECT2_KEY = 'sj2';
+const SUBJECT3_KEY = 'sj3';
+
+/** Batch 4 — danh tính "Môn 2"/"Môn 3" (tùy chọn, không có trong link cũ). Chỉ ghi khi đã chọn. */
+export function serializeSubjectContextToSearchParams(params: URLSearchParams, subjectContext: HcmutSubjectContext): void {
+  if (subjectContext.subject2) params.set(SUBJECT2_KEY, subjectContext.subject2);
+  if (subjectContext.subject3) params.set(SUBJECT3_KEY, subjectContext.subject3);
+}
+
+/** Giá trị không hợp lệ/không có trong URL đều fallback về null (chưa chọn) — không crash, không suy đoán. */
+export function parseSubjectContextFromSearchParams(params: URLSearchParams): HcmutSubjectContext {
+  const rawSubject2 = params.get(SUBJECT2_KEY);
+  const rawSubject3 = params.get(SUBJECT3_KEY);
+  return {
+    subject2: SELECTABLE_SUBJECT_IDS.find((id) => id === rawSubject2) ?? null,
+    subject3: SELECTABLE_SUBJECT_IDS.find((id) => id === rawSubject3) ?? null,
+  };
 }

@@ -1,6 +1,7 @@
 import { AlertTriangle, GraduationCap } from 'lucide-react';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
+import { MethodCapabilitySummary } from '../../components/MethodCapabilitySummary';
 import { verificationLabel } from '../../core/trust';
 import { uitPrograms } from './data/programs';
 import { uitCutoffs } from './data/cutoffs';
@@ -9,6 +10,7 @@ import { EligibilityChecker } from './components/EligibilityChecker';
 import { BonusChecker } from './components/BonusChecker';
 import { DirectAdmissionSection } from './components/DirectAdmissionSection';
 import { uitKnowledgeGaps } from './knowledgeGaps';
+import { uitAdmissionMethods } from './methods';
 
 interface UitInfoPageProps {
   onChangeSchool: () => void;
@@ -39,9 +41,10 @@ export function UitInfoPage({ onChangeSchool }: UitInfoPageProps) {
         />
 
         <section className="mt-5 rounded-card bg-surface p-6 shadow-card sm:p-8">
-          <h2 className="text-lg font-semibold text-ink">Công thức đã biết (một phần)</h2>
-          <p className="mt-2 text-sm text-muted">
-            Phương thức Xét tuyển Tổng hợp {YEAR}, thang điểm 100:{' '}
+          <h2 className="text-lg font-semibold text-ink">Phương thức đang hỗ trợ: {uitAdmissionMethods[0].name}</h2>
+          <MethodCapabilitySummary method={uitAdmissionMethods[0]} />
+          <p className="mt-4 text-sm text-muted">
+            Thang điểm 100:{' '}
             <span className="font-mono text-ink">47,5%×THPT + 47,5%×ĐGNL + 5%×Học bạ + Điểm cộng + Điểm ưu tiên</span>
             . Trong đó <span className="font-mono text-ink">THPT = Max(THPT thi, THPT quy đổi từ ĐGNL, THPT từ chứng
             chỉ quốc tế)</span> và tương tự cho ĐGNL — quy đổi giữa THPT và ĐGNL theo "phương pháp bách phân vị".
@@ -52,7 +55,7 @@ export function UitInfoPage({ onChangeSchool }: UitInfoPageProps) {
         <section className="mt-5 flex items-start gap-3 rounded-card border border-warning/30 bg-warning/10 p-6 text-sm text-warning sm:p-8">
           <AlertTriangle size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
           <div>
-            <p className="font-semibold">Uniscore chưa tính được điểm xét tuyển chính xác cho UIT</p>
+            <p className="font-semibold">UniscoreVN chưa tính được điểm xét tuyển chính xác cho UIT</p>
             <p className="mt-1 leading-relaxed">
               Trọng số tổng và bảng điểm cộng đã xác minh (dùng được ở dưới), nhưng cách quy đổi bách phân vị và một
               số thành phần vẫn chưa có nguồn dạng text đọc được (chỉ tồn tại dạng ảnh/PDF) — cụ thể còn thiếu:

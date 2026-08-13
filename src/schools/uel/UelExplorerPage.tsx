@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { AlertTriangle, Award, CheckCircle2, GraduationCap, ShieldCheck, XCircle } from 'lucide-react';
+import { AlertTriangle, ArrowRightLeft, Award, CheckCircle2, GraduationCap, ShieldCheck, XCircle } from 'lucide-react';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
+import { MethodCapabilitySummary } from '../../components/MethodCapabilitySummary';
+import { SharedProfileNotice } from '../../components/SharedProfileNotice';
 import { verificationLabel } from '../../core/trust';
+import { useApplicantProfile } from '../../core/applicantProfileContextCore';
 import { uelPrograms } from './data/programs';
 import { uelCutoffs } from './data/cutoffs';
 import { uelSources } from './sources';
@@ -10,6 +13,11 @@ import { checkThptThreshold } from './eligibility';
 import { UEL_PRIORITY_BY_ZONE_SCALE_100 } from './data/thresholds';
 import { UEL_BONUS_CATEGORIES, UEL_BONUS_OVERALL_CAP, type UelBonusCategoryId } from './data/bonus';
 import { calculateUelBonusEligibility } from './bonus';
+import { buildUelEvaluationInput } from './applicantProfileAdapter';
+import { convertDgnlToScale100 } from './dgnlConversion';
+import { uelKnowledgeGaps } from './knowledgeGaps';
+import { uelAdmissionMethods } from './methods';
+import { calculateUelEffectivePriority } from './priorityReduction';
 
 interface UelExplorerPageProps {
   onChangeSchool: () => void;
@@ -27,6 +35,41 @@ const YEAR = 2026;
  */
 export function UelExplorerPage({ onChangeSchool }: UelExplorerPageProps) {
   const cutoffsByProgram = new Map(uelCutoffs.map((cutoff) => [cutoff.programId, cutoff]));
+
+  // Batch 5, workstream N/O — trường thứ 3 (sau HCMUT/UEH) đọc CÙNG `ApplicantProfile.exams.
+  // vact.total` dùng chung, chứng minh kiến trúc profile không phải special-case 2 trường. Cùng
+  // pattern UI với `UehExplorerPage.tsx`: ưu tiên số có sẵn trong hồ sơ, cho phép override, ghi
+  // ngược qua `updateVactTotal` (đi qua reconcile policy, không tự gán field rời rạc).
+  const { profile, updateVactTotal } = useApplicantProfile();
+  const profileDgnlTotal = buildUelEvaluationInput(profile).dgnlScore;
+  const [dgnlManualOverride, setDgnlManualOverride] = useState(false);
+  const [dgnlInput, setDgnlInput] = useState('');
+  const usingProfileDgnlValue = !dgnlManualOverride && profileDgnlTotal !== undefined;
+  const effectiveDgnlRaw = usingProfileDgnlValue ? String(profileDgnlTotal) : dgnlInput;
+  const dgnlScale100 = effectiveDgnlRaw.trim() !== '' ? convertDgnlToScale100(Number(effectiveDgnlRaw)) : undefined;
+  const [dgnlComponentsClearedNotice, setDgnlComponentsClearedNotice] = useState(false);
+
+  function handleManualDgnlChange(value: string) {
+    setDgnlInput(value);
+    const parsed = value.trim() !== '' ? Number(value) : NaN;
+    if (!Number.isNaN(parsed)) {
+      const { componentsCleared } = updateVactTotal(parsed, 'user-total-input');
+      // Sticky trong cả phiên sửa — xem giải thích ở UehExplorerPage.tsx (cùng bug, cùng fix).
+      setDgnlComponentsClearedNotice((prev) => prev || componentsCleared);
+    } else {
+      setDgnlComponentsClearedNotice(false);
+    }
+  }
+
+  const [academicPlusBonusInput, setAcademicPlusBonusInput] = useState('');
+  const [standardPriorityInput, setStandardPriorityInput] = useState('');
+  const priorityReductionResult =
+    academicPlusBonusInput.trim() !== '' && standardPriorityInput.trim() !== ''
+      ? calculateUelEffectivePriority({
+          academicPlusBonus: Number(academicPlusBonusInput),
+          standardPriority: Number(standardPriorityInput),
+        })
+      : null;
 
   const [thptRaw, setThptRaw] = useState('');
   const thptResult = thptRaw.trim() !== '' ? checkThptThreshold(Number(thptRaw)) : null;
@@ -47,9 +90,10 @@ export function UelExplorerPage({ onChangeSchool }: UelExplorerPageProps) {
         />
 
         <section className="mt-5 rounded-card bg-surface p-6 shadow-card sm:p-8">
-          <h2 className="text-lg font-semibold text-ink">Công thức đã biết (phần lớn)</h2>
-          <p className="mt-2 text-sm text-muted">
-            Phương thức Xét tuyển Tổng hợp {YEAR}, thang điểm 100:{' '}
+          <h2 className="text-lg font-semibold text-ink">Phương thức đang hỗ trợ: {uelAdmissionMethods[0].name}</h2>
+          <MethodCapabilitySummary method={uelAdmissionMethods[0]} />
+          <p className="mt-4 text-sm text-muted">
+            Thang điểm 100:{' '}
             <span className="font-mono text-ink">Điểm xét tuyển = Học lực + Điểm cộng + Điểm ưu tiên</span>. Điểm học
             lực (có đủ ĐGNL+THPT): <span className="font-mono text-ink">55%×ĐGNL + 35%×THPT + 10%×Học bạ</span> — nếu
             chỉ có THPT: <span className="font-mono text-ink">90%×THPT + 10%×Học bạ</span>; nếu chỉ có ĐGNL:{' '}
@@ -68,14 +112,15 @@ export function UelExplorerPage({ onChangeSchool }: UelExplorerPageProps) {
         <section className="mt-5 flex items-start gap-3 rounded-card border border-warning/30 bg-warning/10 p-6 text-sm text-warning sm:p-8">
           <AlertTriangle size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
           <div>
-            <p className="font-semibold">Uniscore chưa tính được điểm xét tuyển chính xác cho UEL</p>
+            <p className="font-semibold">UniscoreVN chưa tính được điểm xét tuyển chính xác cho UEL</p>
             <p className="mt-1 leading-relaxed">
               3 thành phần điểm học lực đã có công thức quy đổi rõ ràng, nhưng vẫn còn thiếu để ra một điểm cuối cùng
               đáng tin cậy:
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
-              <li>Bảng điểm cộng chứng chỉ ngoại ngữ quốc tế theo từng mức (chỉ biết khoảng 2–5/100, chưa có bảng)</li>
-              <li>Quy tắc giảm điểm ưu tiên khu vực/đối tượng khi tổng điểm đạt ngưỡng cao (nếu có) — chưa xác nhận được nguồn</li>
+              {uelKnowledgeGaps.map((gap) => (
+                <li key={gap.id}>{gap.label}</li>
+              ))}
             </ul>
             <p className="mt-2 leading-relaxed">
               Trong lúc chờ, bạn vẫn có thể kiểm tra ngưỡng đầu vào, xem mình đủ điều kiện được xét điểm cộng nhóm
@@ -86,12 +131,88 @@ export function UelExplorerPage({ onChangeSchool }: UelExplorerPageProps) {
 
         <section className="mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
           <div className="flex items-center gap-2">
+            <ArrowRightLeft size={20} className="text-accent" aria-hidden="true" />
+            <h2 className="text-lg font-semibold text-ink">Quy đổi điểm ĐGNL-HCM → thang 100 (điểm học lực)</h2>
+          </div>
+          <p className="mt-1 text-sm text-muted">Thang ĐGNL 0–1200. Áp dụng đúng công thức UEL công bố (×100/1200).</p>
+
+          {usingProfileDgnlValue ? (
+            <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-accent/20 bg-accent/5 px-3 py-2 text-sm">
+              <span className="text-ink">
+                Đang dùng điểm ĐGNL từ hồ sơ của bạn: <strong>{profileDgnlTotal}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setDgnlInput(String(profileDgnlTotal));
+                  setDgnlManualOverride(true);
+                }}
+                className="rounded-md px-2 py-1 text-xs font-medium text-accent underline-offset-2 hover:underline"
+              >
+                Thay đổi
+              </button>
+            </div>
+          ) : (
+            <div className="mt-3 max-w-xs">
+              <input
+                id="uel-dgnl-input"
+                name="uel-dgnl-input"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={1200}
+                value={dgnlInput}
+                onChange={(e) => handleManualDgnlChange(e.target.value)}
+                placeholder="0 - 1200"
+                aria-label="Điểm ĐGNL ĐHQG-HCM (thang 0-1200)"
+                className="w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+              />
+              <SharedProfileNotice className="mt-1.5" />
+              {dgnlComponentsClearedNotice && (
+                <p className="mt-1.5 rounded-md bg-warning/10 px-2 py-1.5 text-xs text-warning">
+                  Tổng điểm mới không khớp với điểm thành phần ĐGNL đã lưu trước đó. Các điểm thành
+                  phần cũ đã được xóa khỏi hồ sơ dùng chung.
+                </p>
+              )}
+              {profileDgnlTotal !== undefined && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDgnlManualOverride(false);
+                    setDgnlInput('');
+                    setDgnlComponentsClearedNotice(false);
+                  }}
+                  className="mt-1 text-xs font-medium text-accent underline-offset-2 hover:underline"
+                >
+                  Dùng lại điểm từ hồ sơ ({profileDgnlTotal})
+                </button>
+              )}
+            </div>
+          )}
+
+          {dgnlScale100 !== undefined && (
+            <p className="mt-2 text-sm text-ink">
+              {dgnlScale100 === null ? (
+                <span className="text-muted">Ngoài khoảng hợp lệ (0–1200).</span>
+              ) : (
+                <>
+                  Điểm ĐGNL quy đổi thang 100: <strong className="text-primary">{dgnlScale100.toFixed(2)}</strong> / 100
+                </>
+              )}
+            </p>
+          )}
+        </section>
+
+        <section className="mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
+          <div className="flex items-center gap-2">
             <ShieldCheck size={20} className="text-accent" aria-hidden="true" />
             <h2 className="text-lg font-semibold text-ink">Kiểm tra ngưỡng đầu vào</h2>
           </div>
           <p className="mt-1 text-sm text-muted">Tổng điểm 3 môn thi tốt nghiệp THPT theo tổ hợp xét tuyển (thang 30, chưa quy đổi).</p>
           <div className="mt-3 max-w-xs">
             <input
+              id="uel-thpt-raw-input"
+              name="uel-thpt-raw-input"
               type="number"
               inputMode="decimal"
               min={0}
@@ -99,6 +220,7 @@ export function UelExplorerPage({ onChangeSchool }: UelExplorerPageProps) {
               value={thptRaw}
               onChange={(e) => setThptRaw(e.target.value)}
               placeholder="0 - 30"
+              aria-label="Tổng điểm 3 môn thi tốt nghiệp THPT theo tổ hợp xét tuyển (thang 30)"
               className="w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
             />
           </div>
@@ -152,17 +274,17 @@ export function UelExplorerPage({ onChangeSchool }: UelExplorerPageProps) {
           </div>
           {bonusEligibility.eligibleCategories.length > 0 && (
             <p className="mt-3 text-xs text-muted">
-              Bạn thuộc {bonusEligibility.eligibleCategories.length} nhóm có thể được xét — UniScore chưa xác định số
+              Bạn thuộc {bonusEligibility.eligibleCategories.length} nhóm có thể được xét — UniscoreVN chưa xác định số
               điểm thực nhận.
             </p>
           )}
         </section>
 
         <section className="mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
-          <h2 className="text-lg font-semibold text-ink">Điểm ưu tiên khu vực (tham khảo)</h2>
+          <h2 className="text-lg font-semibold text-ink">Điểm ưu tiên khu vực</h2>
           <p className="mt-1 text-xs text-muted">
-            Thang 100 — chưa xác nhận quy tắc giảm dần khi tổng điểm cao, chỉ dùng tra cứu, không cộng vào một điểm
-            cuối cùng ở đây.
+            Thang 100. Khi tổng điểm học lực + điểm cộng ≥ 75/100, điểm ưu tiên giảm dần theo công thức chính thức
+            UEL — dùng công cụ bên dưới nếu bạn đã biết 2 con số đó.
           </p>
           <div className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
             <div className="rounded-lg bg-surface p-3">
@@ -182,6 +304,58 @@ export function UelExplorerPage({ onChangeSchool }: UelExplorerPageProps) {
               <div className="font-medium text-ink">{UEL_PRIORITY_BY_ZONE_SCALE_100.kv3}</div>
             </div>
           </div>
+
+          <details className="mt-4 rounded-md border border-ink/10 bg-surface p-3">
+            <summary className="cursor-pointer text-sm font-medium text-ink">
+              Đã biết điểm học lực + điểm cộng? Tính điểm ưu tiên thực nhận (nâng cao)
+            </summary>
+            <p className="mt-2 text-xs text-muted">
+              Công thức chính thức UEL: (100 − Điểm học lực − Điểm cộng) / 25 × Điểm ưu tiên chuẩn, áp dụng khi tổng
+              điểm học lực + điểm cộng ≥ 75/100. UniscoreVN không tự tính điểm học lực/điểm cộng cho bạn — nhập tay 2
+              số bạn đã biết.
+            </p>
+            <div className="mt-3 flex flex-wrap items-end gap-3">
+              <div className="max-w-[180px]">
+                <label htmlFor="uel-academic-plus-bonus-input" className="text-xs font-medium text-ink">
+                  Điểm học lực + điểm cộng
+                </label>
+                <input
+                  id="uel-academic-plus-bonus-input"
+                  name="uel-academic-plus-bonus-input"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  max={100}
+                  value={academicPlusBonusInput}
+                  onChange={(e) => setAcademicPlusBonusInput(e.target.value)}
+                  placeholder="0 - 100"
+                  className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+                />
+              </div>
+              <div className="max-w-[180px]">
+                <label htmlFor="uel-standard-priority-input" className="text-xs font-medium text-ink">
+                  Điểm ưu tiên chuẩn (chưa giảm)
+                </label>
+                <input
+                  id="uel-standard-priority-input"
+                  name="uel-standard-priority-input"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  value={standardPriorityInput}
+                  onChange={(e) => setStandardPriorityInput(e.target.value)}
+                  placeholder="vd 0.75"
+                  className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+                />
+              </div>
+            </div>
+            {priorityReductionResult && (
+              <p className="mt-3 text-sm text-ink">
+                Điểm ưu tiên thực nhận: <strong className="text-primary">{priorityReductionResult.effectivePriority}</strong>
+                {priorityReductionResult.reduced ? ' (đã giảm theo quy tắc trên)' : ' (chưa tới ngưỡng giảm)'}
+              </p>
+            )}
+          </details>
         </section>
 
         <section className="mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">

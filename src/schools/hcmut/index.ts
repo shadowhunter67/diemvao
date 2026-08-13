@@ -1,8 +1,10 @@
 import type { SchoolModule } from '../../core/schoolModule';
+import { aggregateSchoolCapabilities } from '../../core/admissionMethod';
 import { HcmutCalculatorPage } from './HcmutCalculatorPage';
+import { hcmutAdmissionMethods } from './methods';
 
 /**
- * Module trường đầu tiên của Uniscore. Bản thân module này chỉ export thông tin định danh
+ * Module trường đầu tiên của UniscoreVN. Bản thân module này chỉ export thông tin định danh
  * (SchoolModule, kèm `Page` — component trang trọn vẹn của trường) để đăng ký vào
  * schoolRegistry — logic tính điểm/config/data thật nằm rải trong các file con của thư mục
  * này (calculator/, config/, data/, types/, validation.ts, urlState.ts, programs.ts) và được
@@ -19,10 +21,8 @@ export const hcmutModule: SchoolModule = {
   capabilities: {
     admissionInfo: true,
     programs: true,
-    eligibility: true,
     cutoffs: true,
-    scoreConversion: true,
-    exactCalculator: true,
+    ...aggregateSchoolCapabilities(hcmutAdmissionMethods),
   },
   Page: HcmutCalculatorPage,
 };

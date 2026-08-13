@@ -36,14 +36,16 @@ function jsonParse(raw: string): { value: string } | null {
 
 describe('getSchoolStorageKey', () => {
   it('builds a namespaced key', () => {
-    expect(getSchoolStorageKey('hcmut', 'input', 1)).toBe('uniscore:hcmut:input:v1');
-    expect(getSchoolStorageKey('uit', 'target', 2)).toBe('uniscore:uit:target:v2');
+    expect(getSchoolStorageKey('hcmut', 'input', 1)).toBe('uniscorevn:hcmut:input:v1');
+    expect(getSchoolStorageKey('uit', 'target', 2)).toBe('uniscorevn:uit:target:v2');
   });
 });
 
 describe('readWithMigration', () => {
-  const NEW_KEY = 'uniscore:hcmut:input:v1';
-  const LEGACY_KEYS = ['uniscore-input-v1', 'hcmut-score-input-v2'];
+  const NEW_KEY = 'uniscorevn:hcmut:input:v1';
+  // 3 đời legacy thật của key này: brand cũ "Uniscore" namespaced (Phase 15) → flat "uniscore-*"
+  // (Phase 13) → "hcmut-score-*" (Phase 9), xem `HcmutCalculatorPage.tsx` FORM_LEGACY_KEYS.
+  const LEGACY_KEYS = ['uniscore:hcmut:input:v1', 'uniscore-input-v1', 'hcmut-score-input-v2'];
 
   it('uses the new key directly when it already exists', () => {
     localStorage.setItem(NEW_KEY, JSON.stringify({ value: 'new' }));
@@ -90,5 +92,21 @@ describe('readWithMigration', () => {
     const result = readWithMigration(NEW_KEY, LEGACY_KEYS, jsonParse);
 
     expect(result).toBeNull();
+  });
+
+  it('Batch 7: falls all the way through the real 3-generation chain (uniscore: → uniscore- → hcmut-score-) when only the oldest generation has data', () => {
+    // Chain thật production (HcmutCalculatorPage.tsx FORM_LEGACY_KEYS): key namespaced dưới brand
+    // "Uniscore" cũ (Phase 15), key flat "uniscore-*-v1" (Phase 13), key "hcmut-score-*" (Phase 9).
+    // KHÔNG có key nào ở đời MVP xa hơn — không force migrate generation không tồn tại thật.
+    expect(LEGACY_KEYS).toEqual(['uniscore:hcmut:input:v1', 'uniscore-input-v1', 'hcmut-score-input-v2']);
+    localStorage.setItem(LEGACY_KEYS[2], JSON.stringify({ value: 'oldest-generation' }));
+
+    const result = readWithMigration(NEW_KEY, LEGACY_KEYS, jsonParse);
+
+    expect(result).toEqual({ value: 'oldest-generation' });
+    expect(localStorage.getItem(NEW_KEY)).toBe(JSON.stringify({ value: 'oldest-generation' }));
+    // Migration chỉ ghi vào new key — không xóa/ghi lại 2 legacy key còn lại (conservative, giữ nguyên tiền lệ).
+    expect(localStorage.getItem(LEGACY_KEYS[0])).toBeNull();
+    expect(localStorage.getItem(LEGACY_KEYS[1])).toBeNull();
   });
 });

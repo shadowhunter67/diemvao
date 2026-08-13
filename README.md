@@ -1,25 +1,30 @@
-# Uniscore
+# UniscoreVN
 
 Tính & mô phỏng điểm xét tuyển đại học
 
-- **Live**: https://diemvao.vercel.app _(Vercel project vẫn tên nội bộ "diemvao", chưa rename theo brand mới — xem CLAUDE.md Phase 13)_
-- **GitHub**: https://github.com/shadowhunter67/uniscore
+- **Live**: https://uniscorevn.vercel.app _(canonical, Batch 7 — domain cũ `https://diemvao.vercel.app` từ Phase 13 hiện redirect 307 sang domain này, chỉ còn giá trị legacy reference)_
+- **GitHub**: https://github.com/shadowhunter67/uniscore _(tên repo chưa đổi theo brand mới — external action ngoài phạm vi code, xem CLAUDE.md Batch 7)_
 - **Issues**: https://github.com/shadowhunter67/uniscore/issues
 
 ## Giới thiệu
 
-Uniscore là công cụ tính điểm xét tuyển đại học, chạy hoàn toàn phía client (không backend, không database, không đăng nhập), realtime khi người dùng nhập điểm gốc. Ngoài tính điểm, Uniscore còn hỗ trợ đặt mục tiêu điểm số, mô phỏng kịch bản, và so sánh với điểm chuẩn tham khảo của các năm trước.
+UniscoreVN (rebrand từ **Uniscore**, Batch 7 — trước đó nữa là **DiemVao** ở Phase 13) là công cụ tính điểm xét tuyển đại học, chạy hoàn toàn phía client (không backend, không database, không đăng nhập), realtime khi người dùng nhập điểm gốc. Ngoài tính điểm, UniscoreVN còn hỗ trợ đặt mục tiêu điểm số, mô phỏng kịch bản, và so sánh với điểm chuẩn tham khảo của các năm trước.
 
-Uniscore **không** dự đoán chắc chắn đậu hay đảm bảo trúng tuyển — mọi kết quả so sánh với điểm chuẩn chỉ mang tính tham khảo.
+UniscoreVN **không** dự đoán chắc chắn đậu hay đảm bảo trúng tuyển — mọi kết quả so sánh với điểm chuẩn chỉ mang tính tham khảo.
 
 ## Trường đang hỗ trợ
 
-- **HCMUT** — Trường Đại học Bách khoa – ĐHQG TP.HCM, phương thức Xét tuyển Tổng hợp 2026 — có calculator đầy đủ
-- **UIT** — Trường Đại học Công nghệ Thông tin – ĐHQG TP.HCM — có trang thông tin, bonus/eligibility checker, điểm chuẩn 19 ngành 2026 thật, **chưa có calculator chính xác** (thiếu bảng bách phân vị)
-- **UEL** — Trường Đại học Kinh tế - Luật – ĐHQG TP.HCM — có trang thông tin, điểm chuẩn 38 ngành, ngưỡng đầu vào, **chưa có calculator chính xác** (thiếu bảng điểm cộng ngoại ngữ + quy tắc ưu tiên)
-- **UEH** — Trường Đại học Kinh tế TP.HCM (ngoài ĐHQG-HCM) — có trang thông tin, điểm chuẩn 97 chương trình, bảng quy đổi ĐGNL→THPT đầy đủ, **chưa có calculator chính xác** (thiếu bước quy đổi cuối + bảng điểm cộng)
+- **HCMUT** — Trường Đại học Bách khoa – ĐHQG TP.HCM, phương thức Xét tuyển Tổng hợp 2026 — **exact calculator đầy đủ** (`status: 'supported'`)
+- **UEH** — Trường Đại học Kinh tế TP.HCM (ngoài ĐHQG-HCM) — explorer: trang thông tin, điểm chuẩn 97 chương trình, bảng quy đổi ĐGNL→THPT **đã verified** (đọc lại ĐGNL từ hồ sơ điểm dùng chung, không cần nhập lại), **chưa có exact calculator** (thiếu bước quy đổi cuối sang thang 100 + bảng điểm cộng)
+- **UEL** — Trường Đại học Kinh tế - Luật – ĐHQG TP.HCM — explorer: trang thông tin, điểm chuẩn 38 ngành, ngưỡng đầu vào, công cụ quy đổi ĐGNL→thang 100 (đọc từ hồ sơ điểm dùng chung, công thức chính thức verified), công cụ tính điểm ưu tiên giảm dần khi tổng điểm cao, **chưa có exact calculator** (chỉ còn thiếu bảng điểm cộng ngoại ngữ + quy tắc ưu tiên)
+- **UIT** — Trường Đại học Công nghệ Thông tin – ĐHQG TP.HCM — trang thông tin, bonus/eligibility checker, điểm chuẩn 19 ngành 2026 thật, **chưa có exact calculator** (thiếu bảng bách phân vị)
 - **HCMUS, USSH** — đã research công thức (xem `docs/admission-research-2026.md`), chưa implement trang riêng
 - **IU, AGU, UHS** — mới khai báo định danh trong registry, research công thức chưa đủ nguồn tin cậy
+
+UEH/UEL/UIT đều dùng chung cơ chế "method-level capability" (`core/admissionMethod.ts`,
+`AdmissionMethodDescriptor`) làm nguồn sự thật cho từng khả năng (eligibility/quy đổi/điểm cộng/điểm
+ưu tiên/exact calculator) — `SchoolModule.capabilities` cấp trường chỉ là tổng hợp (OR) từ đó, không
+khai tay riêng lẻ dễ lệch với thực tế.
 
 ## Tính năng
 
@@ -30,28 +35,46 @@ Uniscore **không** dự đoán chắc chắn đậu hay đảm bảo trúng tuy
 - So sánh với điểm chuẩn tham khảo nhiều ngành, nhiều năm
 - Chia sẻ kết quả qua URL (query params), không cần tài khoản
 - Lưu input gần nhất vào localStorage của trình duyệt
+- Nhập điểm gốc (ĐGNL/THPT/học bạ) một lần ở HCMUT — UEH/UEL tự đọc lại ĐGNL từ `ApplicantProfile`
+  dùng chung (`core/applicantProfile.ts`, runtime qua `ApplicantProfileContext`), không cần nhập lại.
+  Hồ sơ dùng chung chỉ chứa **điểm gốc/factual** (ĐGNL thô, điểm thi THPT, điểm học bạ) — KHÔNG bao
+  giờ chứa điểm đã quy đổi/điểm xét tuyển cuối cùng của riêng một trường. Nếu 2 trường ghi 2 con số
+  ĐGNL xung đột nhau, UniscoreVN tự phát hiện và báo rõ thay vì âm thầm giữ cả hai (xem
+  `docs/architecture.md` mục Batch 5). Trang chủ tự hiện khi đã có hồ sơ lưu sẵn, kèm nút xóa nếu
+  muốn bắt đầu lại
+- Mỗi trang trường hiện rõ "phương thức đang hỗ trợ tính được đến đâu" (điều kiện/quy đổi/điểm
+  cộng/điểm ưu tiên/điểm cuối) thay vì chỉ nói chung "đang bổ sung dữ liệu"
 
 ## Kiến trúc multi-school
 
-Uniscore hiện chỉ có một trường (HCMUT), nhưng kiến trúc được chuẩn bị để thêm trường mới mà không phải đập lại toàn bộ codebase:
+UniscoreVN hỗ trợ nhiều trường (xem "Trường đang hỗ trợ" ở trên), kiến trúc được chuẩn bị để thêm trường mới mà không phải đập lại toàn bộ codebase:
 
 ```text
 src/
-├── core/           # Thật sự generic: round2, validateRange, SchoolModule contract
+├── core/
+│   ├── schoolModule.ts          # SchoolModule contract + SchoolStatus/SchoolCapabilities
+│   ├── admissionMethod.ts       # AdmissionMethodDescriptor — method-level capability (source of truth)
+│   ├── applicantProfile.ts      # Shared factual profile type (ĐGNL/THPT/học bạ thô, không có điểm quy đổi)
+│   ├── applicantProfileStorage.ts / storage.ts   # Persist + migration (uniscorevn:* namespace)
+│   └── round2, validateRange, ...                # Thật sự generic, không thuộc trường nào
 ├── schools/
-│   ├── index.ts    # schoolRegistry + activeSchoolId
-│   └── hcmut/      # Module trường đầu tiên — xem "HCMUT module" bên dưới
+│   ├── index.ts    # schoolRegistry
+│   ├── hcmut/      # Exact calculator — xem "HCMUT module" bên dưới
+│   ├── ueh/        # Explorer — đọc ApplicantProfile qua applicantProfileAdapter.ts
+│   └── uel/        # Explorer — đọc ApplicantProfile qua applicantProfileAdapter.ts
 ├── config/
-│   └── site.ts     # Brand: tên, tagline, description
-├── components/      # UI dùng chung, không chứa business logic riêng trường nào
+│   └── site.ts     # Brand: tên, slug, canonicalUrl, tagline, description
+├── components/      # UI dùng chung (bao gồm ApplicantProfileContext runtime), không chứa business logic riêng trường nào
 └── App.tsx
 ```
 
 Nguyên tắc:
 
 - Logic/công thức riêng của một trường nằm trong `schools/<id>/`, không tràn ra `components/` hay `core/`.
-- Mỗi trường có input schema, thang điểm, phương thức xét tuyển riêng — **không** ép về một "universal formula engine". `SchoolModule` (`src/core/schoolModule.ts`) chỉ chứa thông tin định danh (id, tên, năm) để đăng ký vào `schoolRegistry`, không ép `calculate()` chung chữ ký.
-- Thêm trường thứ hai (ví dụ UIT) = tạo `schools/uit/` theo cấu trúc tương tự + thêm 1 dòng vào `schoolRegistry` (`src/schools/index.ts`). Chưa cần React Router — khi có ≥2 trường mới cần tính đến URL dạng `/hcmut`, `/uit`.
+- Mỗi trường có input schema, thang điểm, phương thức xét tuyển riêng — **không** ép về một "universal formula engine". `SchoolModule` (`src/core/schoolModule.ts`) chỉ chứa thông tin định danh (id, tên, năm, status) để đăng ký vào `schoolRegistry`, không ép `calculate()` chung chữ ký.
+- Khả năng thật của từng phương thức xét tuyển (eligibility/quy đổi/điểm cộng/điểm ưu tiên/exact calculator) khai báo qua `AdmissionMethodDescriptor` (`core/admissionMethod.ts`) — đây là **nguồn sự thật** ở các trường đã migrate sang cơ chế này (UEH/UEL/UIT); `SchoolModule.capabilities` cấp trường chỉ derive (OR) từ đó qua `aggregateSchoolCapabilities`, tránh khai tay 2 nơi dễ lệch nhau.
+- Trường nào cần đọc lại điểm gốc đã nhập ở trường khác thì tự viết `applicantProfileAdapter.ts` đọc `ApplicantProfile` (`core/applicantProfile.ts`) qua `useApplicantProfile()` — hồ sơ này chỉ chứa dữ liệu factual dùng chung nhiều trường, không phải kết quả tính của riêng trường nào.
+- Thêm trường mới = tạo `schools/<id>/` theo cấu trúc tương tự + thêm 1 dòng vào `schoolRegistry` (`src/schools/index.ts`). Route dạng `/hcmut`, `/uit` xử lý bởi `src/hooks/useRoute.ts` (hand-rolled, không thêm router lib).
 
 ## HCMUT module
 
@@ -139,9 +162,9 @@ universal hóa công thức tuyển sinh, mỗi trường vẫn tự tính riên
 - Điểm ưu tiên khu vực/đối tượng có dropdown gợi ý điền nhanh (theo bảng chung Bộ GD&ĐT), nhưng ô nhập tay thang 30 vẫn còn để override.
 - Quy đổi chứng chỉ tiếng Anh chỉ áp dụng cho điểm thi THPT, chưa áp dụng cho học bạ.
 - Học bạ chưa xử lý trường hợp thí sinh đổi môn trong tổ hợp giữa lớp 10/11/12.
-- localStorage dùng key `uniscore-input-v1` + `uniscore-target-v1` + `uniscore-program-v1` + `uniscore-dgnl-mode-v1` + `uniscore-applicant-type-v1` (đổi từ `hcmut-score-*`/`hcmut-applicant-type-*` khi rebrand sang Uniscore — người dùng cũ mất input đã lưu, không migrate).
+- localStorage dùng namespace `uniscorevn:hcmut:*` (vd `uniscorevn:hcmut:input:v1`) + hồ sơ dùng chung `uniscorevn:applicant-profile:v1` (Batch 7). Khác Phase 13 (đổi brand DiemVao→Uniscore KHÔNG migrate, cố ý phá dữ liệu cũ), lần rebrand Uniscore→UniscoreVN này CÓ migrate tự động — đọc được cả key cũ `uniscore:*` (brand trước) lẫn các đời flat key cũ hơn (`uniscore-*-v1`, `hcmut-score-*`, `hcmut-applicant-type-*`), ưu tiên key mới nếu đã tồn tại. Xem `src/core/storage.ts`, `src/core/applicantProfileStorage.ts`.
 - Chưa có: database ngành động, biểu đồ, AI recommendation, xác suất trúng tuyển, login, server, analytics.
 
 ## Disclaimer
 
-Uniscore là công cụ độc lập, không thuộc các trường đại học được hỗ trợ. Thí sinh nên đối chiếu thông tin tuyển sinh chính thức của từng trường trước khi quyết định.
+UniscoreVN là công cụ độc lập, không thuộc các trường đại học được hỗ trợ. Thí sinh nên đối chiếu thông tin tuyển sinh chính thức của từng trường trước khi quyết định.

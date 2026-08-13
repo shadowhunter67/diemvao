@@ -41,14 +41,14 @@ export const APPLICANT_TYPE_INFO: Record<HcmutApplicantType, ApplicantTypeInfo> 
   },
   'international-certificate': {
     label: 'Có chứng chỉ tuyển sinh quốc tế (SAT / ACT / IB / A-Level)',
-    description: 'Đối tượng 2.4 — Uniscore đang bổ sung dữ liệu chính thức.',
+    description: 'Đối tượng 2.4 — UniscoreVN đang bổ sung dữ liệu chính thức.',
   },
   'foreign-high-school': {
     label: 'Tốt nghiệp THPT nước ngoài',
-    description: 'Đối tượng 2.3 — Uniscore đang bổ sung dữ liệu chính thức.',
+    description: 'Đối tượng 2.3 — UniscoreVN đang bổ sung dữ liệu chính thức.',
   },
   'special-program': {
     label: 'Chương trình đặc thù / chuyển tiếp quốc tế',
-    description: 'Đối tượng 2.5-2.8 (TNE, chuyển tiếp quốc tế...) — dùng công thức riêng, Uniscore đang bổ sung dữ liệu chính thức.',
+    description: 'Đối tượng 2.5-2.8 (TNE, chuyển tiếp quốc tế...) — dùng công thức riêng, UniscoreVN đang bổ sung dữ liệu chính thức.',
   },
 };

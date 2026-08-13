@@ -34,6 +34,15 @@ export const uelSources: UelSource[] = [
     verification: 'verified',
   },
   {
+    id: 'uel-priority-reduction-2026',
+    publisher: 'Trường Đại học Kinh tế - Luật – ĐHQG TP.HCM',
+    title:
+      'Quy tắc giảm điểm ưu tiên khu vực/đối tượng khi tổng (điểm học lực + điểm cộng) ≥75/100: "(100 – Điểm học lực – Điểm cộng)/25 × Điểm ưu tiên quy đổi", làm tròn 0.01 — batch 6, unblock `priorityReduction.ts`',
+    url: 'https://tuyensinh.uel.edu.vn/thong-tin-tuyen-sinh-dai-hoc-chinh-quy-2026/',
+    accessedAt: '2026-08-13',
+    verification: 'verified',
+  },
+  {
     id: 'uel-bonus-language-cross-check',
     publisher: 'VnExpress (dẫn "Phụ lục 2" của UEL — chưa đọc được bảng gốc dạng text/ảnh rõ)',
     title: 'Điểm cộng chứng chỉ ngoại ngữ quốc tế UEL 2026 — biết khoảng 2–5/100 cho IELTS≥5.0 tương đương, chưa có bảng chi tiết theo mức',

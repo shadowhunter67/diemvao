@@ -5,6 +5,7 @@ import { useRoute } from './hooks/useRoute';
 import { schoolRegistry } from './schools';
 import { setPageMeta } from './core/pageMeta';
 import { siteConfig } from './config/site';
+import { ApplicantProfileProvider } from './core/ApplicantProfileContext';
 
 /**
  * "/" -> null (landing). "/<id>" -> id. Ngoại lệ: "/" + query non-empty là share link cũ
@@ -22,7 +23,7 @@ function resolveSchoolId(pathname: string): string | null {
  * schools/<id>/calculator|data|... — toàn bộ nội dung/logic trường nằm trong `school.Page`.
  * Thêm trường mới = thêm entry vào schoolRegistry, không sửa file này.
  */
-function App() {
+function AppShell() {
   const { pathname, navigate, redirect } = useRoute();
   const schoolId = resolveSchoolId(pathname);
 
@@ -58,6 +59,16 @@ function App() {
         <Footer />
       </div>
     </div>
+  );
+}
+
+/** ApplicantProfileProvider bọc ngoài AppShell (mount 1 lần, sống suốt phiên SPA) để factual
+ * profile không mất khi chuyển route giữa các trường — xem core/ApplicantProfileContext.tsx. */
+function App() {
+  return (
+    <ApplicantProfileProvider>
+      <AppShell />
+    </ApplicantProfileProvider>
   );
 }
 

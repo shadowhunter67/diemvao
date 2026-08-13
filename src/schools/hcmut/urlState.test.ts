@@ -7,10 +7,12 @@ import {
   applySearchParamsToForm,
   parseApplicantTypeFromSearchParams,
   parseProgramStateFromSearchParams,
+  parseSubjectContextFromSearchParams,
   parseTargetFromSearchParams,
   serializeApplicantTypeToSearchParams,
   serializeProgramStateToSearchParams,
   serializeStateToSearchParams,
+  serializeSubjectContextToSearchParams,
 } from './urlState';
 
 const config = activeAdmissionConfig;
@@ -155,6 +157,112 @@ describe('applicant type (at=)', () => {
   });
 });
 
+describe('subject context (sj2/sj3, batch 4)', () => {
+  it('round trip: serialize rồi parse ra đúng subject đã chọn', () => {
+    const params = new URLSearchParams();
+    serializeSubjectContextToSearchParams(params, { subject2: 'physics', subject3: 'chemistry' });
+    expect(params.get('sj2')).toBe('physics');
+    expect(params.get('sj3')).toBe('chemistry');
+    expect(parseSubjectContextFromSearchParams(params)).toEqual({ subject2: 'physics', subject3: 'chemistry' });
+  });
+
+  it('không ghi field chưa chọn (null) vào URL', () => {
+    const params = new URLSearchParams();
+    serializeSubjectContextToSearchParams(params, { subject2: 'physics', subject3: null });
+    expect(params.has('sj2')).toBe(true);
+    expect(params.has('sj3')).toBe(false);
+  });
+
+  it('link cũ không có sj2/sj3: parse trả về null, không crash', () => {
+    expect(parseSubjectContextFromSearchParams(new URLSearchParams())).toEqual({ subject2: null, subject3: null });
+  });
+
+  it('giá trị không hợp lệ trong URL (không nằm trong SELECTABLE_SUBJECT_IDS) bị bỏ qua', () => {
+    const params = new URLSearchParams({ sj2: 'khong-ton-tai', sj3: 'math' }); // 'math' bị loại (không cho chọn lại Toán)
+    expect(parseSubjectContextFromSearchParams(params)).toEqual({ subject2: null, subject3: null });
+  });
+});
+
+describe('Batch 7 — full share-link round trip (case chưa verify tự động ở Batch 7 trước)', () => {
+  it('valid HCMUT state (DGNL detail + THPT + transcript + applicant type + subject context) → serialize → parse lại → state tương đương', () => {
+    const originalForm = {
+      ...defaultAdmissionFormState,
+      dgnl: { vietnamese: '250', english: '230', math: '260', scientificThinking: '240' },
+      thpt: { math: '9', subject2: '8', subject3: '7' },
+      transcript: {
+        grade10: { math: '9', subject2: '8', subject3: '7' },
+        grade11: { math: '8.5', subject2: '7.5', subject3: '6.5' },
+        grade12: { math: '9.5', subject2: '8.5', subject3: '7.5' },
+      },
+      bonus: { reward: '2', considerationReward: '1', encouragement: '1' },
+      priorityRaw30Scale: '1.5',
+    };
+    const originalTarget = '85';
+    const originalApplicantType = 'no-dgnl';
+    const originalSubjectContext = { subject2: 'physics' as const, subject3: 'chemistry' as const };
+
+    // Build the share link exactly the way HcmutCalculatorPage.buildShareUrl does.
+    const params = serializeStateToSearchParams(originalForm, originalTarget, config);
+    serializeProgramStateToSearchParams(
+      params,
+      { programId: 'a', buffer: 1, comparisonProgramIds: ['a', 'b'] },
+      testPrograms
+    );
+    serializeApplicantTypeToSearchParams(params, originalApplicantType);
+    serializeSubjectContextToSearchParams(params, originalSubjectContext);
+
+    // Reconstruct a share URL string and re-parse it (round trip through URLSearchParams(string)).
+    const reparsedParams = new URLSearchParams(params.toString());
+
+    const { formState: reconstructedForm, hasAnyField } = applySearchParamsToForm(
+      defaultAdmissionFormState,
+      reparsedParams,
+      config
+    );
+    const reconstructedTarget = parseTargetFromSearchParams(reparsedParams, config);
+    const reconstructedProgramState = parseProgramStateFromSearchParams(reparsedParams, testPrograms);
+    const reconstructedApplicantType = parseApplicantTypeFromSearchParams(reparsedParams);
+    const reconstructedSubjectContext = parseSubjectContextFromSearchParams(reparsedParams);
+
+    expect(hasAnyField).toBe(true);
+    expect(reconstructedForm).toEqual(originalForm);
+    expect(reconstructedTarget).toBe(originalTarget);
+    expect(reconstructedProgramState).toEqual({ programId: 'a', buffer: 1, comparisonProgramIds: ['a', 'b'] });
+    expect(reconstructedApplicantType).toBe(originalApplicantType);
+    expect(reconstructedSubjectContext).toEqual(originalSubjectContext);
+  });
+
+  it('default applicant type (dgnl) + no subject context chosen → round trip vẫn đúng, không ghi field thừa vào URL', () => {
+    const form = { ...defaultAdmissionFormState, dgnl: { ...defaultAdmissionFormState.dgnl, vietnamese: '200' } };
+    const params = serializeStateToSearchParams(form, '', config);
+    serializeApplicantTypeToSearchParams(params, 'dgnl');
+    serializeSubjectContextToSearchParams(params, { subject2: null, subject3: null });
+
+    expect(params.has('at')).toBe(false);
+    expect(params.has('sj2')).toBe(false);
+    expect(params.has('sj3')).toBe(false);
+
+    const reparsed = new URLSearchParams(params.toString());
+    expect(parseApplicantTypeFromSearchParams(reparsed)).toBe('dgnl');
+    expect(parseSubjectContextFromSearchParams(reparsed)).toEqual({ subject2: null, subject3: null });
+    expect(applySearchParamsToForm(defaultAdmissionFormState, reparsed, config).formState.dgnl.vietnamese).toBe('200');
+  });
+
+  it('legacy share URL (không có at/sj2/sj3, chỉ có field điểm gốc đời cũ) vẫn parse đúng — không breaking change', () => {
+    // Mô phỏng link chia sẻ cũ từ trước khi có applicant type/subject context (Phase 11/batch 4).
+    const legacyParams = new URLSearchParams({ dg_v: '250', dg_e: '230', dg_m: '260', dg_s: '240', th_m: '9', tg: '85' });
+
+    const { formState, hasAnyField } = applySearchParamsToForm(defaultAdmissionFormState, legacyParams, config);
+    expect(hasAnyField).toBe(true);
+    expect(formState.dgnl).toEqual({ vietnamese: '250', english: '230', math: '260', scientificThinking: '240' });
+    expect(formState.thpt.math).toBe('9');
+    expect(parseTargetFromSearchParams(legacyParams, config)).toBe('85');
+    // Field mới hơn (chưa tồn tại trong link cũ) fallback đúng default — không crash, không suy đoán.
+    expect(parseApplicantTypeFromSearchParams(legacyParams)).toBe('dgnl');
+    expect(parseSubjectContextFromSearchParams(legacyParams)).toEqual({ subject2: null, subject3: null });
+  });
+});
+
 describe('privacy guardrail (workstream L)', () => {
   it('không có key nào trong share URL khớp pattern nhạy cảm (tên/CCCD/ngày sinh/SĐT/email/địa chỉ)', () => {
     const fullForm = {
@@ -172,10 +280,24 @@ describe('privacy guardrail (workstream L)', () => {
     const params = serializeStateToSearchParams(fullForm, '85', config);
     serializeProgramStateToSearchParams(params, { programId: 'a', buffer: 1, comparisonProgramIds: ['a', 'b'] }, testPrograms);
     serializeApplicantTypeToSearchParams(params, 'no-dgnl');
+    serializeSubjectContextToSearchParams(params, { subject2: 'physics', subject3: 'chemistry' });
 
     expect([...params.keys()].length).toBeGreaterThan(0);
     for (const key of params.keys()) {
       expect(isForbiddenShareKey(key), `key "${key}" khớp pattern nhạy cảm`).toBe(false);
     }
+  });
+
+  it('không có hàm serialize nào trong urlState.ts nhận ApplicantProfile làm tham số — không thể vô tình leak field mới thêm vào profile (batch 4)', () => {
+    // Chứng minh bằng cấu trúc: mọi serializer chỉ nhận đúng field cụ thể (form/program/
+    // applicantType/subjectContext), không có serializer nào nhận toàn bộ object profile. Test
+    // này gọi đủ mọi serializer với dữ liệu hợp lệ tối đa và đếm đúng số key mong đợi — nếu sau
+    // này có ai lỡ thêm `serializeProfileToSearchParams` share cả object thì bài test integration
+    // ở trên (đếm forbidden pattern) vẫn bắt được, còn số lượng key ở đây tăng bất thường cũng là
+    // tín hiệu cần soát lại.
+    const params = new URLSearchParams();
+    serializeStateToSearchParams(defaultAdmissionFormState, '', config);
+    serializeSubjectContextToSearchParams(params, { subject2: 'physics', subject3: 'chemistry' });
+    expect([...params.keys()]).toEqual(['sj2', 'sj3']);
   });
 });

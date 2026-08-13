@@ -10,11 +10,13 @@ import { evaluateUehAdmission } from '../schools/ueh/evaluate';
 const A00 = COMMON_SUBJECT_COMBINATIONS.find((c) => c.id === 'A00')!;
 
 /**
- * Proof "một ApplicantProfile, nhiều trường đọc" (workstream M, batch 3): MỘT object
- * `ApplicantProfile` duy nhất, 2 trường đọc 2 field khác nhau của cùng object đó —
- * `exams.vact.components` (HCMUT) và `exams.vact.total` (UEH) — không trường nào cần trường kia
- * đụng vào field mình không hiểu. Không có conversion giữa 2 con số (xem ghi chú trong
- * `schools/ueh/applicantProfileAdapter.ts`) — đây là 2 fact riêng biệt cùng tồn tại trên profile.
+ * Proof "một ApplicantProfile, nhiều trường đọc" (workstream M, batch 3 — mở rộng ở batch 4 khi
+ * xác nhận `.total`/`.components` cùng thang, xem `schools/hcmut/applicantProfileMapper.ts`).
+ * MỘT object `ApplicantProfile` duy nhất, 2 trường đọc 2 field khác nhau của cùng object đó —
+ * `exams.vact.components` (HCMUT) và `exams.vact.total` (UEH). Test dưới đây dùng `total`/
+ * `components` KHÔNG khớp nhau có chủ đích (950 vs tổng components=870) để chứng minh 2 adapter
+ * hoàn toàn ĐỘC LẬP — mỗi bên chỉ đọc field của mình, không tự đối chiếu/suy luận field kia. Xem
+ * `applicantProfileMapper.test.ts` cho luồng thật (mapper tự tính total nhất quán từ components).
  */
 describe('ApplicantProfile dùng chung — HCMUT và UEH đọc field khác nhau của cùng 1 profile', () => {
   const sharedProfile: ApplicantProfile = {

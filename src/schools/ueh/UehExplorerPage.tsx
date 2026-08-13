@@ -2,13 +2,18 @@ import { useState } from 'react';
 import { AlertTriangle, ArrowRightLeft, GraduationCap, ShieldCheck } from 'lucide-react';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
+import { MethodCapabilitySummary } from '../../components/MethodCapabilitySummary';
+import { SharedProfileNotice } from '../../components/SharedProfileNotice';
 import { verificationLabel } from '../../core/trust';
+import { useApplicantProfile } from '../../core/applicantProfileContextCore';
 import { uehPrograms } from './data/programs';
 import { uehCutoffs } from './data/cutoffs';
 import { uehSources } from './sources';
 import { convertDgnlToThpt } from './dgnlConversion';
 import { checkUehThreshold, UEH_THRESHOLD_HCMC, UEH_THRESHOLD_MEKONG } from './eligibility';
 import { uehKnowledgeGaps } from './knowledgeGaps';
+import { buildUehEvaluationInput } from './applicantProfileAdapter';
+import { uehAdmissionMethods } from './methods';
 
 interface UehExplorerPageProps {
   onChangeSchool: () => void;
@@ -29,8 +34,41 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
   const ksvPrograms = uehPrograms.filter((p) => p.campus === 'mekong');
   const cutoffsByProgram = new Map(uehCutoffs.map((c) => [c.programId, c]));
 
+  const { profile, updateVactTotal } = useApplicantProfile();
+  const profileDgnlTotal = buildUehEvaluationInput(profile).dgnlScore;
+
+  // Batch 4 workstream K: nếu hồ sơ dùng chung đã có điểm ĐGNL thô (vd nhập ở HCMUT trước đó),
+  // ưu tiên dùng luôn — không bắt nhập lại. `manualOverride` cho phép người dùng chủ động thay
+  // bằng số khác (vd hồ sơ chưa cập nhật, hoặc user chỉ muốn thử một con số khác).
+  const [manualOverride, setManualOverride] = useState(false);
   const [dgnlInput, setDgnlInput] = useState('');
-  const dgnlResult = dgnlInput.trim() !== '' ? convertDgnlToThpt(Number(dgnlInput)) : undefined;
+  const usingProfileValue = !manualOverride && profileDgnlTotal !== undefined;
+  const effectiveDgnlRaw = usingProfileValue ? String(profileDgnlTotal) : dgnlInput;
+  const dgnlResult = effectiveDgnlRaw.trim() !== '' ? convertDgnlToThpt(Number(effectiveDgnlRaw)) : undefined;
+  // Batch 5, workstream G/J: hiện rõ khi ghi ngược làm mất điểm thành phần ĐGNL đã lưu (thay vì âm
+  // thầm xóa) — chỉ đọng lại 1 lượt gần nhất để không gây noise (không phải toast/modal riêng).
+  const [componentsClearedNotice, setComponentsClearedNotice] = useState(false);
+
+  // Workstream L (batch 4) + C (batch 5): user tự sửa điểm ĐGNL ở đây (không phải giá trị hồ sơ có
+  // sẵn) → coi là fact mới về CÙNG kỳ thi ĐGNL, ghi ngược vào profile dùng chung qua
+  // `updateVactTotal` (đi qua `reconcileVactFromTotal`, KHÔNG tự gán field rời rạc — batch 5,
+  // workstream D). Nếu số mới không khớp components cũ (vd HCMUT từng nhập chi tiết), components
+  // bị xóa khỏi hồ sơ dùng chung thay vì giữ 2 fact mâu thuẫn âm thầm — hiện rõ cho user.
+  // TUYỆT ĐỐI không ghi `dgnlResult` (điểm đã quy đổi ra thang THPT) — chỉ ghi lại đúng con số thô
+  // người dùng nhập.
+  function handleManualDgnlChange(value: string) {
+    setDgnlInput(value);
+    const parsed = value.trim() !== '' ? Number(value) : NaN;
+    if (!Number.isNaN(parsed)) {
+      const { componentsCleared } = updateVactTotal(parsed, 'user-total-input');
+      // "Sticky" trong cả phiên sửa: gõ "1050" từng ký tự có thể clear components ở ký tự ĐẦU
+      // TIÊN rồi các ký tự sau không còn gì để clear nữa (trả về false) — không được để thông báo
+      // biến mất giữa chừng chỉ vì vậy, user cần thấy rõ đã xảy ra xóa dữ liệu trong lượt sửa này.
+      setComponentsClearedNotice((prev) => prev || componentsCleared);
+    } else {
+      setComponentsClearedNotice(false);
+    }
+  }
 
   const [thresholdInput, setThresholdInput] = useState('');
   const [campus, setCampus] = useState<'hcmc' | 'mekong'>('hcmc');
@@ -83,9 +121,10 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
         />
 
         <section className="mt-5 rounded-card bg-surface p-6 shadow-card sm:p-8">
-          <h2 className="text-lg font-semibold text-ink">Công thức đã biết (phần lớn)</h2>
-          <p className="mt-2 text-sm text-muted">
-            Phương thức Xét tuyển tích hợp {YEAR}, thang điểm 100:{' '}
+          <h2 className="text-lg font-semibold text-ink">Phương thức đang hỗ trợ: {uehAdmissionMethods[0].name}</h2>
+          <MethodCapabilitySummary method={uehAdmissionMethods[0]} />
+          <p className="mt-4 text-sm text-muted">
+            Thang điểm 100:{' '}
             <span className="font-mono text-ink">Điểm xét = 60%×Điểm thi (quy đổi) + 40%×Điểm học bạ (quy đổi)</span>.
           </p>
           <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
@@ -103,7 +142,7 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
         <section className="mt-5 flex items-start gap-3 rounded-card border border-warning/30 bg-warning/10 p-6 text-sm text-warning sm:p-8">
           <AlertTriangle size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
           <div>
-            <p className="font-semibold">Uniscore chưa tính được điểm xét tuyển chính xác cho UEH</p>
+            <p className="font-semibold">UniscoreVN chưa tính được điểm xét tuyển chính xác cho UEH</p>
             <p className="mt-1 leading-relaxed">
               Bảng quy đổi ĐGNL/V-SAT và công thức học bạ đã rõ, nhưng vẫn còn thiếu:
             </p>
@@ -125,18 +164,61 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
             <h2 className="text-lg font-semibold text-ink">Quy đổi điểm ĐGNL-HCM → thang THPT</h2>
           </div>
           <p className="mt-1 text-sm text-muted">Thang ĐGNL 450–1200. Áp dụng đúng bảng 12 khoảng UEH công bố.</p>
-          <div className="mt-3 max-w-xs">
-            <input
-              type="number"
-              inputMode="decimal"
-              min={450}
-              max={1200}
-              value={dgnlInput}
-              onChange={(e) => setDgnlInput(e.target.value)}
-              placeholder="450 - 1200"
-              className="w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
-            />
-          </div>
+
+          {usingProfileValue ? (
+            <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-accent/20 bg-accent/5 px-3 py-2 text-sm">
+              <span className="text-ink">
+                Đã dùng điểm ĐGNL từ hồ sơ của bạn: <strong>{profileDgnlTotal}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setDgnlInput(String(profileDgnlTotal));
+                  setManualOverride(true);
+                }}
+                className="rounded-md px-2 py-1 text-xs font-medium text-accent underline-offset-2 hover:underline"
+              >
+                Thay đổi
+              </button>
+            </div>
+          ) : (
+            <div className="mt-3 max-w-xs">
+              <input
+                id="ueh-dgnl-input"
+                name="ueh-dgnl-input"
+                type="number"
+                inputMode="decimal"
+                min={450}
+                max={1200}
+                value={dgnlInput}
+                onChange={(e) => handleManualDgnlChange(e.target.value)}
+                placeholder="450 - 1200"
+                aria-label="Điểm ĐGNL ĐHQG-HCM (thang 450-1200)"
+                className="w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+              />
+              <SharedProfileNotice className="mt-1.5" />
+              {componentsClearedNotice && (
+                <p className="mt-1.5 rounded-md bg-warning/10 px-2 py-1.5 text-xs text-warning">
+                  Tổng điểm mới không khớp với điểm thành phần ĐGNL đã lưu trước đó. Các điểm thành
+                  phần cũ đã được xóa khỏi hồ sơ dùng chung.
+                </p>
+              )}
+              {profileDgnlTotal !== undefined && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setManualOverride(false);
+                    setDgnlInput('');
+                    setComponentsClearedNotice(false);
+                  }}
+                  className="mt-1 text-xs font-medium text-accent underline-offset-2 hover:underline"
+                >
+                  Dùng lại điểm từ hồ sơ ({profileDgnlTotal})
+                </button>
+              )}
+            </div>
+          )}
+
           {dgnlResult !== undefined && (
             <p className="mt-2 text-sm text-ink">
               {dgnlResult === null ? (
@@ -157,7 +239,7 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
             <h2 className="text-lg font-semibold text-ink">Ngưỡng đầu vào chính thức</h2>
           </div>
           <p className="mt-1 text-sm text-muted">
-            Uniscore <strong className="text-ink">chưa tự tính được</strong> điểm xét tuyển cuối cùng của bạn cho UEH
+            UniscoreVN <strong className="text-ink">chưa tự tính được</strong> điểm xét tuyển cuối cùng của bạn cho UEH
             (thiếu bước quy đổi cuối, xem cảnh báo phía trên) — nên không thể tự kết luận bạn đạt hay chưa đạt ngưỡng.
             Ngưỡng chính thức là:
           </p>
@@ -171,12 +253,14 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
               Đã tự có điểm xét tuyển từ nguồn khác? So sánh nhanh tại đây (nâng cao)
             </summary>
             <p className="mt-2 text-xs text-muted">
-              Chỉ dùng khi bạn đã biết điểm xét tuyển thang 100 của mình (vd UEH đã công bố cho bạn) — Uniscore không
+              Chỉ dùng khi bạn đã biết điểm xét tuyển thang 100 của mình (vd UEH đã công bố cho bạn) — UniscoreVN không
               tính giúp số này.
             </p>
             <div className="mt-3 flex flex-wrap items-end gap-3">
               <div className="max-w-xs">
                 <input
+                  id="ueh-threshold-input"
+                  name="ueh-threshold-input"
                   type="number"
                   inputMode="decimal"
                   min={0}
@@ -184,12 +268,16 @@ export function UehExplorerPage({ onChangeSchool }: UehExplorerPageProps) {
                   value={thresholdInput}
                   onChange={(e) => setThresholdInput(e.target.value)}
                   placeholder="0 - 100"
+                  aria-label="Điểm xét tuyển thang 100 của bạn"
                   className="w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
                 />
               </div>
               <select
+                id="ueh-campus-select"
+                name="ueh-campus-select"
                 value={campus}
                 onChange={(e) => setCampus(e.target.value as 'hcmc' | 'mekong')}
+                aria-label="Cơ sở UEH"
                 className="rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
               >
                 <option value="hcmc">TP.HCM (KSA)</option>

@@ -1,11 +1,20 @@
 import type { SchoolModule } from '../../core/schoolModule';
+import { aggregateSchoolCapabilities } from '../../core/admissionMethod';
 import { UelExplorerPage } from './UelExplorerPage';
+import { uelAdmissionMethods } from './methods';
 
 /**
  * Module UEL — research 2026-08-11 (xem docs/admission-research-2026.md). Công thức 3 thành
  * phần (ĐGNL/THPT/học bạ) đã biết đầy đủ cách quy đổi, nhưng thiếu bảng điểm cộng ngoại ngữ chi
  * tiết + quy tắc giảm điểm ưu tiên nên CHƯA có exact calculator — giống UIT, `status` giữ
  * 'researching' (formula phần lớn verified, info/cutoff/eligibility thật, calculator blocked).
+ *
+ * `eligibility`/`scoreConversion`/`exactCalculator` derive từ `uelAdmissionMethods` (batch 6,
+ * workstream F) thay vì hard-code — batch 5 từng để `scoreConversion: false` dù đã thêm công cụ
+ * quy đổi ĐGNL→100 thật (`dgnlConversion.ts` + UI), lệch với capability thật; derive từ method
+ * descriptor tránh lặp lại loại lệch này. `admissionInfo`/`programs`/`cutoffs` không thuộc
+ * `AdmissionMethodCapabilities` (capability ở mức trang/dataset, không phải phương thức tính
+ * điểm) nên vẫn khai báo tay.
  */
 export const uelModule: SchoolModule = {
   id: 'uel',
@@ -18,10 +27,8 @@ export const uelModule: SchoolModule = {
   capabilities: {
     admissionInfo: true,
     programs: true,
-    eligibility: true,
     cutoffs: true,
-    scoreConversion: false,
-    exactCalculator: false,
+    ...aggregateSchoolCapabilities(uelAdmissionMethods),
   },
   Page: UelExplorerPage,
 };

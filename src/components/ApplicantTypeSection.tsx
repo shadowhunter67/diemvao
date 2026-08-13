@@ -48,7 +48,7 @@ export function ApplicantTypeSection({ value, onChange }: ApplicantTypeSectionPr
 
       {!isSupported && (
         <p className="mt-4 rounded-lg bg-warning/10 p-3 text-xs leading-relaxed text-warning">
-          Nhóm này chưa có công thức đủ rõ từ nguồn chính thức HCMUT 2026 nên Uniscore chưa tính điểm được — tránh
+          Nhóm này chưa có công thức đủ rõ từ nguồn chính thức HCMUT 2026 nên UniscoreVN chưa tính điểm được — tránh
           hiển thị kết quả sai. Xem chi tiết research tại{' '}
           <a
             href="https://github.com/shadowhunter67/uniscore/blob/main/docs/admission-research-2026.md"

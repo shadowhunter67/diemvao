@@ -1,6 +1,10 @@
-/** Key localStorage namespace theo school, tránh collision khi có nhiều trường. */
+/** Key localStorage namespace theo school, tránh collision khi có nhiều trường.
+ * Batch 7 — namespace đổi `uniscore:` → `uniscorevn:` theo rebrand Uniscore → UniscoreVN. Key cũ
+ * `uniscore:<schoolId>:<domain>:v<version>` (Phase 15) được coi là một đời legacy nữa trong chain
+ * `readWithMigration` ở từng school page (vd `HcmutCalculatorPage.tsx`), KHÔNG sửa hàm này để tự
+ * đọc key cũ — giữ đúng nguyên tắc "school page tự khai chain legacy của mình". */
 export function getSchoolStorageKey(schoolId: string, domain: string, version: number): string {
-  return `uniscore:${schoolId}:${domain}:v${version}`;
+  return `uniscorevn:${schoolId}:${domain}:v${version}`;
 }
 
 /**
