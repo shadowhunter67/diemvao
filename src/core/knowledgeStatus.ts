@@ -33,5 +33,14 @@ export interface KnowledgeGap {
   label: string;
   status: KnowledgeStatus;
   sourceId?: string;
+  ruleId?: string;
+  scoreAffecting?: boolean;
+  implemented?: boolean;
+  artifactStatus?: string;
+  knownData?: string[];
+  missingData?: string[];
+  attemptedSources?: string[];
+  whyNotInferred?: string;
+  impact?: string;
   note?: string;
 }

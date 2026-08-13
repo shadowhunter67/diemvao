@@ -1,4 +1,5 @@
 import type { AdmissionMethodDescriptor } from '../../core/admissionMethod';
+import { uelExactCalculatorAvailable } from './exactness';
 import { uelKnowledgeGaps } from './knowledgeGaps';
 
 /** UEL 2026 — Phương thức Xét tuyển Tổng hợp: có eligibility (ngưỡng THPT) + scoreConversion
@@ -19,7 +20,7 @@ export const uelAdmissionMethods: AdmissionMethodDescriptor[] = [
       scoreConversion: true,
       bonus: false,
       priority: true,
-      exactCalculator: false,
+      exactCalculator: uelExactCalculatorAvailable,
     },
     knowledgeGaps: uelKnowledgeGaps,
   },

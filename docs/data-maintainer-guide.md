@@ -68,6 +68,15 @@ Synthetic superseded example:
 
 UEL official-but-unparsed example: keep the source registry entry for the official PDF, link the `KnowledgeGap` with `sourceId: 'uel-admission-pdf-2026-unparsed'`, and keep `exactCalculator: false` until the Appendix 2 table is parsed into deterministic rules.
 
+For table-based exact rules, use this workflow:
+
+1. Read the official table artifact directly, not a secondary summary.
+2. Encode only rows actually present in the table.
+3. Keep row data school-specific unless another school explicitly shares the same official table.
+4. Link the rule/table to one canonical `sourceId`; store page/appendix/table in evidence location.
+5. Add boundary tests for every score band and certificate type.
+6. Flip the exact gate only after every score-affecting gap is resolved.
+
 Examples:
 
 - New current rule: add `RuleEvidence` with `effectiveYear = CURRENT_ADMISSION_YEAR`; add lifecycle only if there is a real lifecycle fact.

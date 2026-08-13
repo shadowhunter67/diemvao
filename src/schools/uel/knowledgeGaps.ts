@@ -19,9 +19,35 @@ import type { KnowledgeGap } from '../../core/knowledgeStatus';
 export const uelKnowledgeGaps: KnowledgeGap[] = [
   {
     id: 'uel-certificate-bonus-table',
-    label: 'Bảng điểm cộng chứng chỉ ngoại ngữ quốc tế đầy đủ theo từng mức (chỉ có 1-2 điểm dữ liệu rời rạc: IELTS 5.5→+3.50, tối đa 5/100 — chưa đủ dựng bảng)',
+    label:
+      'Bảng điểm cộng chứng chỉ ngoại ngữ quốc tế đầy đủ theo từng mức, loại chứng chỉ, biên điểm và điều kiện áp dụng.',
     status: 'official-but-unparsed',
     sourceId: 'uel-admission-pdf-2026-unparsed',
-    note: 'Bảng đầy đủ nằm ở "Phụ lục 2" file đính kèm (PDF/Drive) trên trang tuyển sinh chính thức; link Drive đọc qua web fetch chỉ trả trang Loading, cần tải/đọc PDF gốc để xác nhận.',
+    ruleId: 'foreign-language-bonus-table',
+    scoreAffecting: true,
+    implemented: false,
+    artifactStatus: 'official-drive-view-only-download-denied',
+    knownData: [
+      'Trang UEL chính thức xác nhận có điểm cộng quy đổi chứng chỉ tiếng Anh quốc tế tại Phụ lục 2.',
+      'Ví dụ chính thức trên trang UEL có IELTS 5.5 -> +3.50.',
+      'Trang UEL chính thức xác nhận tổng điểm cộng/điểm thưởng không vượt quá 10/100.',
+    ],
+    missingData: [
+      'Toàn bộ band điểm theo từng chứng chỉ được chấp nhận.',
+      'Biên inclusive/exclusive của từng band.',
+      'Điều kiện hiệu lực/chủng loại chứng chỉ nếu bảng quy định.',
+      'Tương tác chính xác giữa điểm cộng ngoại ngữ và các nhóm điểm cộng khác trước khi áp cap.',
+    ],
+    attemptedSources: [
+      'UEL official admissions page: HTML chỉ nêu Phụ lục 2 và ví dụ IELTS 5.5, không có bảng đầy đủ.',
+      'Official Google Drive artifact uel-admission-pdf-2026-unparsed: viewer public nhưng web fetch chỉ trả Loading.',
+      'Google Drive direct download endpoint: trả thông báo owner không cho download file.',
+      'Search official UEL/UEL admissions PDF mirror: không tìm thấy bản UEL-hosted parseable.',
+    ],
+    whyNotInferred:
+      'Không suy bảng từ ví dụ IELTS 5.5 -> +3.50 hoặc nguồn thứ cấp vì các band chứng chỉ, biên điểm và điều kiện áp dụng đều ảnh hưởng trực tiếp đến final score.',
+    impact: 'exact-final-score-blocking',
+    note:
+      'Bảng đầy đủ nằm ở "Phụ lục 2" file đính kèm trên trang tuyển sinh chính thức; hiện chỉ xác nhận được sự tồn tại và một ví dụ rời rạc, chưa đọc được bảng gốc đủ để dựng calculator.',
   },
 ];

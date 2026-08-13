@@ -26,7 +26,7 @@ UniscoreVN **không** dự đoán chắc chắn đậu hay đảm bảo trúng t
 
 - **HCMUT** — Trường Đại học Bách khoa – ĐHQG TP.HCM, phương thức Xét tuyển Tổng hợp 2026 — **exact calculator đầy đủ** (`status: 'supported'`)
 - **UEH** — Trường Đại học Kinh tế TP.HCM (ngoài ĐHQG-HCM) — explorer: trang thông tin, điểm chuẩn 97 chương trình, bảng quy đổi ĐGNL→THPT **đã verified** (đọc lại ĐGNL từ hồ sơ điểm dùng chung, không cần nhập lại), **chưa có exact calculator** (thiếu bước quy đổi cuối sang thang 100 + bảng điểm cộng)
-- **UEL** — Trường Đại học Kinh tế - Luật – ĐHQG TP.HCM — explorer: trang thông tin, điểm chuẩn 38 ngành, ngưỡng đầu vào, công cụ quy đổi ĐGNL→thang 100 (đọc từ hồ sơ điểm dùng chung, công thức chính thức verified), reuse điểm thi THPT theo tổ hợp user chọn, công cụ tính điểm ưu tiên giảm dần khi tổng điểm cao, **chưa có exact calculator** (chỉ còn thiếu bảng điểm cộng ngoại ngữ)
+- **UEL** — Trường Đại học Kinh tế - Luật – ĐHQG TP.HCM — explorer: trang thông tin, điểm chuẩn 38 ngành, ngưỡng đầu vào, công cụ quy đổi ĐGNL→thang 100 (đọc từ hồ sơ điểm dùng chung, công thức chính thức verified), reuse điểm thi THPT theo tổ hợp user chọn, công cụ tính điểm ưu tiên giảm dần khi tổng điểm cao, **chưa có exact calculator** (official Phụ lục 2 bảng điểm cộng ngoại ngữ đang view-only/download denied, chưa parse được bảng đầy đủ)
 - **UIT** — Trường Đại học Công nghệ Thông tin – ĐHQG TP.HCM — trang thông tin, bonus/eligibility checker, điểm chuẩn 19 ngành 2026 thật, **chưa có exact calculator** (thiếu bảng bách phân vị)
 - **HCMUS, USSH** — đã research công thức (xem `docs/admission-research-2026.md`), chưa implement trang riêng
 - **IU, AGU, UHS** — mới khai báo định danh trong registry, research công thức chưa đủ nguồn tin cậy

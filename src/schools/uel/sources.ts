@@ -18,8 +18,8 @@ export interface UelSource {
 /**
  * Nguồn đã xác minh cho UEL 2026 — research 2026-08-11 (xem docs/admission-research-2026.md).
  * Bảng điểm cộng chứng chỉ ngoại ngữ chi tiết ("Phụ lục 2") có artifact chính thức trong Google
- * Drive PDF trên trang UEL, nhưng chưa đọc được dạng text/ảnh rõ qua fetch tự động — xem
- * `knowledgeGaps.ts`.
+ * Drive PDF trên trang UEL, nhưng Drive không cho tải trực tiếp và viewer chỉ render qua trình duyệt
+ * tương tác — xem `knowledgeGaps.ts`.
  */
 export const uelSources: UelSource[] = [
   {
@@ -65,7 +65,7 @@ export const uelSources: UelSource[] = [
     id: 'uel-admission-pdf-2026-unparsed',
     publisher: 'Trường Đại học Kinh tế - Luật – ĐHQG TP.HCM',
     title:
-      'File thông tin tuyển sinh đại học chính quy 2026 trên Google Drive — artifact chính thức có Phụ lục 2, chưa parse được bảng điểm cộng ngoại ngữ',
+      'File thông tin tuyển sinh đại học chính quy 2026 trên Google Drive — artifact chính thức có Phụ lục 2, view-only/download denied nên chưa parse được bảng điểm cộng ngoại ngữ',
     url: 'https://drive.google.com/file/d/1yJayo1846puqpgQYtZTAs4AZCHeT5XRk/view?usp=sharing',
     accessedAt: '2026-08-13',
     sourceType: 'official-school',

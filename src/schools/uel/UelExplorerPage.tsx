@@ -189,7 +189,11 @@ export function UelExplorerPage({ onChangeSchool }: UelExplorerPageProps) {
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
               {uelKnowledgeGaps.map((gap) => (
-                <li key={gap.id}>{gap.label}</li>
+                <li key={gap.id}>
+                  {gap.label}
+                  {gap.impact ? <span className="block text-xs text-muted">Tác động: {gap.impact}</span> : null}
+                  {gap.note ? <span className="block text-xs text-muted">{gap.note}</span> : null}
+                </li>
               ))}
             </ul>
             <p className="mt-2 leading-relaxed">

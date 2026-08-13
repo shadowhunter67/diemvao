@@ -90,6 +90,20 @@ Chi tiết đầy đủ 15 câu hỏi/trường (thành phần, quy đổi, môn
       `drive.google.com/uc?export=download` trong sandbox và ngoài sandbox; cả hai lần timeout
       trước khi lấy được PDF thật. Không có bảng Phụ lục 2 parseable mới, nên UEL exact tiếp tục
       blocked. Không research tiếp qua nguồn SEO/blog để tránh kéo dài vô hạn.
+  - **Research bổ sung Batch 16 (2026-08-13) — Outcome B, exact chưa unlock**:
+    - Reconstruct exact-rule checklist trong `schools/uel/exactness.ts`: ĐGNL/THPT normalization,
+      trọng số 2026, bảng ưu tiên, quy tắc giảm ưu tiên và cap đã có nguồn chính thức; bảng điểm cộng
+      chứng chỉ ngoại ngữ quốc tế và final rounding/aggregation rule đủ tổng quát vẫn chưa đủ để mở
+      exact calculator.
+    - Canonical source trước tiên: `uel-admission-pdf-2026-unparsed`, link Drive chính thức từ dòng
+      "Xem file thông tin tuyển sinh năm 2026" trên trang UEL. Web viewer qua fetch chỉ trả `Loading…`.
+      Direct download `drive.google.com/uc?export=download&id=...` và `drive.usercontent.google.com`
+      chỉ trả HTML Google Drive báo owner không cho download file. Search mirror official UEL/UEL
+      admissions không tìm thấy bản PDF UEL-hosted parseable.
+    - Trang UEL chính thức vẫn chỉ có rule dẫn tới Phụ lục 2 và ví dụ rời rạc `IELTS 5.5 -> +3.50`;
+      nguồn thứ cấp có nhắc khoảng IELTS >=5.0/tối đa 5 nhưng không đủ làm source exact. Vì vậy
+      `uel-certificate-bonus-table` giữ `official-but-unparsed`, `impact:
+      exact-final-score-blocking`, và `exactCalculator=false`.
 - **HCMUS**: `0.8×(THPT hoặc ĐGNL, chọn cao hơn) + 0.2×Học bạ`, tính trên thang 30 rồi quy đổi ×100/30 để công bố. Điểm cộng ≤1,5/30. Ưu tiên theo khung chuẩn quốc gia (giống cách HCMUT/UniscoreVN đã làm). Điều kiện riêng theo ngành (vd Thiết kế vi mạch yêu cầu Toán nhóm 20% cao nhất). Nguồn: `tuyensinh.hcmus.edu.vn` (chính thức, 3 trang khác nhau).
   - **Research bổ sung 2026-08-11** (đọc trực tiếp `tuyensinh.hcmus.edu.vn/2026-thong-bao-ve-phuong-thuc-xet-tuyen-2/`):
     - Xác nhận chính xác: `w1=w3=0.8`, `w2=w4=0.2`. `Điểm học lực = max(w1×THPT + w2×Học bạ, w3×ĐGNL_quy_đổi + w4×Học bạ)` — về mặt toán học tương đương `0.8×max(THPT, ĐGNL_quy_đổi) + 0.2×Học bạ` (vì Học bạ giống nhau ở cả 2 nhánh).
