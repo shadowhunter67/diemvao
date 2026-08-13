@@ -39,6 +39,36 @@ findCutoffComparison()
 
 Historical cutoff is not stale by default. It can remain a valid reference when it is final, older than `CURRENT_ADMISSION_YEAR`, and comparable in context/scale/method.
 
+## Batch 14 (2026-08-13) — offline admission data audit
+
+Data maintenance now has an executable workflow:
+
+```text
+Sources
+  ↓
+RuleEvidence + lifecycle
+  ↓
+school evaluators
+  ↓
+AdmissionEvaluation
+```
+
+and:
+
+```text
+local source/cutoff/method/gap data
+  ↓
+auditAdmissionDataFreshness()
+  ↓
+npm run audit:data
+  ↓
+CI fails only on safety-critical errors
+```
+
+The audit is offline and deterministic: it imports checked-in datasets and `CURRENT_ADMISSION_YEAR`, never fetches the internet, and never uses the system date. Known product gaps such as UEL Appendix 2 stay as warnings/info unless a method incorrectly claims `exactCalculator: true` while those gaps remain.
+
+Expanded evidence UI reads the same metadata model. It can show source type, publication date, UniScoreVN review date, and lifecycle label when those fields exist, while the collapsed cards stay focused on score/status.
+
 Tài liệu này mô tả các abstraction dùng chung được thêm ở batch 2 — bổ sung cho README.md (chạy
 dự án) và CLAUDE.md (lịch sử phase chi tiết theo ngày). Mục tiêu sản phẩm:
 

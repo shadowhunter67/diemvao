@@ -22,6 +22,45 @@ Quy tắc bảo trì:
 
 `auditAdmissionDataFreshness()` ở `src/core/dataFreshnessAudit.ts` là helper pure/dev-facing. Tests dùng helper này để bắt method runtime sai năm, current final cutoff thiếu nguồn, duplicate current cutoff conflict, và score-affecting rule evidence bị superseded.
 
+## Batch 14 — maintainer workflow before deploy
+
+Before editing admission data:
+
+1. Identify the official source and decide whether it is primary evidence or only a secondary cross-check.
+2. Record factual metadata only when known: `publishedAt` is the source/document publication date; `lastReviewedAt` is when UniScoreVN maintainers checked the source; `effectiveYear` is the admission cycle the rule applies to.
+3. Do not use git commit dates as publication dates, and do not use `lastReviewedAt` as proof that a source is still current.
+
+After editing:
+
+```bash
+npm run audit:data
+npm run lint
+npm run test
+npm run build
+```
+
+`npm run audit:data` is deterministic and offline. Exit code policy:
+
+- `error` -> exit 1: duplicate current cutoff conflict, current final cutoff missing source, current exact method using superseded/non-current evidence, exact method still claiming unresolved score-affecting gaps.
+- `warning` -> exit 0: known official-but-unparsed rule such as UEL Appendix 2, or maintainer-visible metadata concerns that do not corrupt current exact comparison.
+- `info` -> exit 0: known incomplete product gaps for non-exact methods.
+
+Examples:
+
+- New current rule: add `RuleEvidence` with `effectiveYear = CURRENT_ADMISSION_YEAR`; add lifecycle only if there is a real lifecycle fact.
+- Superseded notice: keep the old item, mark lifecycle/status `superseded`, set `supersededBy`, and add the replacement as current/final when verified.
+- Historical cutoff: keep `status: 'final'`; do not call it stale if it is only a previous-year reference.
+- Unknown current cutoff: do not add a fake record and do not say "not-published" without `NotPublishedCheck`.
+- Official-but-unparsed document: keep a `KnowledgeGap` with `status: 'official-but-unparsed'`; do not unblock exact calculator until the table/rule is parsed.
+
+Admission-year rollover checklist:
+
+1. Update `CURRENT_ADMISSION_YEAR`.
+2. Run `npm run audit:data`.
+3. Let method-year mismatch errors reveal 2026 methods that still need real 2027 sources/rules.
+4. Add new current sources/rules with true metadata.
+5. Never silently relabel a 2026 rule as 2027.
+
 Dữ liệu tuyển sinh (ngưỡng đầu vào, công thức, quy đổi, điểm cộng, ưu tiên, danh sách ngành,
 điểm chuẩn) có thể thay đổi nhiều lần trong cùng một mùa tuyển sinh. Trước khi dùng dữ liệu để
 tính điểm hoặc hiển thị, luôn ưu tiên thông báo chính thức mới nhất — không cache "sự thật" quá

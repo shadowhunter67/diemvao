@@ -1,4 +1,5 @@
 import type { EvidenceCriticality, RuleLifecycle } from './freshness';
+import type { SourceType } from './admissionHistory';
 import type { VerificationLevel } from './trust';
 
 /**
@@ -11,10 +12,12 @@ export interface RuleEvidence {
   sourceId: string;
   sourceUrl?: string;
   sourceTitle?: string;
+  sourceType?: SourceType;
   /** Trang/mục/bảng/dòng trong tài liệu nếu biết. */
   location?: string;
   verification: VerificationLevel;
   effectiveYear: number;
+  publishedAt?: string;
   lifecycle?: RuleLifecycle;
   /**
    * Only score-affecting evidence can block exact evaluation when stale/superseded.

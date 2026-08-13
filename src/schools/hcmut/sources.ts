@@ -1,4 +1,5 @@
 import type { SourceLifecycle } from '../../core/freshness';
+import type { SourceType } from '../../core/admissionHistory';
 import type { VerificationLevel } from '../../core/trust';
 
 export interface DataSource {
@@ -8,6 +9,8 @@ export interface DataSource {
   url: string;
   accessedAt: string;
   kind: 'official' | 'official-republication' | 'news-republication';
+  sourceType?: SourceType;
+  publishedAt?: string;
   /** Mức độ tin cậy thật của evidence — dùng để hiển thị wording đúng mức, không nói mạnh hơn bằng chứng. */
   verification: VerificationLevel;
   lifecycle?: SourceLifecycle;
@@ -27,6 +30,7 @@ export const hcmutSources: DataSource[] = [
     url: 'https://hcmut.edu.vn/tintuc/cong-bo-thong-tin-tuyen-sinh-dai-hoc-chinh-quy-nam-2026',
     accessedAt: '2026-08-10',
     kind: 'official',
+    sourceType: 'official-school',
     verification: 'verified',
   },
   {
@@ -45,6 +49,7 @@ export const hcmutSources: DataSource[] = [
     url: 'https://hcmut.edu.vn/tintuc/quy-doi-chung-chi-tieng-anh',
     accessedAt: '2026-08-10',
     kind: 'official',
+    sourceType: 'official-school',
     verification: 'verified',
   },
   {
@@ -54,6 +59,7 @@ export const hcmutSources: DataSource[] = [
     url: 'https://hcmut.edu.vn',
     accessedAt: '2026-08-10',
     kind: 'news-republication',
+    sourceType: 'secondary',
     verification: 'cross-checked',
   },
 ];

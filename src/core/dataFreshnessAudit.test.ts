@@ -10,6 +10,7 @@ describe('auditAdmissionDataFreshness', () => {
     });
 
     expect(issues.some((issue) => issue.id.startsWith('cutoff-source:'))).toBe(true);
+    expect(issues).toContainEqual(expect.objectContaining({ code: 'CURRENT_CUTOFF_MISSING_SOURCE', severity: 'error' }));
   });
 
   it('flags conflicting duplicate current final cutoffs in the same context', () => {
@@ -23,6 +24,7 @@ describe('auditAdmissionDataFreshness', () => {
     });
 
     expect(issues.some((issue) => issue.id.startsWith('cutoff-conflict:'))).toBe(true);
+    expect(issues).toContainEqual(expect.objectContaining({ code: 'DUPLICATE_CURRENT_CUTOFF', severity: 'error' }));
   });
 
   it('does not treat superseded current cutoff plus final replacement as a duplicate conflict', () => {
@@ -62,6 +64,7 @@ describe('auditAdmissionDataFreshness', () => {
     });
 
     expect(issues).toContainEqual(expect.objectContaining({ kind: 'rule', severity: 'error' }));
+    expect(issues).toContainEqual(expect.objectContaining({ code: 'SUPERSEDED_SOURCE_IN_CURRENT_RULE' }));
   });
 
   it('flags methods that do not match the configured admission year', () => {
@@ -79,5 +82,29 @@ describe('auditAdmissionDataFreshness', () => {
     });
 
     expect(issues.some((issue) => issue.id === 'method-freshness:old-method')).toBe(true);
+    expect(issues).toContainEqual(expect.objectContaining({ code: 'METHOD_YEAR_MISMATCH' }));
+  });
+
+  it('keeps known official-but-unparsed gaps as warnings unless a method claims exact', () => {
+    const partialIssues = auditAdmissionDataFreshness({
+      currentAdmissionYear: CURRENT_ADMISSION_YEAR,
+      knowledgeGaps: [{ id: 'appendix-2', label: 'Official appendix is known but unparsed', status: 'official-but-unparsed', schoolId: 'uel' }],
+    });
+    expect(partialIssues).toContainEqual(expect.objectContaining({ code: 'UNPARSED_OFFICIAL_RULE', severity: 'warning' }));
+
+    const exactIssues = auditAdmissionDataFreshness({
+      currentAdmissionYear: CURRENT_ADMISSION_YEAR,
+      methods: [
+        {
+          id: 'unsafe-exact',
+          schoolId: 'uel',
+          name: 'Unsafe exact',
+          year: CURRENT_ADMISSION_YEAR,
+          capabilities: { eligibility: true, scoreConversion: true, bonus: false, priority: false, exactCalculator: true },
+          knowledgeGaps: [{ id: 'appendix-2', label: 'Official appendix is known but unparsed', status: 'official-but-unparsed' }],
+        },
+      ],
+    });
+    expect(exactIssues).toContainEqual(expect.objectContaining({ code: 'EXACT_METHOD_HAS_UNRESOLVED_GAPS', severity: 'error' }));
   });
 });

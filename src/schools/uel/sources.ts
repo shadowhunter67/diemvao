@@ -1,4 +1,5 @@
 import type { SourceLifecycle } from '../../core/freshness';
+import type { SourceType } from '../../core/admissionHistory';
 import type { VerificationLevel } from '../../core/trust';
 
 export interface UelSource {
@@ -7,6 +8,8 @@ export interface UelSource {
   title: string;
   url: string;
   accessedAt: string;
+  publishedAt?: string;
+  sourceType?: SourceType;
   verification: VerificationLevel;
   lifecycle?: SourceLifecycle;
   lastReviewedAt?: string;
@@ -26,6 +29,7 @@ export const uelSources: UelSource[] = [
       'Thông tin tuyển sinh đại học chính quy 2026 — công thức Xét tuyển Tổng hợp (β1=55% ĐGNL, β2=35% THPT, β3=10% học bạ), ngưỡng đầu vào, điểm ưu tiên khu vực',
     url: 'https://tuyensinh.uel.edu.vn/thong-tin-tuyen-sinh-dai-hoc-chinh-quy-2026/',
     accessedAt: '2026-08-11',
+    sourceType: 'official-school',
     verification: 'verified',
   },
   {
@@ -34,6 +38,8 @@ export const uelSources: UelSource[] = [
     title: 'Công bố điểm chuẩn trúng tuyển đại học chính quy 2026, phương thức Xét tuyển Tổng hợp (38 ngành/chuyên ngành, thang 100)',
     url: 'https://tuyensinh.uel.edu.vn/truong-dai-hoc-kinh-te-luat-cong-bo-ket-qua-tuyen-sinh-dai-hoc-chinh-quy-nam-2026/',
     accessedAt: '2026-08-11',
+    publishedAt: '2026-08-09',
+    sourceType: 'official-school',
     verification: 'verified',
   },
   {
@@ -43,6 +49,7 @@ export const uelSources: UelSource[] = [
       'Quy tắc giảm điểm ưu tiên khu vực/đối tượng khi tổng (điểm học lực + điểm cộng) ≥75/100: "(100 – Điểm học lực – Điểm cộng)/25 × Điểm ưu tiên quy đổi", làm tròn 0.01 — batch 6, unblock `priorityReduction.ts`',
     url: 'https://tuyensinh.uel.edu.vn/thong-tin-tuyen-sinh-dai-hoc-chinh-quy-2026/',
     accessedAt: '2026-08-13',
+    sourceType: 'official-school',
     verification: 'verified',
   },
   {
@@ -51,6 +58,7 @@ export const uelSources: UelSource[] = [
     title: 'Điểm cộng chứng chỉ ngoại ngữ quốc tế UEL 2026 — biết khoảng 2–5/100 cho IELTS≥5.0 tương đương, chưa có bảng chi tiết theo mức',
     url: 'https://vnexpress.net/cong-thuc-tinh-diem-xet-tuyen-chi-tiet-cua-dai-hoc-kinh-te-luat-nam-2026-5041582-p3.html',
     accessedAt: '2026-08-11',
+    sourceType: 'secondary',
     verification: 'incomplete',
   },
   {
@@ -60,6 +68,7 @@ export const uelSources: UelSource[] = [
       'File thông tin tuyển sinh đại học chính quy 2026 trên Google Drive — artifact chính thức có Phụ lục 2, chưa parse được bảng điểm cộng ngoại ngữ',
     url: 'https://drive.google.com/file/d/1yJayo1846puqpgQYtZTAs4AZCHeT5XRk/view?usp=sharing',
     accessedAt: '2026-08-13',
+    sourceType: 'official-school',
     verification: 'incomplete',
   },
 ];
