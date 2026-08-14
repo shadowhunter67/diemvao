@@ -11,6 +11,7 @@ import { uelPrograms } from '../schools/uel/data/programs';
 import { loadStoredUelCombinationId, saveStoredUelCombinationId } from '../schools/uel/comparisonContextStorage';
 import { uehPrograms } from '../schools/ueh/data/programs';
 import { uitPrograms } from '../schools/uit/data/programs';
+import { usshPrograms } from '../schools/ussh/data/programs';
 import { ComparisonOverview } from './compare/ComparisonOverview';
 import { SchoolComparisonCard } from './compare/SchoolComparisonCard';
 import type { ProgramOption } from './compare/types';
@@ -20,15 +21,21 @@ interface MultiSchoolComparisonPageProps {
   onOpenSchool: (schoolId: string) => void;
 }
 
+// USSH: re-audit 2026-08-13/14 đã có program registry thật (54 chương trình, 3 track) — map sang
+// ProgramOption. Chọn ngành ở đây CHỈ để hiển thị ngữ cảnh + (tương lai) cutoff — evaluation vẫn
+// confidence='partial' nên card không tự tính "gap" (đúng Phần R: partial thì không so cutoff).
+const usshProgramOptions: ProgramOption[] = usshPrograms.map((p) => ({ id: p.id, code: p.code, name: p.name }));
+
 const programOptions: Record<string, readonly ProgramOption[]> = {
   hcmut: hcmutPrograms,
   ueh: uehPrograms,
   uel: uelPrograms,
   uit: uitPrograms,
-  // HCMUS/USSH/IU chưa có program registry dạng ProgramOption (chỉ eligibility/checker theo tổ
-  // hợp, không phải theo ngành cụ thể) — UHS có UHS_PROGRAMS nhưng shape khác ProgramOption.
+  ussh: usshProgramOptions,
+  // HCMUS/IU chưa có program registry dạng ProgramOption (chỉ eligibility/checker theo tổ hợp,
+  // không phải theo ngành cụ thể — bảng 39 ngành HCMUS chưa có evidence trong lượt này) — UHS có
+  // UHS_PROGRAMS nhưng shape khác ProgramOption.
   hcmus: [],
-  ussh: [],
   uhs: [],
   iu: [],
 };

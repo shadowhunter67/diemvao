@@ -4,10 +4,10 @@ import { HcmusPage } from './HcmusPage';
 import { hcmusAdmissionMethods } from './methods';
 
 /**
- * Module HCMUS — research 2026-08-13 (xem docs/CHANGELOG.md). Ngưỡng THPT tổ hợp (≥15/30) đọc
- * được text nên eligibility=true; ĐGNL threshold + trọng số Phương thức 2 nằm trong ảnh/chưa công
- * bố nên KHÔNG có scoreConversion/exactCalculator — Level 2 (eligibility checker), không phải chỉ
- * trang thông tin.
+ * Module HCMUS — re-audit 2026-08-13 với evidence ảnh mới (xem docs/CHANGELOG.md batch mới nhất).
+ * Đã tính được Điểm học lực THẬT (MAX route THPT/ĐGNL, quy đổi ĐGNL qua bảng phân vị 101 dòng) —
+ * `partialCalculator: true`, cùng pattern UEL. Điểm cộng/Điểm ưu tiên và bảng ngưỡng 39 ngành vẫn
+ * thiếu evidence nên chưa lên `exactCalculator`.
  */
 export const hcmusModule: SchoolModule = {
   id: 'hcmus',
@@ -15,12 +15,14 @@ export const hcmusModule: SchoolModule = {
   shortName: 'HCMUS',
   year: 2026,
   status: 'researching',
-  summary: 'Đã có ngưỡng THPT tổ hợp (≥15/30) và điều kiện ngành Kỹ thuật hạt nhân 2026 · Ngưỡng ĐGNL và trọng số Phương thức 2 chưa đọc được dạng text',
+  summary:
+    'Đã tính được Điểm học lực (MAX route THPT/ĐGNL, quy đổi ĐGNL qua bảng phân vị chính thức 2026) · Điểm cộng, Điểm ưu tiên và bảng ngưỡng 39 ngành chưa có evidence',
   capabilities: {
     admissionInfo: true,
     programs: false,
     cutoffs: false,
     ...aggregateSchoolCapabilities(hcmusAdmissionMethods),
+    partialCalculator: true,
   },
   Page: HcmusPage,
 };

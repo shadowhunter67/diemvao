@@ -7,7 +7,8 @@ import { buildUsshEvaluationInput } from './applicantProfileAdapter';
 import { checkUsshDgnlThreshold, checkUsshThptThreshold, checkUsshTranscriptThreshold } from './eligibility';
 import { usshAdmissionMethods } from './methods';
 import { usshKnowledgeGaps } from './knowledgeGaps';
-import { usshThresholdEvidence } from './evidence';
+import { usshThresholdEvidence, usshDt3FormulaEvidence } from './evidence';
+import { calculateUsshDt3Score } from './calculator';
 
 export interface UsshEvaluationContext {
   subjectContext?: UsshSubjectContext;
@@ -81,6 +82,25 @@ export function evaluateUsshAdmission(profile: ApplicantProfile, context: UsshEv
   if (input.dgnlRaw1200 === undefined) {
     missingInputs.push('Điểm ĐGNL ĐHQG-HCM để kiểm tra ngưỡng ĐGNL.');
     missingRequirements.push({ kind: 'profile-input', code: 'ussh-dgnl', label: 'Điểm ĐGNL ĐHQG-HCM.' });
+  }
+
+  if (input.dgnlRaw1200 !== undefined && input.transcriptTotal30 !== undefined) {
+    const dt3 = calculateUsshDt3Score({ dgnlRaw1200: input.dgnlRaw1200, transcriptTotal30: input.transcriptTotal30 });
+    explanation.push({
+      id: 'ussh-dt3-score',
+      label: 'ĐT3 — điểm trước Điểm cộng/Điểm ưu tiên',
+      inputs: { dgnlRaw1200: input.dgnlRaw1200, transcriptTotal30: input.transcriptTotal30 },
+      output: dt3.scoreBeforeBonusAndPriority,
+      scale: 100,
+      formula: '0.90×[(ĐGNL)×100/1200] + 0.10×[(HB)×100/30]',
+      description: 'ĐT3 là đối tượng DUY NHẤT tính được đầy đủ (không chứa α1/α2) — CHƯA gồm Điểm cộng/Điểm ưu tiên, KHÔNG phải điểm xét tuyển cuối cùng.',
+      evidence: usshDt3FormulaEvidence.evidence,
+    });
+  } else if (input.dgnlRaw1200 !== undefined || input.transcriptTotal30 !== undefined) {
+    if (input.transcriptTotal30 === undefined) {
+      missingInputs.push('Điểm học bạ tổ hợp (thang 30) để tính ĐT3.');
+      missingRequirements.push({ kind: 'profile-input', code: 'ussh-dt3-transcript', label: 'Điểm học bạ tổ hợp (thang 30).' });
+    }
   }
 
   missingRequirements.push(

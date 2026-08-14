@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, CheckCircle2, ShieldCheck, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Layers, ShieldCheck, XCircle } from 'lucide-react';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { MethodCapabilitySummary } from '../../components/MethodCapabilitySummary';
@@ -13,6 +13,11 @@ import { hcmusSources } from './sources';
 import { checkHcmusNuclearEngineeringCondition, checkHcmusThptThreshold } from './eligibility';
 import { hcmusKnowledgeGaps } from './knowledgeGaps';
 import { hcmusAdmissionMethods } from './methods';
+import { calculateHcmusAcademicScore } from './academicScore';
+
+const TRANSCRIPT_GRADES = ['grade10', 'grade11', 'grade12'] as const;
+type TranscriptGrade = (typeof TRANSCRIPT_GRADES)[number];
+const TRANSCRIPT_GRADE_LABELS: Record<TranscriptGrade, string> = { grade10: 'Lớp 10', grade11: 'Lớp 11', grade12: 'Lớp 12' };
 
 interface HcmusPageProps {
   onChangeSchool: () => void;
@@ -27,9 +32,12 @@ const YEAR = 2026;
  * checker riêng. KHÔNG có exact calculator — trường chưa công bố trọng số/công thức kết hợp.
  */
 export function HcmusPage({ onChangeSchool }: HcmusPageProps) {
-  const { profile, updateProfile } = useApplicantProfile();
+  const { profile, updateProfile, updateVactTotal } = useApplicantProfile();
   const [selectedCombinationId, setSelectedCombinationId] = useState('');
   const [thptSubjectDrafts, setThptSubjectDrafts] = useState<Partial<Record<SubjectId, string>>>({});
+  const [transcriptDrafts, setTranscriptDrafts] = useState<Partial<Record<`${TranscriptGrade}-${SubjectId}`, string>>>({});
+  const [dgnlManualOverride, setDgnlManualOverride] = useState(false);
+  const [dgnlInput, setDgnlInput] = useState('');
   const selectedCombination = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === selectedCombinationId);
 
   function handleThptSubjectChange(subjectId: SubjectId, value: string) {
@@ -80,6 +88,75 @@ export function HcmusPage({ onChangeSchool }: HcmusPageProps) {
   const [checkNuclear, setCheckNuclear] = useState(false);
   const nuclearResult = mathScore !== undefined && physicsScore !== undefined ? checkHcmusNuclearEngineeringCondition(mathScore, physicsScore) : null;
 
+  function transcriptDraftKey(grade: TranscriptGrade, subjectId: SubjectId): `${TranscriptGrade}-${SubjectId}` {
+    return `${grade}-${subjectId}`;
+  }
+
+  function handleTranscriptChange(grade: TranscriptGrade, subjectId: SubjectId, value: string) {
+    const key = transcriptDraftKey(grade, subjectId);
+    setTranscriptDrafts((prev) => ({ ...prev, [key]: value }));
+    if (value.trim() === '') {
+      updateProfile((current) => {
+        const nextGrade = { ...current.transcript?.[grade] };
+        delete nextGrade[subjectId];
+        return { ...current, transcript: { ...current.transcript, [grade]: nextGrade } };
+      });
+      return;
+    }
+    const parsed = Number(value);
+    if (Number.isNaN(parsed) || !isValidThptScore(parsed)) return;
+    updateProfile((current) => ({
+      ...current,
+      transcript: { ...current.transcript, [grade]: { ...current.transcript?.[grade], [subjectId]: parsed } },
+    }));
+  }
+
+  function getEffectiveTranscriptScore(grade: TranscriptGrade, subjectId: SubjectId): number | undefined {
+    const key = transcriptDraftKey(grade, subjectId);
+    if (Object.prototype.hasOwnProperty.call(transcriptDrafts, key)) {
+      const draft = transcriptDrafts[key];
+      if (draft === undefined || draft.trim() === '') return undefined;
+      const parsed = Number(draft);
+      return !Number.isNaN(parsed) && isValidThptScore(parsed) ? parsed : undefined;
+    }
+    return profile.transcript?.[grade]?.[subjectId];
+  }
+
+  function getEffectiveTranscriptInput(grade: TranscriptGrade, subjectId: SubjectId): string {
+    const key = transcriptDraftKey(grade, subjectId);
+    if (Object.prototype.hasOwnProperty.call(transcriptDrafts, key)) return transcriptDrafts[key] ?? '';
+    const score = profile.transcript?.[grade]?.[subjectId];
+    return score !== undefined ? String(score) : '';
+  }
+
+  const transcriptTotal30 = selectedCombination
+    ? selectedCombination.subjects.reduce<number | undefined>((total, subjectId) => {
+        if (total === undefined) return undefined;
+        const g10 = getEffectiveTranscriptScore('grade10', subjectId);
+        const g11 = getEffectiveTranscriptScore('grade11', subjectId);
+        const g12 = getEffectiveTranscriptScore('grade12', subjectId);
+        if (g10 === undefined || g11 === undefined || g12 === undefined) return undefined;
+        return round2(total + (g10 + g11 + g12) / 3);
+      }, 0)
+    : undefined;
+
+  const profileDgnl = profile.exams?.vact?.total;
+  const usingProfileDgnl = !dgnlManualOverride && profileDgnl !== undefined;
+  const effectiveDgnlRaw = usingProfileDgnl ? String(profileDgnl) : dgnlInput;
+  const dgnlValue = effectiveDgnlRaw.trim() !== '' ? Number(effectiveDgnlRaw) : undefined;
+
+  function handleDgnlChange(value: string) {
+    setDgnlInput(value);
+    const parsed = value.trim() !== '' ? Number(value) : NaN;
+    if (!Number.isNaN(parsed)) updateVactTotal(parsed, 'user-total-input');
+  }
+
+  const academicScoreResult = calculateHcmusAcademicScore({
+    thptTotal30: thptRawTotal,
+    vactRaw1200: dgnlValue,
+    transcriptTotal30,
+  });
+
   return (
     <div className="min-h-svh bg-bg">
       <div className="mx-auto max-w-4xl px-4 pb-16">
@@ -93,25 +170,138 @@ export function HcmusPage({ onChangeSchool }: HcmusPageProps) {
           <h2 className="text-lg font-semibold text-ink">Phương thức đang hỗ trợ: {hcmusAdmissionMethods[0].name}</h2>
           <MethodCapabilitySummary method={hcmusAdmissionMethods[0]} />
           <p className="mt-4 text-sm text-muted">
-            Phương thức 2 xét kết hợp điểm thi tốt nghiệp THPT 2026 (hoặc ĐGNL ĐHQG-HCM) với điểm học bạ 3 năm. Trường
-            chưa công bố công thức/trọng số kết hợp dạng text — UniscoreVN chỉ kiểm tra được ngưỡng đầu vào THPT.
+            Phương thức 2 xét kết hợp điểm thi tốt nghiệp THPT 2026 (hoặc ĐGNL ĐHQG-HCM) với điểm học bạ 3 năm. UniscoreVN
+            đã tính được <strong>Điểm học lực</strong> (thành phần lớn nhất của Điểm xét tuyển) — Điểm cộng và Điểm ưu
+            tiên trường chưa công bố nên chưa ra được điểm xét tuyển cuối cùng.
           </p>
         </section>
 
         <section className="mt-5 flex items-start gap-3 rounded-card border border-warning/30 bg-warning/10 p-6 text-sm text-warning sm:p-8">
           <AlertTriangle size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
           <div>
-            <p className="font-semibold">UniscoreVN chưa tính được điểm xét tuyển cho HCMUS</p>
+            <p className="font-semibold">UniscoreVN chưa tính được điểm xét tuyển CUỐI CÙNG cho HCMUS</p>
             <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
               {hcmusKnowledgeGaps.map((gap) => (
                 <li key={gap.id}>{gap.label}</li>
               ))}
             </ul>
             <p className="mt-2 leading-relaxed">
-              Trong lúc chờ, bạn có thể kiểm tra ngưỡng đầu vào THPT (đọc được dạng text) và điều kiện riêng ngành Kỹ
-              thuật hạt nhân bên dưới.
+              Trong lúc chờ, bạn có thể tính <strong>Điểm học lực</strong> (MAX giữa route THPT và route ĐGNL, xem mục
+              bên dưới), kiểm tra ngưỡng đầu vào THPT, và điều kiện riêng ngành Kỹ thuật hạt nhân.
             </p>
           </div>
+        </section>
+
+        <section id="academic-score" className="mt-5 scroll-mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
+          <div className="flex items-center gap-2">
+            <Layers size={20} className="text-accent" aria-hidden="true" />
+            <h2 className="text-lg font-semibold text-ink">Tính Điểm học lực</h2>
+          </div>
+          <p className="mt-1 text-sm text-muted">
+            Điểm học lực = MAX(0.8×THPT + 0.2×Học bạ, 0.8×ĐGNL quy đổi thang 30 + 0.2×Học bạ). ĐGNL quy đổi theo bảng
+            phân vị chính thức 2026 (không phải quy đổi tuyến tính).
+          </p>
+
+          <div className="mt-4 max-w-xs">
+            <label htmlFor="hcmus-dgnl-input" className="text-xs font-medium text-ink">
+              Điểm ĐGNL ĐHQG-HCM (thang 1200, không bắt buộc)
+            </label>
+            <input
+              id="hcmus-dgnl-input"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              max={1200}
+              value={effectiveDgnlRaw}
+              onChange={(event) => {
+                handleDgnlChange(event.target.value);
+                setDgnlManualOverride(true);
+              }}
+              placeholder="0 - 1200"
+              className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+            />
+            <SharedProfileNotice className="mt-1.5" />
+            {academicScoreResult.route2Vact.convertedVact !== undefined && (
+              <p className="mt-2 text-xs text-ink">
+                Đã quy đổi thang 30: <strong>{academicScoreResult.route2Vact.convertedVact.toFixed(2)}</strong>/30
+              </p>
+            )}
+            {academicScoreResult.route2Vact.vactOutOfSupportedRange && (
+              <p className="mt-2 text-xs text-warning">Điểm ĐGNL ngoài phạm vi bảng quy đổi chính thức (370–1139) — chưa quy đổi được.</p>
+            )}
+          </div>
+
+          {selectedCombination ? (
+            <div className="mt-5">
+              <p className="text-xs font-medium text-ink">Điểm học bạ theo tổ hợp {selectedCombination.id} (thang 10 mỗi năm)</p>
+              <div className="mt-2 overflow-x-auto">
+                <table className="w-full min-w-[420px] border-separate border-spacing-1 text-xs">
+                  <thead>
+                    <tr>
+                      <th className="text-left text-muted">Môn</th>
+                      {TRANSCRIPT_GRADES.map((grade) => (
+                        <th key={grade} className="text-left text-muted">
+                          {TRANSCRIPT_GRADE_LABELS[grade]}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedCombination.subjects.map((subjectId) => (
+                      <tr key={subjectId}>
+                        <td className="py-1 font-medium text-ink">{SUBJECT_LABELS[subjectId]}</td>
+                        {TRANSCRIPT_GRADES.map((grade) => (
+                          <td key={grade}>
+                            <input
+                              type="number"
+                              inputMode="decimal"
+                              min={0}
+                              max={10}
+                              value={getEffectiveTranscriptInput(grade, subjectId)}
+                              onChange={(event) => handleTranscriptChange(grade, subjectId, event.target.value)}
+                              placeholder="0-10"
+                              aria-label={`Học bạ ${TRANSCRIPT_GRADE_LABELS[grade]} môn ${SUBJECT_LABELS[subjectId]}`}
+                              className="w-full rounded-md border border-ink/10 bg-surface px-2 py-1.5 text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {transcriptTotal30 !== undefined && (
+                <p className="mt-2 text-xs text-ink">
+                  Tổng học bạ (trung bình 3 năm mỗi môn): <strong>{transcriptTotal30.toFixed(2)}</strong>/30
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="mt-4 text-xs text-muted">Chọn tổ hợp ở mục "Kiểm tra ngưỡng đầu vào THPT" bên dưới để nhập điểm học bạ.</p>
+          )}
+
+          {academicScoreResult.academicScore !== undefined ? (
+            <div className="mt-5 rounded-md border border-accent/30 bg-accent/10 p-4">
+              <p className="text-sm text-ink">
+                Điểm học lực (route {academicScoreResult.usedRoute === 'thpt' ? 'THPT' : 'ĐGNL'} thắng):{' '}
+                <strong className="text-primary">{academicScoreResult.academicScore.toFixed(2)}</strong>
+                <span className="text-muted"> / 30</span>
+              </p>
+              <p className="mt-1 text-xs text-muted">
+                Đây CHƯA phải điểm xét tuyển cuối cùng — còn thiếu Điểm cộng và Điểm ưu tiên (trường chưa công bố).
+              </p>
+              {academicScoreResult.route1Thpt.available && (
+                <p className="mt-1 text-xs text-muted">Route THPT: {academicScoreResult.route1Thpt.value?.toFixed(2)}/30</p>
+              )}
+              {academicScoreResult.route2Vact.available && (
+                <p className="mt-0.5 text-xs text-muted">Route ĐGNL: {academicScoreResult.route2Vact.value?.toFixed(2)}/30</p>
+              )}
+            </div>
+          ) : (
+            <p className="mt-5 text-xs text-muted">
+              Cần điểm học bạ (theo tổ hợp) + (điểm THPT hoặc điểm ĐGNL) để tính Điểm học lực.
+            </p>
+          )}
         </section>
 
         <section id="threshold" className="mt-5 scroll-mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">

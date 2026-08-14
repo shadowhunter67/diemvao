@@ -28,8 +28,26 @@ describe('evaluateHcmusAdmission', () => {
     expect(evaluation.eligibility?.status).toBe('ineligible');
   });
 
-  it('missingRules liệt kê 3 gap chính thức đã biết', () => {
+  it('missingRules liệt kê 4 gap chính thức đã biết (re-audit 2026-08-13: tách bonus/priority/threshold-table)', () => {
     const evaluation = evaluateHcmusAdmission({});
-    expect(evaluation.missingRules).toHaveLength(3);
+    expect(evaluation.missingRules).toHaveLength(4);
+  });
+
+  it('academicScore tính được thật khi đủ THPT + học bạ, xuất hiện trong explanation, KHÔNG set evaluation.score', () => {
+    const profile: ApplicantProfile = {
+      thpt: { scores: { math: 8, physics: 7, chemistry: 8 } },
+      transcript: {
+        grade10: { math: 8, physics: 7, chemistry: 8 },
+        grade11: { math: 8, physics: 7, chemistry: 8 },
+        grade12: { math: 8, physics: 7, chemistry: 8 },
+      },
+    };
+    const evaluation = evaluateHcmusAdmission(profile, { subjectContext: { combinationId: 'A00', subjects: ['math', 'physics', 'chemistry'] } });
+    const step = evaluation.explanation.find((s) => s.id === 'hcmus-academic-score');
+    expect(step).toBeDefined();
+    expect(step?.output).toBeCloseTo(23, 5);
+    expect(step?.scale).toBe(30);
+    expect(evaluation.score).toBeUndefined();
+    expect(evaluation.confidence).toBe('partial');
   });
 });
