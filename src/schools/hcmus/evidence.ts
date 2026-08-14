@@ -14,6 +14,20 @@ export const hcmusThresholdEvidence = {
   ],
 } satisfies SourcedRule<{ thptThreshold30: number; nuclearMinSubject: number }>;
 
+export const hcmusProgramThresholdEvidence = {
+  value: { programCount: 39 },
+  evidence: [
+    {
+      sourceId: 'hcmus-threshold-method2-2026',
+      location:
+        'Mục 3 - infographic "NGƯỠNG ĐẢM BẢO CHẤT LƯỢNG PHƯƠNG THỨC XÉT TUYỂN TỔNG HỢP NĂM 2026 (PHƯƠNG THỨC 2)", 39 dòng ngành/nhóm ngành.',
+      verification: 'verified' as const,
+      effectiveYear: 2026,
+      verifiedAt: '2026-08-14',
+    },
+  ],
+} satisfies SourcedRule<{ programCount: number }>;
+
 /**
  * Evidence cho Điểm học lực (route1 THPT / route2 ĐGNL, MAX) + bảng quy đổi phân vị ĐGNL↔THPT —
  * nguồn ảnh infographic official user cung cấp 2026-08-13 (xem `sources.ts`

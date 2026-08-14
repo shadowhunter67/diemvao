@@ -11,9 +11,9 @@ import { convertHcmusVactToThpt } from './dgnlConversion';
  *
  * Module này CHỈ tính ĐIỂM HỌC LỰC (route1/route2/max) — KHÔNG cộng thêm Điểm cộng/Điểm ưu tiên
  * vì bảng điểm cộng và công thức ưu tiên đầy đủ CHƯA có evidence đủ (xem `knowledgeGaps.ts`).
- * Kết quả trả về ở đây là "Điểm học lực hiện tính được" — KHÔNG phải điểm xét tuyển cuối cùng,
- * không được so trực tiếp với ngưỡng "Mức điểm tổng hợp tối thiểu" của bảng ngưỡng chương trình
- * (bảng đó chưa có evidence trong lượt này — xem knowledgeGaps `hcmus-program-threshold-table`).
+ * Kết quả trả về ở đây là "Điểm học lực hiện tính được" — KHÔNG phải điểm xét tuyển cuối cùng. Có thể
+ * hiển thị cạnh ngưỡng điểm tổng hợp tối thiểu của chương trình, nhưng không dùng riêng nó để kết luận đạt/rớt
+ * vì điểm cuối còn phụ thuộc Điểm cộng và Điểm ưu tiên.
  */
 export interface HcmusAcademicScoreInput {
   /** Tổng điểm 3 môn tổ hợp thi tốt nghiệp THPT 2026 (thang 30). */

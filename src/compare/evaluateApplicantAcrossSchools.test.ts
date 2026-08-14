@@ -167,12 +167,18 @@ describe('evaluateApplicantAcrossSchools', () => {
       ueh: { selectedProgramId: 'kinh-te' },
       uel: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'kinh-te' },
       uit: { selectedProgramId: 'khoa-hoc-may-tinh', programId: 'khoa-hoc-may-tinh' },
+      hcmus: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'hcmus-75202a1' },
     });
     const bySchool = Object.fromEntries(summaries.map((summary) => [summary.schoolId, summary]));
     expect(bySchool.hcmut.cutoffComparison?.difference).toBeDefined();
     expect(bySchool.ueh.cutoffComparison).toBeUndefined();
     expect(bySchool.uel.cutoffComparison).toBeUndefined();
     expect(bySchool.uit.cutoffComparison).toBeUndefined();
+    expect(bySchool.hcmus.cutoffComparison).toBeUndefined();
+    expect(bySchool.hcmus.evaluation.score).toBeUndefined();
+    expect(bySchool.hcmus.evaluation.explanation).toContainEqual(
+      expect.objectContaining({ id: 'hcmus-program-threshold', output: 24 })
+    );
   });
 
   it('stale HCMUT context with incomplete profile cannot create fake exact score', () => {

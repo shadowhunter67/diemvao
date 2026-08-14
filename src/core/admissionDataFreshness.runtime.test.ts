@@ -8,6 +8,10 @@ import { uelCutoffs } from '../schools/uel/data/cutoffs';
 import { uelAdmissionMethods } from '../schools/uel/methods';
 import { uitCutoffs } from '../schools/uit/data/cutoffs';
 import { uitAdmissionMethods } from '../schools/uit/methods';
+import { hcmusAdmissionMethods } from '../schools/hcmus/methods';
+import { usshAdmissionMethods } from '../schools/ussh/methods';
+import { uhsAdmissionMethods } from '../schools/uhs/methods';
+import { iuAdmissionMethods } from '../schools/iu/methods';
 import { allAdmissionSources } from '../schools/sourceRegistry';
 import { CURRENT_ADMISSION_YEAR } from './admissionYear';
 import { auditAdmissionDataFreshness, type AuditableCutoffRecord } from './dataFreshnessAudit';
@@ -23,7 +27,16 @@ function hcmutEvidence(): RuleEvidence[] {
 
 describe('runtime admission data freshness audit', () => {
   it('runtime method descriptors match the configured current admission year', () => {
-    const methods = [...hcmutAdmissionMethods, ...uehAdmissionMethods, ...uelAdmissionMethods, ...uitAdmissionMethods];
+    const methods = [
+      ...hcmutAdmissionMethods,
+      ...uehAdmissionMethods,
+      ...uelAdmissionMethods,
+      ...uitAdmissionMethods,
+      ...hcmusAdmissionMethods,
+      ...usshAdmissionMethods,
+      ...uhsAdmissionMethods,
+      ...iuAdmissionMethods,
+    ];
     expect(methods.map((method) => method.year)).toEqual(methods.map(() => CURRENT_ADMISSION_YEAR));
   });
 

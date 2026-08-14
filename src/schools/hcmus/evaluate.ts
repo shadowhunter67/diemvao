@@ -7,12 +7,14 @@ import { buildHcmusEvaluationInput } from './applicantProfileAdapter';
 import { checkHcmusNuclearEngineeringCondition, checkHcmusThptThreshold } from './eligibility';
 import { hcmusAdmissionMethods } from './methods';
 import { hcmusKnowledgeGaps } from './knowledgeGaps';
-import { hcmusThresholdEvidence, hcmusAcademicScoreEvidence } from './evidence';
+import { hcmusThresholdEvidence, hcmusAcademicScoreEvidence, hcmusProgramThresholdEvidence } from './evidence';
 import { calculateHcmusAcademicScore } from './academicScore';
+import { findHcmusProgramThreshold } from './data/programThresholds';
 
 export interface HcmusEvaluationContext {
   subjectContext?: HcmusSubjectContext;
   checkNuclearEngineering?: boolean;
+  selectedProgramId?: string;
 }
 
 export function evaluateHcmusAdmission(profile: ApplicantProfile, context: HcmusEvaluationContext = {}): AdmissionEvaluation {
@@ -100,6 +102,32 @@ export function evaluateHcmusAdmission(profile: ApplicantProfile, context: Hcmus
         label: 'Điểm ĐGNL ngoài phạm vi bảng quy đổi chính thức (370–1139).',
       });
     }
+  }
+
+  const selectedProgram = findHcmusProgramThreshold(context.selectedProgramId);
+  if (selectedProgram) {
+    explanation.push({
+      id: 'hcmus-program-threshold',
+      label: `Ngưỡng đăng ký xét tuyển 2026 - ${selectedProgram.name}`,
+      inputs: {
+        quota2026: selectedProgram.quota2026,
+        ...(academic.academicScore !== undefined ? { academicScore30: academic.academicScore } : {}),
+      },
+      output: selectedProgram.minimumCompositeScore.scale30,
+      scale: 30,
+      formula: `Ngưỡng điểm tổng hợp tối thiểu: ${selectedProgram.minimumCompositeScore.scale30}/30 (${selectedProgram.minimumCompositeScore.scale100}/100)`,
+      description:
+        academic.academicScore !== undefined
+          ? `Điểm học lực hiện tính được: ${academic.academicScore.toFixed(2)}/30. Kết quả cuối còn phụ thuộc Điểm cộng và Điểm ưu tiên.`
+          : 'Ngưỡng này áp dụng cho điểm tổng hợp tối thiểu; cần thêm input để tính Điểm học lực hiện tại.',
+      evidence: hcmusProgramThresholdEvidence.evidence,
+    });
+  } else {
+    missingRequirements.push({
+      kind: 'school-context',
+      code: 'program',
+      label: 'Chọn ngành HCMUS để đối chiếu ngưỡng đăng ký xét tuyển 2026.',
+    });
   }
 
   missingRequirements.push(

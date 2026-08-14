@@ -12,6 +12,7 @@ import { loadStoredUelCombinationId, saveStoredUelCombinationId } from '../schoo
 import { uehPrograms } from '../schools/ueh/data/programs';
 import { uitPrograms } from '../schools/uit/data/programs';
 import { usshPrograms } from '../schools/ussh/data/programs';
+import { hcmusProgramThresholds } from '../schools/hcmus/data/programThresholds';
 import { ComparisonOverview } from './compare/ComparisonOverview';
 import { SchoolComparisonCard } from './compare/SchoolComparisonCard';
 import type { ProgramOption } from './compare/types';
@@ -25,6 +26,11 @@ interface MultiSchoolComparisonPageProps {
 // ProgramOption. Chọn ngành ở đây CHỈ để hiển thị ngữ cảnh + (tương lai) cutoff — evaluation vẫn
 // confidence='partial' nên card không tự tính "gap" (đúng Phần R: partial thì không so cutoff).
 const usshProgramOptions: ProgramOption[] = usshPrograms.map((p) => ({ id: p.id, code: p.code, name: p.name }));
+const hcmusProgramOptions: ProgramOption[] = hcmusProgramThresholds.map((program) => ({
+  id: program.id,
+  code: program.code,
+  name: program.name,
+}));
 
 const programOptions: Record<string, readonly ProgramOption[]> = {
   hcmut: hcmutPrograms,
@@ -32,10 +38,7 @@ const programOptions: Record<string, readonly ProgramOption[]> = {
   uel: uelPrograms,
   uit: uitPrograms,
   ussh: usshProgramOptions,
-  // HCMUS/IU chưa có program registry dạng ProgramOption (chỉ eligibility/checker theo tổ hợp,
-  // không phải theo ngành cụ thể — bảng 39 ngành HCMUS chưa có evidence trong lượt này) — UHS có
-  // UHS_PROGRAMS nhưng shape khác ProgramOption.
-  hcmus: [],
+  hcmus: hcmusProgramOptions,
   uhs: [],
   iu: [],
 };
@@ -90,7 +93,10 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
       },
       ueh: { selectedProgramId: selectedPrograms.ueh },
       uit: { selectedProgramId: selectedPrograms.uit, programId: selectedPrograms.uit },
-      hcmus: { subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined },
+      hcmus: {
+        subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined,
+        selectedProgramId: selectedPrograms.hcmus,
+      },
       ussh: { subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined },
       uhs: { subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined },
       iu: { subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined },
@@ -226,7 +232,15 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
             summary={summary}
             selectedProgramId={selectedPrograms[summary.schoolId]}
             options={programOptions[summary.schoolId]}
-            combinationId={summary.schoolId === 'hcmut' ? hcmutCombinationId || undefined : summary.schoolId === 'uel' ? uelCombinationId || undefined : undefined}
+            combinationId={
+              summary.schoolId === 'hcmut'
+                ? hcmutCombinationId || undefined
+                : summary.schoolId === 'uel'
+                  ? uelCombinationId || undefined
+                  : ['hcmus', 'ussh', 'uhs', 'iu'].includes(summary.schoolId)
+                    ? sharedCombinationId || undefined
+                    : undefined
+            }
             onSelectProgram={setSelectedProgram}
             onOpenSchool={onOpenSchool}
           />

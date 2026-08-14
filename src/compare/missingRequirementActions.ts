@@ -15,6 +15,10 @@ const SCHOOL_CONTEXT_ACTIONS: Record<string, Record<string, MissingRequirementAc
   uit: {
     program: { href: '/uit#programs', label: 'Chọn ngành để so điểm chuẩn' },
   },
+  hcmus: {
+    'hcmus-subject-combination': { href: '/hcmus#threshold', label: 'Chọn tổ hợp HCMUS' },
+    program: { href: '/hcmus#programs', label: 'Chọn ngành HCMUS' },
+  },
 };
 
 const PROFILE_INPUT_ACTIONS: Record<string, Record<string, MissingRequirementAction>> = {
@@ -33,6 +37,11 @@ const PROFILE_INPUT_ACTIONS: Record<string, Record<string, MissingRequirementAct
   uit: {
     'uit-dgnl': { href: '/uit#dgnl', label: 'Nhập ĐGNL UIT' },
   },
+  hcmus: {
+    'hcmus-transcript': { href: '/hcmus#academic-score', label: 'Nhập học bạ HCMUS' },
+    'hcmus-thpt-or-vact': { href: '/hcmus#academic-score', label: 'Nhập THPT hoặc ĐGNL HCMUS' },
+    'hcmus-nuclear-math-physics': { href: '/hcmus#threshold', label: 'Nhập Toán/Lý HCMUS' },
+  },
 };
 
 export function getMissingRequirementAction(schoolId: string, requirement: MissingRequirement): MissingRequirementAction | undefined {
@@ -41,6 +50,9 @@ export function getMissingRequirementAction(schoolId: string, requirement: Missi
   if (requirement.kind === 'profile-input') {
     if (schoolId === 'uel' && requirement.code.startsWith('uel-thpt-')) {
       return { href: '/uel#thpt', label: 'Nhập điểm THPT UEL' };
+    }
+    if (schoolId === 'hcmus' && requirement.code.startsWith('hcmus-thpt-')) {
+      return { href: '/hcmus#threshold', label: 'Nhập điểm THPT HCMUS' };
     }
     return PROFILE_INPUT_ACTIONS[schoolId]?.[requirement.code];
   }

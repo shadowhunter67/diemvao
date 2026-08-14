@@ -14,6 +14,8 @@ import { checkHcmusNuclearEngineeringCondition, checkHcmusThptThreshold } from '
 import { hcmusKnowledgeGaps } from './knowledgeGaps';
 import { hcmusAdmissionMethods } from './methods';
 import { calculateHcmusAcademicScore } from './academicScore';
+import { findHcmusProgramThreshold, hcmusProgramThresholds } from './data/programThresholds';
+import { loadStoredProgramId, saveStoredProgramId } from '../../compare/programSelectionStorage';
 
 const TRANSCRIPT_GRADES = ['grade10', 'grade11', 'grade12'] as const;
 type TranscriptGrade = (typeof TRANSCRIPT_GRADES)[number];
@@ -26,10 +28,9 @@ interface HcmusPageProps {
 const YEAR = 2026;
 
 /**
- * HCMUS Admission Checker — nguồn 2026-08-13 (docs/CHANGELOG.md). Ngưỡng THPT tổ hợp (≥15/30) đọc
- * được dạng text nên implement thật; ngưỡng ĐGNL nằm trong ảnh (unparsed) nên KHÔNG hiện số —
- * chỉ nói rõ chưa đọc được. Điều kiện ngành Kỹ thuật hạt nhân (Toán, Lý ≥7.5) đọc được nên có
- * checker riêng. KHÔNG có exact calculator — trường chưa công bố trọng số/công thức kết hợp.
+ * HCMUS Admission Checker - calculates academic score and displays the official
+ * 39-program registration threshold table. It still avoids final admission-score
+ * claims because bonus and priority rules remain incomplete.
  */
 export function HcmusPage({ onChangeSchool }: HcmusPageProps) {
   const { profile, updateProfile, updateVactTotal } = useApplicantProfile();
@@ -38,6 +39,7 @@ export function HcmusPage({ onChangeSchool }: HcmusPageProps) {
   const [transcriptDrafts, setTranscriptDrafts] = useState<Partial<Record<`${TranscriptGrade}-${SubjectId}`, string>>>({});
   const [dgnlManualOverride, setDgnlManualOverride] = useState(false);
   const [dgnlInput, setDgnlInput] = useState('');
+  const [selectedProgramId, setSelectedProgramId] = useState(() => loadStoredProgramId('hcmus') ?? '');
   const selectedCombination = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === selectedCombinationId);
 
   function handleThptSubjectChange(subjectId: SubjectId, value: string) {
@@ -156,6 +158,7 @@ export function HcmusPage({ onChangeSchool }: HcmusPageProps) {
     vactRaw1200: dgnlValue,
     transcriptTotal30,
   });
+  const selectedProgram = findHcmusProgramThreshold(selectedProgramId);
 
   return (
     <div className="min-h-svh bg-bg">
@@ -302,6 +305,93 @@ export function HcmusPage({ onChangeSchool }: HcmusPageProps) {
               Cần điểm học bạ (theo tổ hợp) + (điểm THPT hoặc điểm ĐGNL) để tính Điểm học lực.
             </p>
           )}
+        </section>
+
+        <section id="programs" className="mt-5 scroll-mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
+          <div className="flex items-center gap-2">
+            <ShieldCheck size={20} className="text-accent" aria-hidden="true" />
+            <h2 className="text-lg font-semibold text-ink">Ngưỡng đăng ký xét tuyển 2026</h2>
+          </div>
+          <p className="mt-1 text-sm text-muted">
+            Bảng dưới đây là mức điểm tổng hợp tối thiểu đủ điều kiện đăng ký xét tuyển theo Phương thức 2, không phải điểm chuẩn trúng tuyển.
+          </p>
+
+          <div className="mt-4 max-w-xl">
+            <label htmlFor="hcmus-program-select" className="text-xs font-medium text-ink">
+              Ngành/nhóm ngành HCMUS
+            </label>
+            <select
+              id="hcmus-program-select"
+              value={selectedProgramId}
+              onChange={(event) => {
+                setSelectedProgramId(event.target.value);
+                saveStoredProgramId('hcmus', event.target.value);
+              }}
+              className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+            >
+              <option value="">Chưa chọn ngành</option>
+              {hcmusProgramThresholds.map((program) => (
+                <option key={program.id} value={program.id}>
+                  {program.code} - {program.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {selectedProgram && (
+            <div className="mt-4 rounded-md border border-accent/30 bg-accent/10 p-4 text-sm">
+              <p className="font-semibold text-ink">{selectedProgram.name}</p>
+              <p className="mt-1 text-muted">Mã ngành: {selectedProgram.code} · Chỉ tiêu 2026: {selectedProgram.quota2026}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                <p className="rounded-md bg-surface px-3 py-2 text-muted">
+                  Thang 30: <strong className="text-primary">{selectedProgram.minimumCompositeScore.scale30}</strong>
+                </p>
+                <p className="rounded-md bg-surface px-3 py-2 text-muted">
+                  Thang 100: <strong className="text-primary">{selectedProgram.minimumCompositeScore.scale100}</strong>
+                </p>
+                <p className="rounded-md bg-surface px-3 py-2 text-muted">
+                  Điểm học lực hiện tính được:{' '}
+                  <strong className="text-primary">
+                    {academicScoreResult.academicScore !== undefined ? academicScoreResult.academicScore.toFixed(2) : 'chưa đủ dữ liệu'}
+                  </strong>
+                  {academicScoreResult.academicScore !== undefined && ' / 30'}
+                </p>
+              </div>
+              {academicScoreResult.academicScore !== undefined && (
+                <p className="mt-3 text-xs text-muted">
+                  Điểm học lực hiện tại {academicScoreResult.academicScore >= selectedProgram.minimumCompositeScore.scale30 ? 'đã lớn hơn hoặc bằng' : 'đang thấp hơn'} ngưỡng điểm tổng hợp tối thiểu của ngành. Kết quả cuối còn phụ thuộc Điểm cộng và Điểm ưu tiên.
+                </p>
+              )}
+              {academicScoreResult.academicScore === undefined && (
+                <p className="mt-3 text-xs text-muted">Nhập điểm ở mục Điểm học lực để đối chiếu với ngưỡng này. Kết quả cuối còn phụ thuộc Điểm cộng và Điểm ưu tiên.</p>
+              )}
+            </div>
+          )}
+
+          <div className="mt-5 overflow-x-auto">
+            <table className="w-full min-w-[720px] border-separate border-spacing-0 text-xs">
+              <thead>
+                <tr className="text-left text-muted">
+                  <th className="border-b border-ink/10 py-2 pr-3">Mã</th>
+                  <th className="border-b border-ink/10 py-2 pr-3">Ngành/nhóm ngành</th>
+                  <th className="border-b border-ink/10 py-2 pr-3 text-right">Chỉ tiêu</th>
+                  <th className="border-b border-ink/10 py-2 pr-3 text-right">Thang 30</th>
+                  <th className="border-b border-ink/10 py-2 text-right">Thang 100</th>
+                </tr>
+              </thead>
+              <tbody>
+                {hcmusProgramThresholds.map((program) => (
+                  <tr key={program.id}>
+                    <td className="border-b border-ink/5 py-2 pr-3 font-medium text-ink">{program.code}</td>
+                    <td className="border-b border-ink/5 py-2 pr-3 text-muted">{program.name}</td>
+                    <td className="border-b border-ink/5 py-2 pr-3 text-right text-muted">{program.quota2026}</td>
+                    <td className="border-b border-ink/5 py-2 pr-3 text-right text-ink">{program.minimumCompositeScore.scale30}</td>
+                    <td className="border-b border-ink/5 py-2 text-right text-ink">{program.minimumCompositeScore.scale100}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section id="threshold" className="mt-5 scroll-mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">

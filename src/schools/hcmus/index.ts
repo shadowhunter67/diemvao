@@ -4,22 +4,21 @@ import { HcmusPage } from './HcmusPage';
 import { hcmusAdmissionMethods } from './methods';
 
 /**
- * Module HCMUS — re-audit 2026-08-13 với evidence ảnh mới (xem docs/CHANGELOG.md batch mới nhất).
- * Đã tính được Điểm học lực THẬT (MAX route THPT/ĐGNL, quy đổi ĐGNL qua bảng phân vị 101 dòng) —
- * `partialCalculator: true`, cùng pattern UEL. Điểm cộng/Điểm ưu tiên và bảng ngưỡng 39 ngành vẫn
- * thiếu evidence nên chưa lên `exactCalculator`.
+ * HCMUS 2026: supports real partial academic-score calculation and the official
+ * 39-program registration threshold table. Final exact score remains blocked by
+ * unresolved bonus and priority rules.
  */
 export const hcmusModule: SchoolModule = {
   id: 'hcmus',
-  name: 'Trường Đại học Khoa học Tự nhiên – ĐHQG TP.HCM',
+  name: 'Trường Đại học Khoa học Tự nhiên - ĐHQG TP.HCM',
   shortName: 'HCMUS',
   year: 2026,
   status: 'researching',
   summary:
-    'Đã tính được Điểm học lực (MAX route THPT/ĐGNL, quy đổi ĐGNL qua bảng phân vị chính thức 2026) · Điểm cộng, Điểm ưu tiên và bảng ngưỡng 39 ngành chưa có evidence',
+    'Đã tính được Điểm học lực (MAX route THPT/ĐGNL, quy đổi ĐGNL qua bảng phân vị chính thức 2026) và đã có 39 ngưỡng đăng ký xét tuyển theo ngành · Điểm cộng và Điểm ưu tiên chưa đủ evidence để tính điểm cuối',
   capabilities: {
     admissionInfo: true,
-    programs: false,
+    programs: true,
     cutoffs: false,
     ...aggregateSchoolCapabilities(hcmusAdmissionMethods),
     partialCalculator: true,

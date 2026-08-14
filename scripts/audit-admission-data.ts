@@ -17,9 +17,17 @@ import { uelCutoffs } from '../src/schools/uel/data/cutoffs.ts';
 import { uelAdmissionMethods } from '../src/schools/uel/methods.ts';
 import { uitCutoffs } from '../src/schools/uit/data/cutoffs.ts';
 import { uitAdmissionMethods } from '../src/schools/uit/methods.ts';
+import { hcmusAdmissionMethods } from '../src/schools/hcmus/methods.ts';
+import { hcmusAcademicScoreEvidence, hcmusProgramThresholdEvidence, hcmusThresholdEvidence } from '../src/schools/hcmus/evidence.ts';
+import { usshAdmissionMethods } from '../src/schools/ussh/methods.ts';
+import { usshDt3FormulaEvidence, usshThresholdEvidence } from '../src/schools/ussh/evidence.ts';
+import { uhsAdmissionMethods } from '../src/schools/uhs/methods.ts';
+import { uhsThresholdEvidence } from '../src/schools/uhs/evidence.ts';
+import { iuAdmissionMethods } from '../src/schools/iu/methods.ts';
+import { iuAcademicWeightsEvidence } from '../src/schools/iu/evidence.ts';
 import { allAdmissionSources } from '../src/schools/sourceRegistry.ts';
 
-const SCHOOLS = ['hcmut', 'ueh', 'uel', 'uit'] as const;
+const SCHOOLS = ['hcmut', 'ueh', 'uel', 'uit', 'hcmus', 'ussh', 'uhs', 'iu'] as const;
 const args = process.argv.slice(2);
 const verbose = args.includes('--verbose');
 const schoolFilter = args.find((arg) => arg.startsWith('--school='))?.slice('--school='.length) ?? args.find((arg) => SCHOOLS.includes(arg as (typeof SCHOOLS)[number]));
@@ -35,6 +43,19 @@ function methodGaps(methods: AdmissionMethodDescriptor[]): Array<KnowledgeGap & 
 
 function hcmutEvidence(): RuleEvidence[] {
   return (Object.values(hcmutRuleEvidence) as Array<{ evidence: RuleEvidence[] }>).flatMap((rule) => rule.evidence);
+}
+
+function verifiedRuntimeEvidence(): RuleEvidence[] {
+  return [
+    ...hcmutEvidence(),
+    ...hcmusThresholdEvidence.evidence,
+    ...hcmusAcademicScoreEvidence.evidence,
+    ...hcmusProgramThresholdEvidence.evidence,
+    ...usshThresholdEvidence.evidence,
+    ...usshDt3FormulaEvidence.evidence,
+    ...uhsThresholdEvidence.evidence,
+    ...iuAcademicWeightsEvidence.evidence,
+  ];
 }
 
 function severityRank(severity: FreshnessAuditSeverity): number {
@@ -67,7 +88,16 @@ function printSchoolIssues(schoolId: string, issues: FreshnessAuditIssue[]): voi
   }
 }
 
-const methods = [...hcmutAdmissionMethods, ...uehAdmissionMethods, ...uelAdmissionMethods, ...uitAdmissionMethods];
+const methods = [
+  ...hcmutAdmissionMethods,
+  ...uehAdmissionMethods,
+  ...uelAdmissionMethods,
+  ...uitAdmissionMethods,
+  ...hcmusAdmissionMethods,
+  ...usshAdmissionMethods,
+  ...uhsAdmissionMethods,
+  ...iuAdmissionMethods,
+];
 const issues = auditAdmissionDataFreshness({
   currentAdmissionYear: CURRENT_ADMISSION_YEAR,
   methods,
@@ -77,9 +107,17 @@ const issues = auditAdmissionDataFreshness({
     ...withSchoolId('uel', uelCutoffs),
     ...withSchoolId('uit', uitCutoffs),
   ],
-  ruleEvidence: hcmutEvidence(),
+  ruleEvidence: verifiedRuntimeEvidence(),
   sourceRegistry: allAdmissionSources,
-  knowledgeGaps: [...methodGaps(uehAdmissionMethods), ...methodGaps(uelAdmissionMethods), ...methodGaps(uitAdmissionMethods)],
+  knowledgeGaps: [
+    ...methodGaps(uehAdmissionMethods),
+    ...methodGaps(uelAdmissionMethods),
+    ...methodGaps(uitAdmissionMethods),
+    ...methodGaps(hcmusAdmissionMethods),
+    ...methodGaps(usshAdmissionMethods),
+    ...methodGaps(uhsAdmissionMethods),
+    ...methodGaps(iuAdmissionMethods),
+  ],
 });
 
 const scopedIssues = schoolFilter ? issues.filter((issue) => issue.schoolId === schoolFilter || !issue.schoolId) : issues;
