@@ -22,7 +22,7 @@ import { hcmusAcademicScoreEvidence, hcmusProgramThresholdEvidence, hcmusThresho
 import { usshAdmissionMethods } from '../src/schools/ussh/methods.ts';
 import { usshDt3FormulaEvidence, usshThresholdEvidence } from '../src/schools/ussh/evidence.ts';
 import { uhsAdmissionMethods } from '../src/schools/uhs/methods.ts';
-import { uhsThresholdEvidence } from '../src/schools/uhs/evidence.ts';
+import { uhsBonusEvidence, uhsIntegratedFormulaEvidence, uhsThresholdEvidence } from '../src/schools/uhs/evidence.ts';
 import { iuAdmissionMethods } from '../src/schools/iu/methods.ts';
 import { iuAcademicWeightsEvidence } from '../src/schools/iu/evidence.ts';
 import { allAdmissionSources } from '../src/schools/sourceRegistry.ts';
@@ -54,6 +54,8 @@ function verifiedRuntimeEvidence(): RuleEvidence[] {
     ...usshThresholdEvidence.evidence,
     ...usshDt3FormulaEvidence.evidence,
     ...uhsThresholdEvidence.evidence,
+    ...uhsIntegratedFormulaEvidence.evidence,
+    ...uhsBonusEvidence.evidence,
     ...iuAcademicWeightsEvidence.evidence,
   ];
 }

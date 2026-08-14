@@ -13,6 +13,7 @@ import { uehPrograms } from '../schools/ueh/data/programs';
 import { uitPrograms } from '../schools/uit/data/programs';
 import { usshPrograms } from '../schools/ussh/data/programs';
 import { hcmusProgramThresholds } from '../schools/hcmus/data/programThresholds';
+import { UHS_PROGRAMS } from '../schools/uhs/programs';
 import { ComparisonOverview } from './compare/ComparisonOverview';
 import { SchoolComparisonCard } from './compare/SchoolComparisonCard';
 import type { ProgramOption } from './compare/types';
@@ -31,6 +32,11 @@ const hcmusProgramOptions: ProgramOption[] = hcmusProgramThresholds.map((program
   code: program.code,
   name: program.name,
 }));
+const uhsProgramOptions: ProgramOption[] = UHS_PROGRAMS.map((program) => ({
+  id: program.id,
+  code: program.code,
+  name: program.name,
+}));
 
 const programOptions: Record<string, readonly ProgramOption[]> = {
   hcmut: hcmutPrograms,
@@ -39,7 +45,7 @@ const programOptions: Record<string, readonly ProgramOption[]> = {
   uit: uitPrograms,
   ussh: usshProgramOptions,
   hcmus: hcmusProgramOptions,
-  uhs: [],
+  uhs: uhsProgramOptions,
   iu: [],
 };
 
@@ -69,6 +75,7 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
   const hcmutCombination = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === hcmutCombinationId);
   const uelCombination = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === uelCombinationId);
   const sharedCombination = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === sharedCombinationId);
+  const selectedUhsProgram = UHS_PROGRAMS.find((program) => program.id === selectedPrograms.uhs);
   const hcmutContext = useMemo(() => {
     const reward = parseNumber(hcmutReward);
     const considerationReward = parseNumber(hcmutConsiderationReward);
@@ -98,14 +105,20 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
         selectedProgramId: selectedPrograms.hcmus,
       },
       ussh: { subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined },
-      uhs: { subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined },
+      uhs: {
+        selectedProgramId: selectedPrograms.uhs,
+        subjectContext:
+          sharedCombination && (!selectedUhsProgram || selectedUhsProgram.combinations.includes(sharedCombination.id))
+            ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects }
+            : undefined,
+      },
       iu: { subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined },
     }).sort((a, b) => {
       const statusA = getEvaluationDisplayStatus(a.evaluation.confidence);
       const statusB = getEvaluationDisplayStatus(b.evaluation.confidence);
       return evaluationSortWeight(statusA) - evaluationSortWeight(statusB) || a.shortName.localeCompare(b.shortName, 'vi');
     });
-  }, [hcmutContext, profile, selectedPrograms, sharedCombination, uelCombination]);
+  }, [hcmutContext, profile, selectedPrograms, selectedUhsProgram, sharedCombination, uelCombination]);
 
   const statusCounts = useMemo(
     () =>

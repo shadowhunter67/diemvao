@@ -30,6 +30,7 @@ export interface SubjectCombination {
 export const COMMON_SUBJECT_COMBINATIONS: readonly SubjectCombination[] = [
   { id: 'A00', subjects: ['math', 'physics', 'chemistry'] },
   { id: 'A01', subjects: ['math', 'physics', 'english'] },
+  { id: 'A02', subjects: ['math', 'physics', 'biology'] },
   { id: 'B00', subjects: ['math', 'chemistry', 'biology'] },
   { id: 'D01', subjects: ['math', 'literature', 'english'] },
 ];

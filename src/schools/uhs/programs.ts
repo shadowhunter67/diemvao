@@ -1,16 +1,23 @@
+export type UhsProgramGroup = 'medicine-like' | 'nursing';
+
 export interface UhsProgram {
   id: string;
+  code: string;
   name: string;
+  quota2026: number;
   combinations: readonly string[];
-  hasSpecificThreshold: boolean;
+  group: UhsProgramGroup;
 }
 
-/** Nguồn `uhs-info-2026`. Ngưỡng ≥20/30 hoặc từng môn ≥8.5/10 CHỈ nêu rõ cho Y khoa/Dược — 3
- * ngành còn lại chưa có số cụ thể trong nguồn đã đọc (xem `knowledgeGaps.ts`). */
 export const UHS_PROGRAMS: UhsProgram[] = [
-  { id: 'medicine', name: 'Y khoa', combinations: ['B00', 'A02'], hasSpecificThreshold: true },
-  { id: 'pharmacy', name: 'Dược học', combinations: ['B00', 'A00', 'A02'], hasSpecificThreshold: true },
-  { id: 'dentistry', name: 'Răng Hàm Mặt', combinations: ['B00', 'A00', 'A02'], hasSpecificThreshold: false },
-  { id: 'traditional-medicine', name: 'Y học cổ truyền', combinations: ['B00', 'A00', 'A02'], hasSpecificThreshold: false },
-  { id: 'nursing', name: 'Điều dưỡng', combinations: ['B00', 'A00', 'A02'], hasSpecificThreshold: false },
+  { id: 'uhs-7720101', code: '7720101', name: 'Y khoa', quota2026: 340, combinations: ['B00', 'A02'], group: 'medicine-like' },
+  { id: 'uhs-7720101DH', code: '7720101DH', name: 'Y khoa (dat hang)', quota2026: 120, combinations: ['B00', 'A02'], group: 'medicine-like' },
+  { id: 'uhs-7720201', code: '7720201', name: 'Duoc hoc', quota2026: 180, combinations: ['B00', 'A00', 'A02'], group: 'medicine-like' },
+  { id: 'uhs-7720501', code: '7720501', name: 'Rang - Ham - Mat', quota2026: 150, combinations: ['B00', 'A00', 'A02'], group: 'medicine-like' },
+  { id: 'uhs-7720301', code: '7720301', name: 'Dieu duong', quota2026: 150, combinations: ['B00', 'A00', 'A02'], group: 'nursing' },
+  { id: 'uhs-7720115', code: '7720115', name: 'Y hoc co truyen', quota2026: 120, combinations: ['B00', 'A00', 'A02'], group: 'medicine-like' },
 ];
+
+export function findUhsProgram(programId: string | undefined): UhsProgram | undefined {
+  return UHS_PROGRAMS.find((program) => program.id === programId);
+}

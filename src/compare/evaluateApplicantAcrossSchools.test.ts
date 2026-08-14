@@ -168,6 +168,7 @@ describe('evaluateApplicantAcrossSchools', () => {
       uel: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'kinh-te' },
       uit: { selectedProgramId: 'khoa-hoc-may-tinh', programId: 'khoa-hoc-may-tinh' },
       hcmus: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'hcmus-75202a1' },
+      uhs: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'uhs-7720101' },
     });
     const bySchool = Object.fromEntries(summaries.map((summary) => [summary.schoolId, summary]));
     expect(bySchool.hcmut.cutoffComparison?.difference).toBeDefined();
@@ -178,6 +179,11 @@ describe('evaluateApplicantAcrossSchools', () => {
     expect(bySchool.hcmus.evaluation.score).toBeUndefined();
     expect(bySchool.hcmus.evaluation.explanation).toContainEqual(
       expect.objectContaining({ id: 'hcmus-program-threshold', output: 24 })
+    );
+    expect(bySchool.uhs.cutoffComparison).toBeUndefined();
+    expect(bySchool.uhs.evaluation.score).toBeUndefined();
+    expect(bySchool.uhs.evaluation.missingRequirements).toContainEqual(
+      expect.objectContaining({ kind: 'official-rule', code: 'uhs-method2-weights-range' })
     );
   });
 

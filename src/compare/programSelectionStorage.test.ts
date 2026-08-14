@@ -15,4 +15,9 @@ describe('programSelectionStorage', () => {
     expect(parseStoredProgramId('hcmus', JSON.stringify({ selectedProgramId: 'hcmus-75202a1' }))).toBe('hcmus-75202a1');
     expect(parseStoredProgramId('hcmus', JSON.stringify({ selectedProgramId: '75202a1' }))).toBeUndefined();
   });
+
+  it('parses UHS selected program ids from the official 6-program registry', () => {
+    expect(parseStoredProgramId('uhs', JSON.stringify({ selectedProgramId: 'uhs-7720101DH' }))).toBe('uhs-7720101DH');
+    expect(parseStoredProgramId('uhs', JSON.stringify({ selectedProgramId: '7720101DH' }))).toBeUndefined();
+  });
 });

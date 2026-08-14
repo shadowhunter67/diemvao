@@ -3,22 +3,15 @@ import type { KnowledgeGap } from '../../core/knowledgeStatus';
 export const uhsKnowledgeGaps: KnowledgeGap[] = [
   {
     id: 'uhs-method2-weights-range',
-    label: 'Trọng số Phương thức 2 công bố dạng khoảng (THPT 30-35%, ĐGNL 45-50%, học bạ 20%), không phải số cố định — không đủ tính điểm chính xác',
+    label:
+      'Trọng số Phương thức 2 công bố dạng khoảng (THPT 30-35%, ĐGNL 45-50%, học bạ 20%), chưa có giá trị w1/w2 cố định để tính điểm xét tuyển cuối.',
     status: 'incomplete',
-  },
-  {
-    id: 'uhs-threshold-other-programs',
-    label: 'Ngưỡng đảm bảo chất lượng cho Răng Hàm Mặt/Y học cổ truyền/Điều dưỡng chưa có số cụ thể trong nguồn đã đọc (chỉ Y khoa/Dược có số)',
-    status: 'incomplete',
-  },
-  {
-    id: 'uhs-bonus-point-values',
-    label: 'Bảng điểm cộng CHỈ nêu tiêu chí đủ điều kiện được xét, không công bố số điểm cụ thể cho từng tiêu chí',
-    status: 'incomplete',
+    scoreAffecting: true,
+    impact: 'exact-final-score-blocking',
   },
   {
     id: 'uhs-cutoffs-2026',
-    label: 'Điểm chuẩn 2026 chưa được UniscoreVN đọc/nhập (nguồn ĐHQG-HCM catalog cần xử lý riêng)',
+    label: 'Điểm chuẩn 2026 chưa được UniscoreVN nhập vào mô hình lịch sử; không dùng dữ liệu 2024/2025 như cutoff 2026.',
     status: 'incomplete',
   },
 ];
