@@ -110,6 +110,18 @@ function ProgramSelector({
 }
 
 function MissingRequirementsList({ requirements }: { requirements: readonly MissingRequirement[] }) {
+  const displayLabel = (requirement: MissingRequirement) => {
+    if (requirement.kind !== 'official-rule') return requirement.label;
+    if (requirement.code === 'ussh-alpha2-by-program-combination') return 'he so alpha2 theo nganh/to hop';
+    if (requirement.code === 'ussh-bonus-table') return 'bang diem cong';
+    if (requirement.code === 'ussh-priority-standard-table') return 'muc uu tien goc';
+    if (requirement.code === 'ussh-alpha1-application-role') return 'vai tro ap dung cua alpha1';
+    if (requirement.code === 'uhs-method2-weights-range') return 'he so w1/w2 co dinh cho diem xet tuyen cuoi';
+    if (requirement.code.startsWith('uit-')) return requirement.label.includes('SAT') ? 'bang quy doi SAT/ACT, IB/A-Level' : 'bang quy doi THPT - DGNL day du';
+    if (requirement.code.startsWith('agu-')) return 'cong thuc quy doi thanh phan, diem cong va uu tien chinh thuc';
+    return requirement.label;
+  };
+
   return (
     <>
       {missingRequirementOrder.map((kind) => {
@@ -121,7 +133,7 @@ function MissingRequirementsList({ requirements }: { requirements: readonly Miss
             <ul className="mt-1 space-y-1 text-xs text-muted">
               {group.map((requirement) => (
                 <li key={requirement.code} className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span>{requirement.label}</span>
+                  <span>{displayLabel(requirement)}</span>
                   {requirement.action && (
                     <a
                       href={requirement.action.href}

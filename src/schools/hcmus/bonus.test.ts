@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateHcmusBonus } from './bonus';
+import { calculateHcmusBonus, selectHighestHcmusBonusCategory } from './bonus';
 import { HCMUS_BONUS_CATEGORIES_2026 } from './data/bonus';
 
 describe('HCMUS_BONUS_CATEGORIES_2026', () => {
@@ -56,5 +56,15 @@ describe('calculateHcmusBonus', () => {
     const before = JSON.stringify(HCMUS_BONUS_CATEGORIES_2026);
     calculateHcmusBonus('olympic-30-4-bronze', 29);
     expect(JSON.stringify(HCMUS_BONUS_CATEGORIES_2026)).toBe(before);
+  });
+
+  it('selects the single highest applicable bonus category before scoring', () => {
+    expect(
+      selectHighestHcmusBonusCategory([
+        'provincial-olympiad-third',
+        'national-international-olympiad-first-second-third',
+        'priority-school-graduate-specialized-2026',
+      ])
+    ).toBe('national-international-olympiad-first-second-third');
   });
 });

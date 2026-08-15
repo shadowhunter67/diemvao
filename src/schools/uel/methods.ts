@@ -18,7 +18,7 @@ export const uelAdmissionMethods: AdmissionMethodDescriptor[] = [
     capabilities: {
       eligibility: true,
       scoreConversion: true,
-      bonus: false,
+      bonus: true,
       priority: true,
       exactCalculator: uelExactCalculatorAvailable,
     },

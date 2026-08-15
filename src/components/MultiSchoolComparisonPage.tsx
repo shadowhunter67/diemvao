@@ -15,6 +15,7 @@ import { usshPrograms } from '../schools/ussh/data/programs';
 import { hcmusProgramThresholds } from '../schools/hcmus/data/programThresholds';
 import { UHS_PROGRAMS } from '../schools/uhs/programs';
 import { iuPrograms } from '../schools/iu/data/programs';
+import { AGU_PROGRAM_THRESHOLDS_2026 } from '../schools/agu/data/thresholds';
 import { ComparisonOverview } from './compare/ComparisonOverview';
 import { SchoolComparisonCard } from './compare/SchoolComparisonCard';
 import type { ProgramOption } from './compare/types';
@@ -35,6 +36,11 @@ const uhsProgramOptions: ProgramOption[] = UHS_PROGRAMS.map((program) => ({
   code: program.code,
   name: program.name,
 }));
+const aguProgramOptions: ProgramOption[] = AGU_PROGRAM_THRESHOLDS_2026.map((program) => ({
+  id: program.programCode,
+  code: program.programCode,
+  name: program.name,
+}));
 
 const programOptions: Record<string, readonly ProgramOption[]> = {
   hcmut: hcmutPrograms,
@@ -45,6 +51,7 @@ const programOptions: Record<string, readonly ProgramOption[]> = {
   hcmus: hcmusProgramOptions,
   uhs: uhsProgramOptions,
   iu: iuPrograms,
+  agu: aguProgramOptions,
 };
 
 function parseNumber(value: string): number | undefined {
@@ -114,6 +121,10 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
         subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined,
         programId: selectedPrograms.iu,
       },
+      agu: {
+        subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined,
+        selectedProgramCode: selectedPrograms.agu,
+      },
     });
   }, [hcmutContext, profile, selectedPrograms, selectedUehProgram, selectedUhsProgram, sharedCombination, uelCombination]);
 
@@ -180,7 +191,7 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
         saveStoredUelCombinationId(value);
       });
     }
-    if (['hcmus', 'ussh', 'uhs', 'iu'].includes(schoolId)) {
+    if (['hcmus', 'ussh', 'uhs', 'iu', 'agu'].includes(schoolId)) {
       return renderCombinationSelect('Tổ hợp xét tuyển', sharedCombinationId, setSharedCombinationId);
     }
     return undefined;
@@ -235,7 +246,7 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
                 ? hcmutCombinationId || undefined
                 : summary.schoolId === 'uel'
                   ? uelCombinationId || undefined
-                  : ['hcmus', 'ussh', 'uhs', 'iu'].includes(summary.schoolId)
+                  : ['hcmus', 'ussh', 'uhs', 'iu', 'agu'].includes(summary.schoolId)
                     ? sharedCombinationId || undefined
                     : undefined
             }

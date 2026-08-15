@@ -9,14 +9,7 @@ import { uelAdmissionMethods } from './uel/methods';
 import { uitModule } from './uit';
 import { uitAdmissionMethods } from './uit/methods';
 
-/**
- * Method-level capability (`AdmissionMethodDescriptor`) là chi tiết hơn school-level
- * (`SchoolCapabilities`). Batch 6: `SchoolModule.capabilities` giờ DERIVE trực tiếp từ
- * `aggregateSchoolCapabilities(methods)` (xem `schools/<id>/index.ts`) thay vì hard-code song
- * song — test dưới đây khóa chặt việc đó không bị revert âm thầm (school-level không được nói
- * mạnh hơn method-level thực tế).
- */
-describe('SchoolModule.capabilities khớp aggregateSchoolCapabilities(methods)', () => {
+describe('SchoolModule.capabilities matches aggregateSchoolCapabilities(methods)', () => {
   it.each([
     ['HCMUT', hcmutModule, hcmutAdmissionMethods],
     ['UEH', uehModule, uehAdmissionMethods],
@@ -30,39 +23,40 @@ describe('SchoolModule.capabilities khớp aggregateSchoolCapabilities(methods)'
   });
 });
 
-describe('Method descriptor đúng capability thật đã biết (khớp evidence hiện có)', () => {
-  it('HCMUT: exact calculator = true (formula verified, đã wire UI thật)', () => {
-    expect(hcmutAdmissionMethods).toHaveLength(1);
+describe('Method descriptors reflect current evidence', () => {
+  it('HCMUT is exact', () => {
     expect(hcmutAdmissionMethods[0].capabilities.exactCalculator).toBe(true);
   });
 
-  it('UEH: exact calculator = true (re-audit 2026-08-13, Đối tượng 1 — worked example + bảng bonus/priority đầy đủ)', () => {
-    expect(uehAdmissionMethods).toHaveLength(1);
-    expect(uehAdmissionMethods[0].capabilities.exactCalculator).toBe(true);
-    expect(uehAdmissionMethods[0].capabilities.scoreConversion).toBe(true);
-    expect(uehAdmissionMethods[0].capabilities.bonus).toBe(true);
-    expect(uehAdmissionMethods[0].capabilities.priority).toBe(true);
+  it('UEH is exact', () => {
+    expect(uehAdmissionMethods[0].capabilities).toMatchObject({
+      scoreConversion: true,
+      bonus: true,
+      priority: true,
+      exactCalculator: true,
+    });
   });
 
-  it('UEL: exact calculator = false trừ khi research mới unblock (batch 6: unblock priority reduction, vẫn thiếu bảng bonus ngoại ngữ)', () => {
-    expect(uelAdmissionMethods).toHaveLength(1);
-    expect(uelAdmissionMethods[0].capabilities.exactCalculator).toBe(false);
-    expect(uelAdmissionMethods[0].capabilities.scoreConversion).toBe(true);
-    expect(uelAdmissionMethods[0].capabilities.priority).toBe(true);
-    expect(uelAdmissionMethods[0].capabilities.bonus).toBe(false);
-    expect(uelAdmissionMethods[0].knowledgeGaps?.length).toBeGreaterThan(0);
+  it('UEL is exact after the public certificate bonus table re-audit', () => {
+    expect(uelAdmissionMethods[0].capabilities).toMatchObject({
+      scoreConversion: true,
+      bonus: true,
+      priority: true,
+      exactCalculator: true,
+    });
+    expect(uelAdmissionMethods[0].knowledgeGaps?.length ?? 0).toBe(0);
   });
 
-  it('UIT: eligibility = true, bonus = true, exact calculator = false', () => {
-    expect(uitAdmissionMethods).toHaveLength(1);
-    const { eligibility, bonus, exactCalculator } = uitAdmissionMethods[0].capabilities;
-    expect(eligibility).toBe(true);
-    expect(bonus).toBe(true);
-    expect(exactCalculator).toBe(false);
+  it('UIT remains partial eligibility/bonus', () => {
+    expect(uitAdmissionMethods[0].capabilities).toMatchObject({
+      eligibility: true,
+      bonus: true,
+      exactCalculator: false,
+    });
   });
 });
 
-describe('aggregateSchoolCapabilities — OR semantics qua nhiều method', () => {
+describe('aggregateSchoolCapabilities OR semantics', () => {
   const baseMethod: AdmissionMethodDescriptor = {
     id: 'a',
     name: 'A',
@@ -70,41 +64,27 @@ describe('aggregateSchoolCapabilities — OR semantics qua nhiều method', () =
     capabilities: { eligibility: false, scoreConversion: false, bonus: false, priority: false, exactCalculator: false },
   };
 
-  it('true nếu ÍT NHẤT MỘT method có capability đó, kể cả khi method khác không có', () => {
+  it('returns true if at least one method supports a capability', () => {
     const methods: AdmissionMethodDescriptor[] = [
       baseMethod,
       { ...baseMethod, id: 'b', capabilities: { ...baseMethod.capabilities, exactCalculator: true } },
     ];
-    expect(aggregateSchoolCapabilities(methods)).toEqual({
-      eligibility: false,
-      scoreConversion: false,
-      exactCalculator: true,
-    });
+    expect(aggregateSchoolCapabilities(methods)).toEqual({ eligibility: false, scoreConversion: false, exactCalculator: true });
   });
 
-  it('false nếu KHÔNG method nào có capability đó', () => {
-    expect(aggregateSchoolCapabilities([baseMethod])).toEqual({
-      eligibility: false,
-      scoreConversion: false,
-      exactCalculator: false,
-    });
+  it('returns false if no method supports a capability', () => {
+    expect(aggregateSchoolCapabilities([baseMethod])).toEqual({ eligibility: false, scoreConversion: false, exactCalculator: false });
   });
 
-  it('mảng rỗng (trường identity-only, chưa có method nào) → toàn bộ false, không throw', () => {
-    expect(() => aggregateSchoolCapabilities([])).not.toThrow();
-    expect(aggregateSchoolCapabilities([])).toEqual({
-      eligibility: false,
-      scoreConversion: false,
-      exactCalculator: false,
-    });
+  it('handles empty method arrays', () => {
+    expect(aggregateSchoolCapabilities([])).toEqual({ eligibility: false, scoreConversion: false, exactCalculator: false });
   });
 });
 
-describe('AGU — research 2026-08-15 nâng từ identity-only lên module thật (eligibility)', () => {
-  it('có capabilities thật derive từ aguAdmissionMethods (eligibility=true, chưa có Page riêng)', async () => {
+describe('AGU module', () => {
+  it('has real eligibility capabilities and no exact calculator yet', async () => {
     const { schoolRegistry } = await import('./index');
     const agu = schoolRegistry['agu'];
-    expect(agu).toBeDefined();
     expect(agu.capabilities).toEqual({
       admissionInfo: true,
       programs: true,

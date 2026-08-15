@@ -1,11 +1,10 @@
 import type { AdmissionMethodDescriptor } from '../../core/admissionMethod';
-import { hcmusKnowledgeGaps } from './knowledgeGaps';
 
 /**
  * HCMUS 2026 - Phuong thuc 2 (THPT or V-ACT plus 3-year transcript).
  * Academic score and the 39-program minimum composite thresholds are verified.
- * Final exact calculation remains unavailable until bonus and priority rules are
- * fully evidenced.
+ * Final exact calculation is available for the supported score scope. Special
+ * program percentile conditions remain eligibility warnings, not formula blockers.
  */
 export const hcmusAdmissionMethods: AdmissionMethodDescriptor[] = [
   {
@@ -17,9 +16,8 @@ export const hcmusAdmissionMethods: AdmissionMethodDescriptor[] = [
       eligibility: true,
       scoreConversion: true,
       bonus: true,
-      priority: false,
-      exactCalculator: false,
+      priority: true,
+      exactCalculator: true,
     },
-    knowledgeGaps: hcmusKnowledgeGaps,
   },
 ];

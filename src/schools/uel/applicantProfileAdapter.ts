@@ -5,6 +5,7 @@ import { round2 } from '../../core/round2';
 export interface UelPartialInput {
   dgnlScore?: number;
   thptRawTotal30?: number;
+  transcriptTotal30?: number;
   thptSubjectScores?: Partial<Record<SubjectId, number>>;
 }
 
@@ -31,6 +32,8 @@ export function buildUelEvaluationInput(profile: ApplicantProfile, subjectContex
   const thptSubjectScores: Partial<Record<SubjectId, number>> = {};
   let hasMissingSubject = false;
   let total = 0;
+  let hasMissingTranscript = false;
+  let transcriptTotal = 0;
 
   for (const subjectId of subjectContext.subjects) {
     const score = profile.thpt?.scores?.[subjectId];
@@ -40,11 +43,21 @@ export function buildUelEvaluationInput(profile: ApplicantProfile, subjectContex
     }
     thptSubjectScores[subjectId] = score;
     total += score;
+
+    const g10 = profile.transcript?.grade10?.[subjectId];
+    const g11 = profile.transcript?.grade11?.[subjectId];
+    const g12 = profile.transcript?.grade12?.[subjectId];
+    if (g10 === undefined || g11 === undefined || g12 === undefined) {
+      hasMissingTranscript = true;
+    } else {
+      transcriptTotal += (g10 + g11 + g12) / 3;
+    }
   }
 
   return {
     ...input,
     thptSubjectScores,
     thptRawTotal30: hasMissingSubject ? undefined : round2(total),
+    transcriptTotal30: hasMissingTranscript ? undefined : round2(transcriptTotal),
   };
 }

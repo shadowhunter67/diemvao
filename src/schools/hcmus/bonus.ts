@@ -35,3 +35,16 @@ export function calculateHcmusBonus(categoryId: HcmusBonusCategoryId | null, tot
   const awarded = ((30 - totalScoreBeforeBonus30) / 1.5) * category.basePoints30;
   return { categoryId, basePoints30: category.basePoints30, awardedPoints30: Math.max(0, awarded), reduced: true };
 }
+
+export function selectHighestHcmusBonusCategory(categoryIds: readonly HcmusBonusCategoryId[]): HcmusBonusCategoryId | null {
+  let selected: HcmusBonusCategoryId | null = null;
+  let selectedPoints = 0;
+  for (const categoryId of categoryIds) {
+    const category = HCMUS_BONUS_CATEGORIES_2026.find((item) => item.id === categoryId);
+    if (category && category.basePoints30 > selectedPoints) {
+      selected = category.id;
+      selectedPoints = category.basePoints30;
+    }
+  }
+  return selected;
+}

@@ -33,7 +33,7 @@ export const uelExactRuleChecklist: UelExactRuleChecklistItem[] = [
     evidence: true,
     sourceId: 'uel-formula-2026',
     scoreAffecting: true,
-    implemented: false,
+    implemented: true,
   },
   {
     rule: '2026 method weights and applicant-track formulas',
@@ -41,15 +41,15 @@ export const uelExactRuleChecklist: UelExactRuleChecklistItem[] = [
     evidence: true,
     sourceId: 'uel-formula-2026',
     scoreAffecting: true,
-    implemented: false,
+    implemented: true,
   },
   {
     rule: 'Foreign-language certificate bonus table',
-    known: false,
-    evidence: false,
-    sourceId: 'uel-admission-pdf-2026-unparsed',
+    known: true,
+    evidence: true,
+    sourceId: 'uel-certificate-bonus-html-2026',
     scoreAffecting: true,
-    implemented: false,
+    implemented: true,
   },
   {
     rule: 'Priority-school bonus',
@@ -57,7 +57,7 @@ export const uelExactRuleChecklist: UelExactRuleChecklistItem[] = [
     evidence: true,
     sourceId: 'uel-formula-2026',
     scoreAffecting: true,
-    implemented: false,
+    implemented: true,
   },
   {
     rule: 'Bonus cap',
@@ -65,7 +65,7 @@ export const uelExactRuleChecklist: UelExactRuleChecklistItem[] = [
     evidence: true,
     sourceId: 'uel-formula-2026',
     scoreAffecting: true,
-    implemented: false,
+    implemented: true,
   },
   {
     rule: 'Priority table',
@@ -85,11 +85,11 @@ export const uelExactRuleChecklist: UelExactRuleChecklistItem[] = [
   },
   {
     rule: 'Final rounding',
-    known: false,
-    evidence: false,
+    known: true,
+    evidence: true,
     sourceId: 'uel-formula-2026',
     scoreAffecting: true,
-    implemented: false,
+    implemented: true,
   },
 ];
 

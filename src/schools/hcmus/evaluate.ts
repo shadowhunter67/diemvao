@@ -10,11 +10,16 @@ import { hcmusKnowledgeGaps } from './knowledgeGaps';
 import { hcmusThresholdEvidence, hcmusAcademicScoreEvidence, hcmusProgramThresholdEvidence } from './evidence';
 import { calculateHcmusAcademicScore } from './academicScore';
 import { findHcmusProgramThreshold } from './data/programThresholds';
+import { calculateHcmusBonus } from './bonus';
+import type { HcmusBonusCategoryId } from './data/bonus';
+import { HCMUS_MAX_SCORE_30 } from './data/bonus';
+import { calculateHcmusEffectivePriority, lookupHcmusStandardPriority } from './priority';
 
 export interface HcmusEvaluationContext {
   subjectContext?: HcmusSubjectContext;
   checkNuclearEngineering?: boolean;
   selectedProgramId?: string;
+  bonusCategoryId?: HcmusBonusCategoryId | null;
 }
 
 export function evaluateHcmusAdmission(profile: ApplicantProfile, context: HcmusEvaluationContext = {}): AdmissionEvaluation {
@@ -72,6 +77,13 @@ export function evaluateHcmusAdmission(profile: ApplicantProfile, context: Hcmus
   });
 
   if (academic.academicScore !== undefined) {
+    const bonus = calculateHcmusBonus(context.bonusCategoryId ?? null, academic.academicScore);
+    const academicPlusBonus30 = Math.min(HCMUS_MAX_SCORE_30, academic.academicScore + bonus.awardedPoints30);
+    const priority = calculateHcmusEffectivePriority({
+      academicPlusBonus30,
+      standardPriority30: lookupHcmusStandardPriority(profile.priority?.region, profile.priority?.category),
+    });
+    const finalScore30 = Math.round(Math.min(HCMUS_MAX_SCORE_30, academicPlusBonus30 + priority.effectivePriority30) * 100) / 100;
     explanation.push({
       id: 'hcmus-academic-score',
       label: `Điểm học lực (MAX route ${academic.usedRoute === 'thpt' ? 'THPT' : 'ĐGNL'})`,
@@ -85,6 +97,29 @@ export function evaluateHcmusAdmission(profile: ApplicantProfile, context: Hcmus
       description: 'Điểm học lực hiện tính được — CHƯA gồm Điểm cộng/Điểm ưu tiên, KHÔNG phải điểm xét tuyển cuối cùng.',
       evidence: hcmusAcademicScoreEvidence.evidence,
     });
+    explanation.push(
+      {
+        id: 'hcmus-bonus',
+        label: 'Diem cong HCMUS',
+        inputs: { basePoints30: bonus.basePoints30 },
+        output: bonus.awardedPoints30,
+        scale: 30,
+        formula: bonus.reduced ? '[(30 - Tong diem dat duoc) / 1.5] x Diem cong co so' : 'Diem cong co so, chi lay 1 muc cao nhat',
+      },
+      {
+        id: 'hcmus-priority',
+        label: priority.reduced ? 'Diem uu tien HCMUS da giam' : 'Diem uu tien HCMUS',
+        output: priority.effectivePriority30,
+        scale: 30,
+        formula: priority.reduced ? '[(30 - Tong diem dat duoc) / 7.5] x Muc diem uu tien KV/DT' : 'Muc diem uu tien KV/DT',
+      },
+      {
+        id: 'hcmus-final',
+        label: 'Diem xet tuyen cuoi cung HCMUS',
+        output: finalScore30,
+        scale: 30,
+      }
+    );
   } else {
     if (input.transcriptTotal30 === undefined) {
       missingInputs.push('Điểm học bạ (thang 30, theo tổ hợp đã chọn) để tính Điểm học lực.');
@@ -133,6 +168,29 @@ export function evaluateHcmusAdmission(profile: ApplicantProfile, context: Hcmus
   missingRequirements.push(
     ...hcmusKnowledgeGaps.map((gap) => ({ kind: 'official-rule' as const, code: gap.id, label: gap.label }))
   );
+
+  const finalStep = explanation.find((step) => step.id === 'hcmus-final');
+  if (finalStep?.output !== undefined) {
+    return {
+      schoolId: 'hcmus',
+      year: hcmusAdmissionMethods[0].year,
+      methodId: hcmusAdmissionMethods[0].id,
+      confidence: 'exact-verified',
+      eligibility:
+        context.subjectContext && input.thptRawTotal30 !== undefined
+          ? {
+              status: checkHcmusThptThreshold(input.thptRawTotal30).pass ? 'eligible' : 'ineligible',
+              reasons: [checkHcmusThptThreshold(input.thptRawTotal30).requiredText],
+            }
+          : { status: 'unknown', reasons: ['Can du tong 3 mon THPT theo to hop de kiem tra nguong dau vao.'] },
+      score: { value: finalStep.output, scale: 30 },
+      missingInputs,
+      missingRules: [],
+      missingRequirements: missingRequirements.filter((requirement) => requirement.kind !== 'official-rule'),
+      explanation,
+      evidence: [...hcmusThresholdEvidence.evidence, ...hcmusAcademicScoreEvidence.evidence],
+    };
+  }
 
   return {
     schoolId: 'hcmus',

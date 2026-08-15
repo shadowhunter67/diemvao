@@ -53,6 +53,15 @@ export const uelSources: UelSource[] = [
     verification: 'verified',
   },
   {
+    id: 'uel-certificate-bonus-html-2026',
+    publisher: 'Truong Dai hoc Kinh te - Luat - DHQG TP.HCM',
+    title: 'Bang diem cong chung chi tieng Anh ap dung tuyen sinh dai hoc chinh quy 2026 trong trang To hop tuyen sinh',
+    url: 'https://tuyensinh.uel.edu.vn/to-hop-tuyen-sinh/',
+    accessedAt: '2026-08-15',
+    sourceType: 'official-school',
+    verification: 'verified',
+  },
+  {
     id: 'uel-bonus-language-cross-check',
     publisher: 'VnExpress (dẫn "Phụ lục 2" của UEL — chưa đọc được bảng gốc dạng text/ảnh rõ)',
     title: 'Điểm cộng chứng chỉ ngoại ngữ quốc tế UEL 2026 — biết khoảng 2–5/100 cho IELTS≥5.0 tương đương, chưa có bảng chi tiết theo mức',
