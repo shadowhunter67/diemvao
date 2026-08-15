@@ -21,10 +21,11 @@ describe('schoolRegistry', () => {
     expect(schoolRegistry.ussh.Page).toBeDefined();
     expect(schoolRegistry.uhs.Page).toBeDefined();
     expect(schoolRegistry.iu.Page).toBeDefined();
+    expect(schoolRegistry.hcmue.Page).toBeDefined();
   });
 
   it('các trường formula-incomplete/researching còn lại chưa có Page', () => {
-    const withPage = new Set(['hcmut', 'uit', 'uel', 'ueh', 'hcmus', 'ussh', 'uhs', 'iu']);
+    const withPage = new Set(['hcmut', 'uit', 'uel', 'ueh', 'hcmus', 'ussh', 'uhs', 'iu', 'hcmue']);
     const withoutPage = Object.values(schoolRegistry).filter((school) => !withPage.has(school.id));
     for (const school of withoutPage) {
       expect(school.Page).toBeUndefined();
@@ -46,7 +47,7 @@ describe('schoolRegistry', () => {
 
   it('có đủ các trường đã research (ĐHQG-HCM + UEH ngoài hệ thống)', () => {
     const ids = Object.keys(schoolRegistry).sort();
-    expect(ids).toEqual(['agu', 'hcmus', 'hcmut', 'iu', 'ueh', 'uel', 'uhs', 'uit', 'ussh']);
+    expect(ids).toEqual(['agu', 'hcmue', 'hcmus', 'hcmut', 'iu', 'ueh', 'uel', 'uhs', 'uit', 'ussh']);
   });
 
   it('README.md mục "Trường đang hỗ trợ" nhắc tên mọi trường trong registry (phát hiện drift)', () => {

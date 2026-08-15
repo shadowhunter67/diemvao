@@ -1,0 +1,14 @@
+import { hcmueProgramThresholds } from './data/programs';
+
+export function getHcmueProgramThreshold(programId: string | undefined) {
+  return hcmueProgramThresholds.find((program) => program.id === programId);
+}
+
+export function checkHcmueThptThreshold(total30: number, programId: string) {
+  const program = getHcmueProgramThreshold(programId);
+  if (!program) return { pass: false, requiredText: 'Chua co nguong HCMUE cho nganh da chon.' };
+  return {
+    pass: total30 >= program.thptThreshold30,
+    requiredText: `Nguong THPT HCMUE 2026: ${program.thptThreshold30.toFixed(2)}/30 (${program.code} - ${program.name}).`,
+  };
+}

@@ -9,6 +9,7 @@ import { usshPrograms } from '../schools/ussh/data/programs';
 import { UHS_PROGRAMS } from '../schools/uhs/programs';
 import { iuPrograms } from '../schools/iu/data/programs';
 import { AGU_PROGRAM_THRESHOLDS_2026 } from '../schools/agu/data/thresholds';
+import { hcmueProgramThresholds } from '../schools/hcmue/data/programs';
 import { normalizeVietnameseText } from './comparisonSelection';
 
 export type UniversityCapability = 'exact' | 'partial' | 'eligibility' | 'catalog-only';
@@ -49,6 +50,13 @@ const programCatalogBySchool: Record<string, ProgramCatalogEntry[]> = {
   uhs: UHS_PROGRAMS.map((program) => ({ programId: program.id, code: program.code, name: program.name })),
   iu: iuPrograms.map((program) => ({ programId: program.id, code: program.code, name: program.name })),
   agu: AGU_PROGRAM_THRESHOLDS_2026.map((program) => ({ programId: program.programCode, code: program.programCode, name: program.name })),
+  hcmue: hcmueProgramThresholds.map((program) => ({
+    programId: program.id,
+    code: program.code,
+    name: program.name,
+    campus: program.campus,
+    track: program.group,
+  })),
 };
 
 export const universityCatalog: UniversityCatalogEntry[] = Object.values(schoolRegistry)
@@ -83,19 +91,23 @@ export function getCapabilityLabel(capability: UniversityCapability, schoolId?: 
 export function searchUniversityCatalog(query: string, entries: readonly UniversityCatalogEntry[] = universityCatalog): UniversityCatalogEntry[] {
   const normalizedQuery = normalizeVietnameseText(query);
   if (!normalizedQuery) return [...entries];
+  const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
   return entries.filter((entry) =>
-    [entry.schoolId, entry.shortName, entry.fullName, entry.city, entry.region].some((value) =>
-      normalizeVietnameseText(value ?? '').includes(normalizedQuery)
-    )
+    [entry.schoolId, entry.shortName, entry.fullName, entry.city, entry.region].some((value) => {
+      const normalizedValue = normalizeVietnameseText(value ?? '');
+      return normalizedValue.includes(normalizedQuery) || queryTokens.every((token) => normalizedValue.includes(token));
+    })
   );
 }
 
 export function searchProgramCatalog(query: string, programs: readonly ProgramCatalogEntry[]): ProgramCatalogEntry[] {
   const normalizedQuery = normalizeVietnameseText(query);
   if (!normalizedQuery) return [...programs];
+  const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
   return programs.filter((program) =>
-    [program.programId, program.code, program.name, program.campus, program.track].some((value) =>
-      normalizeVietnameseText(value ?? '').includes(normalizedQuery)
-    )
+    [program.programId, program.code, program.name, program.campus, program.track].some((value) => {
+      const normalizedValue = normalizeVietnameseText(value ?? '');
+      return normalizedValue.includes(normalizedQuery) || queryTokens.every((token) => normalizedValue.includes(token));
+    })
   );
 }

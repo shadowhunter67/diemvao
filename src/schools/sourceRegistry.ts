@@ -8,6 +8,7 @@ import { usshSources } from './ussh/sources';
 import { uhsSources } from './uhs/sources';
 import { iuSources } from './iu/sources';
 import { aguSources } from './agu/sources';
+import { hcmueSources } from './hcmue/sources';
 
 function withSchoolId(schoolId: string, sources: Omit<AdmissionSource, 'schoolId'>[]): AdmissionSource[] {
   return sources.map((source) => ({ ...source, schoolId }));
@@ -22,6 +23,7 @@ export const usshSourceRegistry: AdmissionSource[] = withSchoolId('ussh', usshSo
 export const uhsSourceRegistry: AdmissionSource[] = withSchoolId('uhs', uhsSources);
 export const iuSourceRegistry: AdmissionSource[] = withSchoolId('iu', iuSources);
 export const aguSourceRegistry: AdmissionSource[] = withSchoolId('agu', aguSources);
+export const hcmueSourceRegistry: AdmissionSource[] = withSchoolId('hcmue', hcmueSources);
 
 export const schoolSourceRegistries: Record<string, AdmissionSource[]> = {
   hcmut: hcmutSourceRegistry,
@@ -33,6 +35,7 @@ export const schoolSourceRegistries: Record<string, AdmissionSource[]> = {
   uhs: uhsSourceRegistry,
   iu: iuSourceRegistry,
   agu: aguSourceRegistry,
+  hcmue: hcmueSourceRegistry,
 };
 
 export const allAdmissionSources: AdmissionSource[] = [
@@ -45,4 +48,5 @@ export const allAdmissionSources: AdmissionSource[] = [
   ...uhsSourceRegistry,
   ...iuSourceRegistry,
   ...aguSourceRegistry,
+  ...hcmueSourceRegistry,
 ];

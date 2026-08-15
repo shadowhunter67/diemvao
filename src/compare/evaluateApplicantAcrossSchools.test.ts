@@ -76,6 +76,17 @@ describe('evaluateApplicantAcrossSchools', () => {
     expect(partial.cutoffComparison).toBeUndefined();
   });
 
+  it('selected comparison orchestration supports new HCMUE eligibility-only entries', () => {
+    const [hcmue] = evaluateComparisonSelections(profile, [
+      { id: 'hcmue-it', schoolId: 'hcmue', programId: 'hcmue-7480201', context: { combinationId: 'A01' } },
+    ]);
+    expect(hcmue.selectionId).toBe('hcmue-it');
+    expect(hcmue.schoolId).toBe('hcmue');
+    expect(hcmue.evaluation.confidence).toBe('partial');
+    expect(hcmue.evaluation.score).toBeUndefined();
+    expect(hcmue.cutoffComparison).toBeUndefined();
+  });
+
   it('renders the canonical 9-school compare roster in product order', () => {
     expect(evaluateApplicantAcrossSchools(profile).map((summary) => summary.schoolId)).toEqual([
       'hcmut',

@@ -30,6 +30,7 @@ UniscoreVN **không** dự đoán chắc chắn đậu hay đảm bảo trúng t
 - **UIT** — Trường Đại học Công nghệ Thông tin – ĐHQG TP.HCM — trang thông tin, bonus/eligibility checker, điểm chuẩn 19 ngành 2026 thật, **chưa có exact calculator** (thiếu bảng bách phân vị)
 - **HCMUS, USSH** — đã research công thức (xem `docs/admission-research-2026.md`), chưa implement trang riêng
 - **IU, AGU, UHS** — mới khai báo định danh trong registry, research công thức chưa đủ nguồn tin cậy
+- **HCMUE** — Trường Đại học Sư phạm TP.HCM — đã tích hợp kiểm tra ngưỡng đầu vào 47 ngành tại trụ sở chính TP.HCM từ nguồn tuyển sinh chính thức 2026; chưa tính điểm trúng tuyển cuối và không gắn ngưỡng đầu vào là điểm chuẩn
 
 UEH/UEL/UIT đều dùng chung cơ chế "method-level capability" (`core/admissionMethod.ts`,
 `AdmissionMethodDescriptor`) làm nguồn sự thật cho từng khả năng (eligibility/quy đổi/điểm cộng/điểm

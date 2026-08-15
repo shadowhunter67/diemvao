@@ -33,6 +33,8 @@ import { iuAdmissionMethods } from '../schools/iu/methods';
 import { iuCutoffs2026 } from '../schools/iu/data/cutoffs';
 import { evaluateAguAdmission, type AguEvaluationContext } from '../schools/agu/evaluate';
 import { aguAdmissionMethods } from '../schools/agu/methods';
+import { evaluateHcmueAdmission, type HcmueEvaluationContext } from '../schools/hcmue/evaluate';
+import { hcmueAdmissionMethods } from '../schools/hcmue/methods';
 
 export interface SchoolEvaluationSummary {
   selectionId?: string;
@@ -68,6 +70,7 @@ export interface MultiSchoolEvaluationContext {
   uhs?: UhsEvaluationContext;
   iu?: IuEvaluationContext;
   agu?: AguEvaluationContext;
+  hcmue?: HcmueEvaluationContext;
 }
 
 function unavailableEvaluation(input: {
@@ -295,6 +298,20 @@ export function evaluateComparisonSelections(profile: ApplicantProfile, selectio
       return [
         withSelection(
           summarize('agu', aguAdmissionMethods[0].id, aguAdmissionMethods[0].name, evaluateAguAdmission(profile, { subjectContext, selectedProgramCode: selectedProgramId })),
+          selection.id
+        ),
+      ];
+    }
+
+    if (selection.schoolId === 'hcmue') {
+      return [
+        withSelection(
+          summarize(
+            'hcmue',
+            hcmueAdmissionMethods[0].id,
+            hcmueAdmissionMethods[0].name,
+            evaluateHcmueAdmission(profile, { subjectContext, selectedProgramId })
+          ),
           selection.id
         ),
       ];

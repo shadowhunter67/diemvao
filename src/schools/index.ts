@@ -8,6 +8,7 @@ import { usshModule } from './ussh';
 import { uhsModule } from './uhs';
 import { iuModule } from './iu';
 import { aguModule } from './agu';
+import { hcmueModule } from './hcmue';
 
 /**
  * Các trường ĐHQG-HCM khác đã research (xem docs/admission-research-2026.md) nhưng CHƯA có
@@ -43,5 +44,6 @@ export const schoolRegistry: Record<string, SchoolModule> = {
   uhs: uhsModule,
   iu: iuModule,
   agu: aguModule,
+  hcmue: hcmueModule,
   ...Object.fromEntries(researchedSchools.map((school) => [school.id, school])),
 };

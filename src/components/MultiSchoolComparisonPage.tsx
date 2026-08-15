@@ -59,7 +59,7 @@ const EMPTY_DRAFT: PickerDraft = {
   hasUsshBonusAchievement: false,
 };
 
-const SCHOOLS_REQUIRING_COMBINATION = new Set(['hcmut', 'uel', 'hcmus', 'ussh', 'uhs', 'iu', 'agu']);
+const SCHOOLS_REQUIRING_COMBINATION = new Set(['hcmut', 'uel', 'hcmus', 'ussh', 'uhs', 'iu', 'agu', 'hcmue']);
 
 function loadInitialSelections(): ComparisonSelection[] {
   if (typeof window === 'undefined') return [];
