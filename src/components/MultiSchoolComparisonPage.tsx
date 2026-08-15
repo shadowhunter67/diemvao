@@ -14,6 +14,7 @@ import { uitPrograms } from '../schools/uit/data/programs';
 import { usshPrograms } from '../schools/ussh/data/programs';
 import { hcmusProgramThresholds } from '../schools/hcmus/data/programThresholds';
 import { UHS_PROGRAMS } from '../schools/uhs/programs';
+import { iuPrograms } from '../schools/iu/data/programs';
 import { ComparisonOverview } from './compare/ComparisonOverview';
 import { SchoolComparisonCard } from './compare/SchoolComparisonCard';
 import type { ProgramOption } from './compare/types';
@@ -46,7 +47,7 @@ const programOptions: Record<string, readonly ProgramOption[]> = {
   ussh: usshProgramOptions,
   hcmus: hcmusProgramOptions,
   uhs: uhsProgramOptions,
-  iu: [],
+  iu: iuPrograms,
 };
 
 function parseNumber(value: string): number | undefined {
@@ -112,7 +113,10 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
             ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects }
             : undefined,
       },
-      iu: { subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined },
+      iu: {
+        subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined,
+        programId: selectedPrograms.iu,
+      },
     }).sort((a, b) => {
       const statusA = getEvaluationDisplayStatus(a.evaluation.confidence);
       const statusB = getEvaluationDisplayStatus(b.evaluation.confidence);

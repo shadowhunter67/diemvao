@@ -23,6 +23,7 @@ import { evaluateUhsAdmission, type UhsEvaluationContext } from '../schools/uhs/
 import { uhsAdmissionMethods } from '../schools/uhs/methods';
 import { evaluateIuAdmission, type IuEvaluationContext } from '../schools/iu/evaluate';
 import { iuAdmissionMethods } from '../schools/iu/methods';
+import { iuCutoffs2026 } from '../schools/iu/data/cutoffs';
 
 export interface SchoolEvaluationSummary {
   schoolId: string;
@@ -167,8 +168,35 @@ export function evaluateApplicantAcrossSchools(
     summarize('hcmus', hcmusAdmissionMethods[0].id, hcmusAdmissionMethods[0].name, evaluateHcmusAdmission(profile, contexts.hcmus)),
     summarize('ussh', usshAdmissionMethods[0].id, usshAdmissionMethods[0].name, evaluateUsshAdmission(profile, contexts.ussh)),
     summarize('uhs', uhsAdmissionMethods[0].id, uhsAdmissionMethods[0].name, evaluateUhsAdmission(profile, contexts.uhs)),
-    summarize('iu', iuAdmissionMethods[0].id, iuAdmissionMethods[0].name, evaluateIuAdmission(profile, contexts.iu)),
+    evaluateIu(profile, contexts),
   ];
 
   return summaries;
+}
+
+function evaluateIu(profile: ApplicantProfile, contexts: MultiSchoolEvaluationContext): SchoolEvaluationSummary {
+  const method = iuAdmissionMethods[0];
+  const evaluation = evaluateIuAdmission(profile, contexts.iu);
+  const summary = summarize('iu', method.id, method.name, evaluation);
+
+  if (canCompareEvaluationToCutoff(evaluation) && !contexts.iu?.programId) {
+    summary.evaluation = {
+      ...summary.evaluation,
+      missingRequirements: [
+        ...(summary.evaluation.missingRequirements ?? []),
+        { kind: 'school-context', code: 'program', label: 'Chọn ngành IU để so với đúng mốc điểm chuẩn.' },
+      ],
+    };
+  }
+  if (canCompareEvaluationToCutoff(evaluation) && evaluation.score && contexts.iu?.programId) {
+    const records = iuCutoffs2026.filter((cutoff) => cutoff.programId === contexts.iu?.programId);
+    summary.cutoffComparison = findCutoffComparison({
+      records,
+      targetYear: method.year,
+      applicantScore: evaluation.score.value,
+      applicantScale: evaluation.score.scale,
+      selection: { programId: contexts.iu.programId },
+    });
+  }
+  return summary;
 }

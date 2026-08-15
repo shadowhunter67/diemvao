@@ -5,6 +5,7 @@ import { uelPrograms } from '../schools/uel/data/programs';
 import { uitPrograms } from '../schools/uit/data/programs';
 import { hcmusProgramThresholds } from '../schools/hcmus/data/programThresholds';
 import { UHS_PROGRAMS } from '../schools/uhs/programs';
+import { iuPrograms } from '../schools/iu/data/programs';
 
 const programIdsBySchool: Record<string, Set<string>> = {
   hcmut: new Set(hcmutPrograms.map((program) => program.id)),
@@ -13,6 +14,7 @@ const programIdsBySchool: Record<string, Set<string>> = {
   uit: new Set(uitPrograms.map((program) => program.id)),
   hcmus: new Set(hcmusProgramThresholds.map((program) => program.id)),
   uhs: new Set(UHS_PROGRAMS.map((program) => program.id)),
+  iu: new Set(iuPrograms.map((program) => program.id)),
 };
 
 function getProgramStorageKey(schoolId: string): string {
@@ -50,6 +52,7 @@ export function loadStoredProgramSelections(): Partial<Record<string, string>> {
     uit: loadStoredProgramId('uit'),
     hcmus: loadStoredProgramId('hcmus'),
     uhs: loadStoredProgramId('uhs'),
+    iu: loadStoredProgramId('iu'),
   };
 }
 

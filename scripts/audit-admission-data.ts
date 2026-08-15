@@ -24,7 +24,8 @@ import { usshDt3FormulaEvidence, usshThresholdEvidence } from '../src/schools/us
 import { uhsAdmissionMethods } from '../src/schools/uhs/methods.ts';
 import { uhsBonusEvidence, uhsIntegratedFormulaEvidence, uhsThresholdEvidence } from '../src/schools/uhs/evidence.ts';
 import { iuAdmissionMethods } from '../src/schools/iu/methods.ts';
-import { iuAcademicWeightsEvidence } from '../src/schools/iu/evidence.ts';
+import { iuAcademicWeightsEvidence, iuBonusEvidence, iuPriorityEvidence, iuPriorityReductionEvidence } from '../src/schools/iu/evidence.ts';
+import { iuCutoffs2026 } from '../src/schools/iu/data/cutoffs.ts';
 import { allAdmissionSources } from '../src/schools/sourceRegistry.ts';
 
 const SCHOOLS = ['hcmut', 'ueh', 'uel', 'uit', 'hcmus', 'ussh', 'uhs', 'iu'] as const;
@@ -57,6 +58,9 @@ function verifiedRuntimeEvidence(): RuleEvidence[] {
     ...uhsIntegratedFormulaEvidence.evidence,
     ...uhsBonusEvidence.evidence,
     ...iuAcademicWeightsEvidence.evidence,
+    ...iuBonusEvidence.evidence,
+    ...iuPriorityEvidence.evidence,
+    ...iuPriorityReductionEvidence.evidence,
   ];
 }
 
@@ -108,6 +112,7 @@ const issues = auditAdmissionDataFreshness({
     ...withSchoolId('ueh', uehCutoffs),
     ...withSchoolId('uel', uelCutoffs),
     ...withSchoolId('uit', uitCutoffs),
+    ...withSchoolId('iu', iuCutoffs2026),
   ],
   ruleEvidence: verifiedRuntimeEvidence(),
   sourceRegistry: allAdmissionSources,

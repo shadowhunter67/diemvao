@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { schoolRegistry } from './index';
 import { hcmutModule } from './hcmut';
 import { uehModule } from './ueh';
+import { iuModule } from './iu';
 import readme from '../../README.md?raw';
 
 describe('schoolRegistry', () => {
@@ -36,10 +37,10 @@ describe('schoolRegistry', () => {
     expect(hcmutModule.status).toBe('supported');
   });
 
-  it('hcmut và ueh có status supported — re-audit 2026-08-13 nâng UEH lên exact (Đối tượng 1)', () => {
+  it('hcmut, ueh, iu có status supported — IU nâng lên exact 2026-08-14 (Đối tượng "Thí sinh tốt nghiệp THPT 2026")', () => {
     const supported = Object.values(schoolRegistry).filter((school) => school.status === 'supported');
-    expect(supported).toEqual(expect.arrayContaining([hcmutModule, uehModule]));
-    expect(supported).toHaveLength(2);
+    expect(supported).toEqual(expect.arrayContaining([hcmutModule, uehModule, iuModule]));
+    expect(supported).toHaveLength(3);
   });
 
   it('có đủ các trường đã research (ĐHQG-HCM + UEH ngoài hệ thống)', () => {

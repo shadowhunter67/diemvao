@@ -11,13 +11,28 @@ export interface IuEvaluationInput {
   thptRawTotal30?: number;
   transcriptTotal30?: number;
   dgnlRaw1200?: number;
+  /** Điểm chứng chỉ ngoại ngữ factual — dùng cho "Điểm khuyến khích" (`bonus.ts`), đọc thẳng từ
+   * `ApplicantProfile.certificates`, không map/quy đổi ở tầng adapter. */
+  ielts?: number;
+  toeflIbt?: number;
+  toeic?: number;
+  /** Mã khu vực/đối tượng ưu tiên ('KV1', 'UT1'...) — đọc thẳng từ `ApplicantProfile.priority`. */
+  priorityRegion?: string;
+  priorityCategory?: string;
 }
 
 /** Cùng cách đọc `ApplicantProfile.thpt`/`transcript`/`exams.vact` như UEL/USSH — Học bạ tổ hợp =
  * tổng, mỗi môn lấy trung bình cả năm lớp 10/11/12 (trường không công bố trọng số khác năm). */
 export function buildIuEvaluationInput(profile: ApplicantProfile, subjectContext?: IuSubjectContext): IuEvaluationInput {
   const dgnlRaw1200 = profile.exams?.vact?.total;
-  if (!subjectContext) return { dgnlRaw1200 };
+  const shared = {
+    ielts: profile.certificates?.ielts,
+    toeflIbt: profile.certificates?.toeflIbt,
+    toeic: profile.certificates?.toeic,
+    priorityRegion: profile.priority?.region,
+    priorityCategory: profile.priority?.category,
+  };
+  if (!subjectContext) return { dgnlRaw1200, ...shared };
 
   let thptTotal = 0;
   let transcriptTotal = 0;
@@ -40,5 +55,6 @@ export function buildIuEvaluationInput(profile: ApplicantProfile, subjectContext
     dgnlRaw1200,
     thptRawTotal30: hasMissingThpt ? undefined : round2(thptTotal),
     transcriptTotal30: hasMissingTranscript ? undefined : round2(transcriptTotal),
+    ...shared,
   };
 }
