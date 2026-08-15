@@ -1,8 +1,8 @@
 /**
  * Ngưỡng đảm bảo chất lượng đầu vào 2026 — nguồn `ussh-threshold-2026`. Áp dụng chung mọi ngành/
- * tổ hợp, chưa gồm ưu tiên/điểm cộng. Hệ số α1 (ĐGNL↔THPT) và α2 (giữa các tổ hợp) trường tự nói
- * "sẽ phân tích trong quá trình xử lý nguyện vọng" — KHÔNG công bố giá trị cụ thể, nên UniscoreVN
- * chỉ dừng ở kiểm tra 3 ngưỡng riêng biệt, không tính được điểm xét tuyển tổng hợp cuối cùng.
+ * tổ hợp, chưa gồm ưu tiên/điểm cộng. Đây là 3 ngưỡng ĐẦU VÀO riêng biệt (điều kiện đăng ký), khác
+ * với công thức tính Điểm học lực (ĐHL1/ĐHL2/ĐHL3, xem `calculator.ts`) — từ re-audit 2026-08-15,
+ * ĐHL tính được đầy đủ không cần α (α chỉ dùng nội bộ khi trường xác định điểm chuẩn theo tổ hợp).
  */
 export const USSH_THPT_COMBINATION_THRESHOLD_30 = 17;
 export const USSH_TRANSCRIPT_COMBINATION_THRESHOLD_30 = 17;

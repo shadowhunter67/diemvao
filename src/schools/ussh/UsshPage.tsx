@@ -15,7 +15,7 @@ import { usshKnowledgeGaps } from './knowledgeGaps';
 import { usshAdmissionMethods } from './methods';
 import { buildUsshEvaluationInput } from './applicantProfileAdapter';
 import { evaluateUsshAdmission } from './evaluate';
-import { calculateUsshDt3Score, describeUsshDt1Dt2Blocker } from './calculator';
+import { calculateUsshBestDhl } from './calculator';
 import { usshPrograms } from './data/programs';
 import { usshCutoffs } from './data/cutoffs';
 
@@ -109,16 +109,25 @@ export function UsshPage({ onChangeSchool }: UsshPageProps) {
       }, 0)
     : undefined;
 
-  const dt3Result = dgnlValue !== undefined && transcriptTotal30 !== undefined ? calculateUsshDt3Score({ dgnlRaw1200: dgnlValue, transcriptTotal30 }) : null;
-  const dt1Blocker = describeUsshDt1Dt2Blocker('DT1');
-  const dt2Blocker = describeUsshDt1Dt2Blocker('DT2');
+  const [hasBonusAchievement, setHasBonusAchievement] = useState(false);
+  const thptTotal30ForDhl = selectedCombination
+    ? selectedCombination.subjects.reduce<number | undefined>((total, subjectId) => {
+        if (total === undefined) return undefined;
+        const score = profile.thpt?.scores?.[subjectId];
+        return score === undefined ? undefined : round2(total + score);
+      }, 0)
+    : undefined;
+  const dhlResult = calculateUsshBestDhl({ thptRawTotal30: thptTotal30ForDhl, dgnlRaw1200: dgnlValue, transcriptTotal30 });
   const selectedProgramCutoffs = selectedProgram ? usshCutoffs.filter((c) => c.programId === selectedProgram.id) : [];
 
   const evaluationInput = buildUsshEvaluationInput(
     profile,
     selectedCombination ? { combinationId: selectedCombination.id, subjects: selectedCombination.subjects } : undefined
   );
-  const evaluation = evaluateUsshAdmission(profile, selectedCombination ? { subjectContext: { combinationId: selectedCombination.id, subjects: selectedCombination.subjects } } : {});
+  const evaluation = evaluateUsshAdmission(profile, {
+    ...(selectedCombination ? { subjectContext: { combinationId: selectedCombination.id, subjects: selectedCombination.subjects } } : {}),
+    hasBonusAchievement,
+  });
 
   return (
     <div className="min-h-svh bg-bg">
@@ -133,30 +142,45 @@ export function UsshPage({ onChangeSchool }: UsshPageProps) {
           <h2 className="text-lg font-semibold text-ink">Phương thức đang hỗ trợ: {usshAdmissionMethods[0].name}</h2>
           <MethodCapabilitySummary method={usshAdmissionMethods[0]} />
           <p className="mt-4 text-sm text-muted">
-            USSH xét theo 3 đối tượng ĐT1/ĐT2/ĐT3. UniscoreVN đã tính được <strong>ĐT3</strong> (90%ĐGNL+10%Học bạ) đầy
-            đủ — ĐT1/ĐT2 vẫn thiếu do hệ số α1 (chưa rõ vai trò trong công thức) và α2 (độ lệch tổ hợp riêng ngành,
-            chưa công bố bảng giá trị).
+            USSH xét theo 3 đối tượng ĐT1/ĐT2/ĐT3 — UniscoreVN tính được điểm xét tuyển CUỐI CÙNG (ĐHL + Điểm ưu
+            tiên) cho thí sinh <strong>KHÔNG có thành tích được cộng điểm</strong>. Thí sinh có thành tích cộng điểm
+            vẫn thiếu vì mức cộng cụ thể theo từng tiêu chí trường "công bố cùng kết quả xét tuyển", chưa có số.
           </p>
         </section>
 
-        <section className="mt-5 flex items-start gap-3 rounded-card border border-warning/30 bg-warning/10 p-6 text-sm text-warning sm:p-8">
-          <AlertTriangle size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
-          <div>
-            <p className="font-semibold">UniscoreVN chưa tính được điểm xét tuyển CUỐI CÙNG cho USSH</p>
-            <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
-              {usshKnowledgeGaps.map((gap) => (
-                <li key={gap.id}>{gap.label}</li>
-              ))}
-            </ul>
-          </div>
-        </section>
+        {usshKnowledgeGaps.length > 0 && (
+          <section className="mt-5 flex items-start gap-3 rounded-card border border-warning/30 bg-warning/10 p-6 text-sm text-warning sm:p-8">
+            <AlertTriangle size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <div>
+              <p className="font-semibold">Chưa thể tính điểm cuối / Trường chưa công bố:</p>
+              <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
+                {usshKnowledgeGaps.map((gap) => (
+                  <li key={gap.id}>{gap.label}</li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
 
-        <section id="dt3-calculator" className="mt-5 scroll-mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
+        <section id="dhl-calculator" className="mt-5 scroll-mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">
           <div className="flex items-center gap-2">
             <Layers size={20} className="text-accent" aria-hidden="true" />
-            <h2 className="text-lg font-semibold text-ink">Tính ĐT3 + xem điểm chuẩn 2026</h2>
+            <h2 className="text-lg font-semibold text-ink">Tính điểm xét tuyển + xem điểm chuẩn 2026</h2>
           </div>
-          <p className="mt-1 text-sm text-muted">ĐT3 = 0.90×(ĐGNL×100/1200) + 0.10×(Học bạ×100/30) — CHƯA gồm Điểm cộng/Điểm ưu tiên.</p>
+          <p className="mt-1 text-sm text-muted">
+            ĐHL1 = 0.45×THPT + 0.45×ĐGNL + 0.10×Học bạ · ĐHL2 = 0.90×THPT + 0.10×Học bạ · ĐHL3 = 0.90×ĐGNL + 0.10×Học
+            bạ (mọi thành phần quy về thang 100). UniscoreVN tự chọn đối tượng có lợi nhất theo dữ liệu đã nhập.
+          </p>
+
+          <label className="mt-3 flex items-center gap-2 text-xs text-ink">
+            <input
+              type="checkbox"
+              checked={hasBonusAchievement}
+              onChange={(e) => setHasBonusAchievement(e.target.checked)}
+              className="h-4 w-4 rounded border-ink/20"
+            />
+            Tôi có thành tích thuộc diện được cộng điểm (Nhóm 1/2/3)
+          </label>
 
           <div className="mt-4 max-w-sm">
             <label htmlFor="ussh-program-select" className="text-xs font-medium text-ink">
@@ -234,32 +258,25 @@ export function UsshPage({ onChangeSchool }: UsshPageProps) {
             <p className="mt-4 text-xs text-muted">Chọn tổ hợp ở mục "Kiểm tra ngưỡng đầu vào" bên dưới để nhập điểm học bạ.</p>
           )}
 
-          {dt3Result ? (
+          {dhlResult ? (
             <div className="mt-5 rounded-md border border-accent/30 bg-accent/10 p-4">
               <p className="text-sm text-ink">
-                ĐT3 (trước Điểm cộng/Điểm ưu tiên): <strong className="text-primary">{dt3Result.scoreBeforeBonusAndPriority.toFixed(2)}</strong>
+                ĐHL ({dhlResult.applicantType}, trước Điểm cộng/Điểm ưu tiên):{' '}
+                <strong className="text-primary">{dhlResult.scoreBeforeBonusAndPriority.toFixed(2)}</strong>
                 <span className="text-muted"> / 100</span>
               </p>
-              <p className="mt-1 text-xs text-muted">
-                ĐGNL: {dt3Result.dgnlComponent.toFixed(2)} · Học bạ: {dt3Result.transcriptComponent.toFixed(2)}
-              </p>
-              <p className="mt-1 text-xs text-muted">Đây CHƯA phải điểm xét tuyển cuối cùng — còn thiếu Điểm cộng và Điểm ưu tiên (trường chưa công bố).</p>
+              {evaluation.score ? (
+                <p className="mt-1 text-sm text-ink">
+                  Điểm xét tuyển cuối cùng: <strong className="text-primary">{evaluation.score.value.toFixed(2)}</strong>
+                  <span className="text-muted"> / 100</span>
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-muted">Đây CHƯA phải điểm xét tuyển cuối cùng — bỏ tick "có thành tích cộng điểm" để xem điểm cuối.</p>
+              )}
             </div>
           ) : (
-            <p className="mt-5 text-xs text-muted">Cần điểm ĐGNL + điểm học bạ (theo tổ hợp) để tính ĐT3.</p>
+            <p className="mt-5 text-xs text-muted">Cần điểm học bạ (theo tổ hợp) + (điểm THPT hoặc điểm ĐGNL) để tính ĐHL.</p>
           )}
-
-          <details className="mt-4 rounded-md border border-ink/10 bg-surface px-3 py-2">
-            <summary className="cursor-pointer text-xs font-medium text-ink">Vì sao ĐT1/ĐT2 chưa tính được?</summary>
-            <div className="mt-2 space-y-2 text-xs text-muted">
-              <p>
-                <strong className="text-ink">ĐT1</strong> ({dt1Blocker.knownWeights}): {dt1Blocker.reason}
-              </p>
-              <p>
-                <strong className="text-ink">ĐT2</strong> ({dt2Blocker.knownWeights}): {dt2Blocker.reason}
-              </p>
-            </div>
-          </details>
         </section>
 
         <section id="threshold" className="mt-5 scroll-mt-5 rounded-2xl bg-surface-soft p-6 sm:p-8">

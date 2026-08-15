@@ -41,6 +41,38 @@ export const usshSources: UsshSource[] = [
     sourceType: 'official-school',
     verification: 'verified',
   },
+  /**
+   * Nguồn mới research 2026-08-15 — PDF "Thông tin tuyển sinh năm 2026" (Đề án tuyển sinh chính
+   * thức, 36 trang, có text layer đọc trực tiếp qua chrome-devtools, KHÔNG phải ảnh scan) dẫn từ
+   * thông báo chính thức trên hcmussh.edu.vn (mục "5. Địa chỉ công khai quy chế tuyển sinh, đề
+   * án"). Nội dung khớp NGUYÊN VĂN với thông báo `ussh-scoring-clarification-2026` bên dưới — 2
+   * nguồn độc lập cùng công bố công thức ĐHL1/ĐHL2/ĐHL3 KHÔNG chứa α1/α2 (α chỉ dùng để quy đổi
+   * độ lệch tổ hợp khi trường XÁC ĐỊNH ĐIỂM CHUẨN/tương đương ngưỡng giữa đối tượng 2 và 3, không
+   * dùng để tính ĐHL của một thí sinh cụ thể — xem trang 4 PDF, mục 3). Đây là nguồn thay thế cho
+   * ảnh infographic `ussh-scoring-principles-2026` trước đây (infographic hiển thị "THPT + α2"
+   * nhưng PDF chính thức đầy đủ hơn không có α trong công thức ĐHL).
+   */
+  {
+    id: 'ussh-info-pdf-2026',
+    publisher: 'Trường Đại học Khoa học Xã hội và Nhân văn – ĐHQG TP.HCM',
+    title:
+      'PDF "Thông tin tuyển sinh năm 2026" (Đề án tuyển sinh, QSX_Thong tin tuyen sinh 2026-theo QC-CAP NHAT_30_6_V1.pdf, 36 trang) — mục 2.2: công thức ĐXT=w1THPT+w2ĐGNL+w3HB (w1=w2=45%,w3=10%); mục 2.2.2: ĐHL1/ĐHL2(90/10 THPT+HB)/ĐHL3(90/10 ĐGNL+HB); mục 3b: quy tắc quy đổi thang 100 (×100/30, ×100/1200); mục 5b: bảng điểm cộng theo Nhóm 1(≤3)/Nhóm 2(≤4)/Nhóm 3(còn lại), tổng ≤10, chi tiết mức cộng "công bố cùng kết quả xét tuyển"; mục 5c: công thức giảm điểm ưu tiên khi tổng ≥75.',
+    url: 'https://hcmussh.edu.vn/news/item/44214',
+    accessedAt: '2026-08-15',
+    publishedAt: '2026-05-30',
+    sourceType: 'official-school',
+    verification: 'verified',
+  },
+  {
+    id: 'ussh-scoring-clarification-2026',
+    publisher: 'Trường Đại học Khoa học Xã hội và Nhân văn – ĐHQG TP.HCM',
+    title:
+      'Thông báo "Một số lưu ý quan trọng về việc xét tuyển đại học chính quy năm 2026 của Nhà trường" — nhắc lại nguyên văn công thức ĐXT/ĐHL1/ĐHL2/ĐHL3 (w1=w2=45%,w3=10% cho ĐT1; 90/10 cho ĐT2/ĐT3), quy tắc quy đổi thang 100, và giải thích rõ hệ số quy đổi α chỉ dùng để quy đổi độ lệch điểm giữa các tổ hợp khi trường xác định điểm trúng tuyển, KHÔNG xuất hiện trong công thức tính điểm của thí sinh.',
+    url: 'https://hcmussh.edu.vn/news/item/44211',
+    accessedAt: '2026-08-15',
+    sourceType: 'official-school',
+    verification: 'verified',
+  },
   {
     id: 'ussh-cutoff-2026',
     publisher: 'Trường Đại học Khoa học Xã hội và Nhân văn – ĐHQG TP.HCM',

@@ -1,75 +1,131 @@
 import { round2 } from '../../core/round2';
 
 /**
- * "Nguyên tắc tính điểm xét tuyển" USSH 2026 (ảnh official, mã trường QSX) — nguồn
- * `ussh-scoring-principles-2026` (xem `sources.ts`). Transcribe NGUYÊN VĂN 3 công thức hiển thị
- * trong ảnh (không suy diễn thêm ký hiệu không xuất hiện):
+ * "Điểm học lực" (ĐHL) 3 đối tượng xét tuyển USSH 2026 — công thức lấy NGUYÊN VĂN từ PDF chính
+ * thức `ussh-info-pdf-2026` (mục 2.2.2, trang 3-4), xác nhận độc lập lần 2 bởi thông báo
+ * `ussh-scoring-clarification-2026` (xem `sources.ts`). Cả 2 nguồn đều KHÔNG chứa α trong công
+ * thức ĐHL:
  *
- *   ĐT1 = 0.45×[(THPT + α2)×100/30] + 0.45×[(ĐGNL)×100/1200] + 0.10×[(HB)×100/30]  (+ĐC +ƯT)
- *   ĐT2 = 0.90×[(THPT + α2)×100/30] + 0.10×[(HB)×100/30]                           (+ĐC +ƯT)
- *   ĐT3 = 0.90×[(ĐGNL)×100/1200] + 0.10×[(HB)×100/30]                              (+ĐC +ƯT)
+ *   ĐHL1 = 0.45×[THPT×100/30] + 0.45×[ĐGNL×100/1200] + 0.10×[HB×100/30]   (đủ 3 thành phần)
+ *   ĐHL2 = 0.90×[THPT×100/30] + 0.10×[HB×100/30]                          (chỉ có THPT + HB)
+ *   ĐHL3 = 0.90×[ĐGNL×100/1200] + 0.10×[HB×100/30]                        (chỉ có ĐGNL + HB)
  *
- * Ghi chú dưới bảng: "α1 là hệ số giữa 2 thành phần điểm ĐGNL và THPT (ĐT1, α1=1; ĐT2 α1=1.075)."
- * "α2 là độ lệch giữa các tổ hợp với tổ hợp gốc, tính theo ngành/chương trình."
+ * Batch trước (re-audit 2026-08-13/14) dùng ảnh infographic hiển thị "THPT + α2" cho ĐT1/ĐT2 và
+ * kết luận blocked vì không rõ vai trò α1/α2. PDF chính thức (nguồn văn bản, không phải ảnh, đọc
+ * trực tiếp qua text layer) là bản đầy đủ hơn: mục 3b của CHÍNH PDF này giải thích rõ — hệ số quy
+ * đổi α CHỈ dùng để "quy đổi độ lệch điểm ngưỡng đầu vào và điểm trúng tuyển giữa các tổ hợp"
+ * (trường dùng nội bộ khi xác định điểm chuẩn/ngưỡng cho đối tượng 2 và 3 theo từng tổ hợp), KHÔNG
+ * xuất hiện trong công thức ĐHL của một thí sinh cụ thể — "Điểm lệch giữa các tổ hợp được phân
+ * tích, xử lý trong quá trình xử lý nguyện vọng của thí sinh" (PDF trang 5). Vì vậy ĐHL1/ĐHL2/ĐHL3
+ * tính được ĐẦY ĐỦ cho một thí sinh mà KHÔNG cần biết giá trị α — α chỉ ảnh hưởng cách trường tự
+ * xếp hạng/thiết lập điểm chuẩn nội bộ giữa các tổ hợp, không phải input của phép tính điểm cá
+ * nhân.
  *
- * QUAN TRỌNG — 2 vấn đề chưa giải quyết được từ chính ảnh gốc (không phải lỗi đọc ảnh):
- * 1. α1 ĐƯỢC ĐỊNH NGHĨA (có giá trị cụ thể cho ĐT1/ĐT2) nhưng KHÔNG xuất hiện ở bất kỳ đâu trong
- *    3 công thức hiển thị trực tiếp trong ảnh — không rõ nó nhân vào thành phần nào (ĐGNL? THPT?
- *    cả 2?). Theo chỉ thị "nếu ký hiệu mơ hồ, giữ unresolved, không đoán" — module này KHÔNG tự
- *    chèn α1 vào công thức ĐT1/ĐT2 ở bất kỳ vị trí nào.
- * 2. α2 xuất hiện trong công thức (cộng vào THPT: `THPT + α2`) nhưng là giá trị RIÊNG TỪNG
- *    ngành/chương trình — ảnh không kèm bảng giá trị α2 theo ngành, nên không có số cụ thể để dùng.
- *
- * Hệ quả: CHỈ ĐT3 tính được chính xác (không chứa α1/α2 — thuần ĐGNL + học bạ, mọi hằng số đều rõ
- * ràng). ĐT1/ĐT2 KHÔNG có hàm tính số — xem `UsshDt1Dt2Blocker` để UI hiển thị đúng lý do, không
- * suy đoán α2=0 hay bỏ qua α1 một cách âm thầm.
+ * Vẫn CHƯA phải điểm xét tuyển cuối cùng — thiếu 2 phần: Điểm cộng (mức cộng theo Nhóm thành tích
+ * cụ thể CHƯA công bố, chỉ có mức trần theo nhóm — xem `bonus.ts`) và Điểm ưu tiên (bảng gốc theo
+ * khu vực/đối tượng suy từ quy chế quốc gia thang 30, quy đổi ×100/30 — xem `priority.ts`).
  */
-export interface UsshDt3Input {
-  /** Điểm ĐGNL ĐHQG-HCM thô, thang 1200. */
-  dgnlRaw1200: number;
-  /** Tổng điểm học bạ tổ hợp, thang 30 (trung bình 3 năm mỗi môn). */
-  transcriptTotal30: number;
+export interface UsshDhlInput {
+  /** Điểm thi TN THPT theo tổ hợp xét tuyển, thang 30. */
+  thptRawTotal30?: number;
+  /** Điểm ĐGNL ĐHQG-HCM, thang 1200 (giá trị cao nhất 2 lần thi). */
+  dgnlRaw1200?: number;
+  /** Điểm học bạ 3 năm theo tổ hợp xét tuyển, thang 30. */
+  transcriptTotal30?: number;
 }
 
-export interface UsshDt3Result {
-  /** Điểm xét tuyển ĐT3, thang 100 — CHƯA gồm Điểm cộng (+ĐC) và Điểm ưu tiên (+ƯT), vì bảng điểm
-   * cộng USSH 2026 không có evidence trong lượt research này (xem `knowledgeGaps.ts`). */
+export type UsshApplicantType = 'DT1' | 'DT2' | 'DT3';
+
+export interface UsshDhlResult {
+  applicantType: UsshApplicantType;
+  /** ĐHL trước Điểm cộng/Điểm ưu tiên, thang 100. */
   scoreBeforeBonusAndPriority: number;
-  dgnlComponent: number;
-  transcriptComponent: number;
+  thptComponent?: number;
+  dgnlComponent?: number;
+  transcriptComponent?: number;
 }
 
-const DT3_DGNL_WEIGHT = 0.9;
-const DT3_TRANSCRIPT_WEIGHT = 0.1;
+const SCALE_100 = 100;
+const RAW_SCALE_30 = 30;
+const RAW_SCALE_1200 = 1200;
 
-export function calculateUsshDt3Score(input: UsshDt3Input): UsshDt3Result {
-  const dgnlComponent = round2(DT3_DGNL_WEIGHT * ((input.dgnlRaw1200 * 100) / 1200));
-  const transcriptComponent = round2(DT3_TRANSCRIPT_WEIGHT * ((input.transcriptTotal30 * 100) / 30));
+function toScale100(raw: number, rawScale: number): number {
+  return (raw * SCALE_100) / rawScale;
+}
+
+/** ĐHL1 — đủ 3 thành phần (0.45 THPT + 0.45 ĐGNL + 0.10 Học bạ). */
+export function calculateUsshDhl1Score(input: { thptRawTotal30: number; dgnlRaw1200: number; transcriptTotal30: number }): UsshDhlResult {
+  const thptComponent = round2(0.45 * toScale100(input.thptRawTotal30, RAW_SCALE_30));
+  const dgnlComponent = round2(0.45 * toScale100(input.dgnlRaw1200, RAW_SCALE_1200));
+  const transcriptComponent = round2(0.1 * toScale100(input.transcriptTotal30, RAW_SCALE_30));
   return {
+    applicantType: 'DT1',
+    thptComponent,
+    dgnlComponent,
+    transcriptComponent,
+    scoreBeforeBonusAndPriority: round2(thptComponent + dgnlComponent + transcriptComponent),
+  };
+}
+
+/** ĐHL2 — chỉ THPT + Học bạ (0.90 THPT + 0.10 Học bạ). */
+export function calculateUsshDhl2Score(input: { thptRawTotal30: number; transcriptTotal30: number }): UsshDhlResult {
+  const thptComponent = round2(0.9 * toScale100(input.thptRawTotal30, RAW_SCALE_30));
+  const transcriptComponent = round2(0.1 * toScale100(input.transcriptTotal30, RAW_SCALE_30));
+  return {
+    applicantType: 'DT2',
+    thptComponent,
+    transcriptComponent,
+    scoreBeforeBonusAndPriority: round2(thptComponent + transcriptComponent),
+  };
+}
+
+/** ĐHL3 — chỉ ĐGNL + Học bạ (0.90 ĐGNL + 0.10 Học bạ). Giữ tên hàm cũ `calculateUsshDt3Score` làm
+ * alias để không phá vỡ chỗ gọi đã có (UsshPage.tsx, test cũ). */
+export function calculateUsshDhl3Score(input: { dgnlRaw1200: number; transcriptTotal30: number }): UsshDhlResult {
+  const dgnlComponent = round2(0.9 * toScale100(input.dgnlRaw1200, RAW_SCALE_1200));
+  const transcriptComponent = round2(0.1 * toScale100(input.transcriptTotal30, RAW_SCALE_30));
+  return {
+    applicantType: 'DT3',
     dgnlComponent,
     transcriptComponent,
     scoreBeforeBonusAndPriority: round2(dgnlComponent + transcriptComponent),
   };
 }
 
-export type UsshDt1Dt2ApplicantType = 'DT1' | 'DT2';
-
-export interface UsshDt1Dt2Blocker {
-  applicantType: UsshDt1Dt2ApplicantType;
-  reason: string;
-  knownWeights: string;
-  unresolvedSymbols: string[];
+/** @deprecated Giữ lại cho tương thích ngược — dùng `calculateUsshDhl3Score`. Cùng công thức. */
+export interface UsshDt3Input {
+  dgnlRaw1200: number;
+  transcriptTotal30: number;
+}
+export interface UsshDt3Result {
+  scoreBeforeBonusAndPriority: number;
+  dgnlComponent: number;
+  transcriptComponent: number;
+}
+export function calculateUsshDt3Score(input: UsshDt3Input): UsshDt3Result {
+  const result = calculateUsshDhl3Score(input);
+  return {
+    scoreBeforeBonusAndPriority: result.scoreBeforeBonusAndPriority,
+    dgnlComponent: result.dgnlComponent ?? 0,
+    transcriptComponent: result.transcriptComponent ?? 0,
+  };
 }
 
-/** Mô tả lý do ĐT1/ĐT2 chưa tính được số cụ thể — dùng cho UI/evaluate.ts, không phải hàm tính điểm. */
-export function describeUsshDt1Dt2Blocker(applicantType: UsshDt1Dt2ApplicantType): UsshDt1Dt2Blocker {
-  return {
-    applicantType,
-    reason:
-      applicantType === 'DT1'
-        ? 'Công thức ĐT1 chứa α2 (độ lệch tổ hợp theo ngành, chưa có bảng giá trị) trong thành phần THPT — không thể tính số cụ thể.'
-        : 'Công thức ĐT2 chứa α2 (độ lệch tổ hợp theo ngành, chưa có bảng giá trị) trong thành phần THPT — không thể tính số cụ thể.',
-    knownWeights: applicantType === 'DT1' ? '0.45×THPT + 0.45×ĐGNL + 0.10×Học bạ' : '0.90×THPT + 0.10×Học bạ',
-    unresolvedSymbols: ['α2 (độ lệch tổ hợp theo ngành/chương trình — chưa có bảng giá trị)', 'α1 (được định nghĩa nhưng không xuất hiện trong công thức hiển thị — vai trò chưa rõ)'],
-  };
+/**
+ * Chọn đối tượng xét tuyển ĐÚNG THEO nguyên tắc "Max" của trường: ưu tiên ĐT1 nếu đủ 3 thành phần,
+ * nếu không thì ĐT2 (THPT+HB) hoặc ĐT3 (ĐGNL+HB) tùy thành phần nào có sẵn. Không tự suy đoán khi
+ * thiếu Học bạ (Học bạ bắt buộc ở cả 3 đối tượng theo PDF).
+ */
+export function calculateUsshBestDhl(input: UsshDhlInput): UsshDhlResult | null {
+  if (input.transcriptTotal30 === undefined) return null;
+  if (input.thptRawTotal30 !== undefined && input.dgnlRaw1200 !== undefined) {
+    return calculateUsshDhl1Score({ thptRawTotal30: input.thptRawTotal30, dgnlRaw1200: input.dgnlRaw1200, transcriptTotal30: input.transcriptTotal30 });
+  }
+  if (input.thptRawTotal30 !== undefined) {
+    return calculateUsshDhl2Score({ thptRawTotal30: input.thptRawTotal30, transcriptTotal30: input.transcriptTotal30 });
+  }
+  if (input.dgnlRaw1200 !== undefined) {
+    return calculateUsshDhl3Score({ dgnlRaw1200: input.dgnlRaw1200, transcriptTotal30: input.transcriptTotal30 });
+  }
+  return null;
 }

@@ -1,13 +1,17 @@
 import type { AdmissionMethodDescriptor } from '../../core/admissionMethod';
-import { usshKnowledgeGaps } from './knowledgeGaps';
 
 /**
- * USSH 2026 — re-audit 2026-08-13/14 với evidence ảnh mới (công thức + cutoff 2026). `priority:
- * true` vì công thức giảm điểm ưu tiên khi tổng ≥75 đã verified (`priorityReduction.ts`, cùng
- * pattern UEL). `scoreConversion: true` vì ĐT3 (0.9×ĐGNL+0.1×Học bạ) tính được đầy đủ, không chứa
- * α1/α2 (xem `calculator.ts`). `bonus`/`exactCalculator` vẫn `false` — bảng Điểm cộng và bảng Mức
- * điểm ưu tiên gốc theo khu vực/đối tượng chưa có evidence; ĐT1/ĐT2 blocked bởi α1 (vai trò chưa
- * rõ) + α2 (giá trị riêng ngành chưa công bố) — xem `knowledgeGaps.ts`.
+ * USSH 2026 — re-audit 2026-08-15 với PDF chính thức "Thông tin tuyển sinh năm 2026" (36 trang,
+ * text layer, xác nhận độc lập lần 2 bởi thông báo "Một số lưu ý..."). Công thức ĐHL1/ĐHL2/ĐHL3
+ * KHÔNG chứa α (α chỉ dùng nội bộ để trường xác định điểm chuẩn theo tổ hợp, không phải input tính
+ * điểm cá nhân — xem `calculator.ts`). `exactCalculator: true` cho PHẠM VI thí sinh KHÔNG có thành
+ * tích được cộng điểm (ĐC=0, supported-scope exactness) — thí sinh CÓ thành tích cộng điểm vẫn
+ * partial vì mức cộng cụ thể theo tiêu chí chưa công bố (`bonus.ts`, `knowledgeGaps.ts`).
+ *
+ * KHÔNG gắn `knowledgeGaps: usshKnowledgeGaps` vào descriptor này — cùng lý do với
+ * `schools/iu/methods.ts`: `auditMethods()` coi `exactCalculator: true` + `knowledgeGaps` non-
+ * empty là lỗi cứng (EXACT_METHOD_HAS_UNRESOLVED_GAPS). Gap còn lại (mức cộng theo tiêu chí) không
+ * thuộc phạm vi "không có thành tích" đã exact — là roadmap/limitation cho phạm vi rộng hơn.
  */
 export const usshAdmissionMethods: AdmissionMethodDescriptor[] = [
   {
@@ -19,10 +23,9 @@ export const usshAdmissionMethods: AdmissionMethodDescriptor[] = [
     capabilities: {
       eligibility: true,
       scoreConversion: true,
-      bonus: false,
+      bonus: true,
       priority: true,
-      exactCalculator: false,
+      exactCalculator: true,
     },
-    knowledgeGaps: usshKnowledgeGaps,
   },
 ];

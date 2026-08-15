@@ -109,7 +109,10 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
         subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined,
         selectedProgramId: selectedPrograms.hcmus,
       },
-      ussh: { subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined },
+      ussh: {
+        subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined,
+        selectedProgramId: selectedPrograms.ussh,
+      },
       uhs: {
         selectedProgramId: selectedPrograms.uhs,
         subjectContext:

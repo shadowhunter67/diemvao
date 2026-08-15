@@ -20,7 +20,7 @@ import { uitAdmissionMethods } from '../src/schools/uit/methods.ts';
 import { hcmusAdmissionMethods } from '../src/schools/hcmus/methods.ts';
 import { hcmusAcademicScoreEvidence, hcmusBonusEvidence, hcmusProgramThresholdEvidence, hcmusThresholdEvidence } from '../src/schools/hcmus/evidence.ts';
 import { usshAdmissionMethods } from '../src/schools/ussh/methods.ts';
-import { usshDt3FormulaEvidence, usshThresholdEvidence } from '../src/schools/ussh/evidence.ts';
+import { usshDt3FormulaEvidence, usshThresholdEvidence, usshDhl1Dhl2FormulaEvidence, usshPriorityTableEvidence } from '../src/schools/ussh/evidence.ts';
 import { uhsAdmissionMethods } from '../src/schools/uhs/methods.ts';
 import { uhsBonusEvidence, uhsIntegratedFormulaEvidence, uhsThresholdEvidence } from '../src/schools/uhs/evidence.ts';
 import { iuAdmissionMethods } from '../src/schools/iu/methods.ts';
@@ -57,6 +57,8 @@ function verifiedRuntimeEvidence(): RuleEvidence[] {
     ...hcmusBonusEvidence.evidence,
     ...usshThresholdEvidence.evidence,
     ...usshDt3FormulaEvidence.evidence,
+    ...usshDhl1Dhl2FormulaEvidence.evidence,
+    ...usshPriorityTableEvidence.evidence,
     ...uhsThresholdEvidence.evidence,
     ...uhsIntegratedFormulaEvidence.evidence,
     ...uhsBonusEvidence.evidence,

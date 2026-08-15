@@ -3,6 +3,7 @@ import type { ApplicantProfile } from '../core/applicantProfile';
 import { COMMON_SUBJECT_COMBINATIONS } from '../core/subjects';
 import { getEvaluationDisplayStatus } from './evaluationDisplay';
 import { evaluateApplicantAcrossSchools } from './evaluateApplicantAcrossSchools';
+import type { UsshEvaluationContext } from '../schools/ussh/evaluate';
 import { hcmusProgramThresholds } from '../schools/hcmus/data/programThresholds';
 import { usshPrograms } from '../schools/ussh/data/programs';
 import { UHS_PROGRAMS } from '../schools/uhs/programs';
@@ -39,7 +40,9 @@ function completeContexts() {
     uel: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'kinh-te' },
     uit: { selectedProgramId: 'khoa-hoc-may-tinh', programId: 'khoa-hoc-may-tinh' },
     hcmus: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'hcmus-75202a1' },
-    ussh: { subjectContext: { combinationId: 'A01', subjects: a01.subjects } },
+    ussh: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'ussh-7310401' } as UsshEvaluationContext & {
+      selectedProgramId: string;
+    },
     uhs: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'uhs-7720101' },
     iu: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, programId: 'iu-7340101' },
     agu: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramCode: '7480201' },
@@ -69,17 +72,25 @@ describe('evaluateApplicantAcrossSchools', () => {
     expect(AGU_PROGRAM_THRESHOLDS_2026).toHaveLength(43);
   });
 
-  it('same complete profile and contexts produce exact HCMUT, UEH, IU, UEL, HCMUS and partial remaining schools', () => {
+  it('same complete profile and contexts produce exact HCMUT, UEH, IU, UEL, HCMUS, USSH (no bonus achievement) and partial remaining schools', () => {
     const frozen = deepFreeze(structuredClone(profile));
     const bySchool = Object.fromEntries(evaluateApplicantAcrossSchools(frozen, completeContexts()).map((summary) => [summary.schoolId, summary]));
 
-    for (const schoolId of ['hcmut', 'ueh', 'iu', 'uel', 'hcmus']) {
+    for (const schoolId of ['hcmut', 'ueh', 'iu', 'uel', 'hcmus', 'ussh']) {
       expect(getEvaluationDisplayStatus(bySchool[schoolId].evaluation.confidence)).toBe('exact');
       expect(bySchool[schoolId].evaluation.score).toBeDefined();
     }
-    for (const schoolId of ['ussh', 'uhs', 'uit', 'agu']) {
+    for (const schoolId of ['uhs', 'uit', 'agu']) {
       expect(getEvaluationDisplayStatus(bySchool[schoolId].evaluation.confidence)).toBe('partial');
     }
+  });
+
+  it('USSH stays partial (no score) when applicant declares a bonus achievement', () => {
+    const contexts = completeContexts();
+    contexts.ussh = { ...contexts.ussh, hasBonusAchievement: true };
+    const ussh = evaluateApplicantAcrossSchools(profile, contexts).find((summary) => summary.schoolId === 'ussh')!;
+    expect(getEvaluationDisplayStatus(ussh.evaluation.confidence)).toBe('partial');
+    expect(ussh.evaluation.score).toBeUndefined();
   });
 
   it('does not mutate ApplicantProfile', () => {
@@ -112,7 +123,25 @@ describe('evaluateApplicantAcrossSchools', () => {
     expect(bySchool.ueh.cutoffComparison?.difference).toBeDefined();
     expect(bySchool.iu.cutoffComparison?.difference).toBeDefined();
     expect(bySchool.uel.cutoffComparison?.difference).toBeDefined();
+    expect(bySchool.ussh.cutoffComparison?.difference).toBeDefined();
     expect(bySchool.hcmus.cutoffComparison).toBeUndefined();
+  });
+
+  it('does not expose USSH cutoff comparison outside the no-bonus exact supported scope', () => {
+    const contexts = completeContexts();
+    contexts.ussh = { ...contexts.ussh, hasBonusAchievement: true };
+    const ussh = evaluateApplicantAcrossSchools(profile, contexts).find((summary) => summary.schoolId === 'ussh')!;
+    expect(getEvaluationDisplayStatus(ussh.evaluation.confidence)).toBe('partial');
+    expect(ussh.evaluation.score).toBeUndefined();
+    expect(ussh.cutoffComparison).toBeUndefined();
+  });
+
+  it('does not expose USSH cutoff comparison when selected program has no compatible cutoff record', () => {
+    const contexts = completeContexts();
+    contexts.ussh.selectedProgramId = 'not-a-real-ussh-program';
+    const ussh = evaluateApplicantAcrossSchools(profile, contexts).find((summary) => summary.schoolId === 'ussh')!;
+    expect(ussh.evaluation.confidence).toBe('exact-verified');
+    expect(ussh.cutoffComparison?.referenceType).toBe('none');
   });
 
   it('does not expose UEL cutoff comparison when selected program has no compatible cutoff record', () => {
@@ -125,7 +154,7 @@ describe('evaluateApplicantAcrossSchools', () => {
 
   it('partial schools never expose unsafe cutoff gaps even when programs are selected', () => {
     const bySchool = Object.fromEntries(evaluateApplicantAcrossSchools(profile, completeContexts()).map((summary) => [summary.schoolId, summary]));
-    for (const schoolId of ['uit', 'ussh', 'uhs', 'agu']) {
+    for (const schoolId of ['uit', 'uhs', 'agu']) {
       expect(bySchool[schoolId].cutoffComparison).toBeUndefined();
       expect(bySchool[schoolId].evaluation.score).toBeUndefined();
     }

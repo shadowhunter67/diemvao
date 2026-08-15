@@ -4,19 +4,20 @@ import { UsshPage } from './UsshPage';
 import { usshAdmissionMethods } from './methods';
 
 /**
- * Module USSH — re-audit 2026-08-13/14 với evidence ảnh mới (công thức + cutoff 2026, 54 chương
- * trình 3 track: Chuẩn/Liên kết 2+2/Chuẩn quốc tế). ĐT3 tính được đầy đủ (partialCalculator) —
- * ĐT1/ĐT2 vẫn blocked bởi α1 (vai trò chưa rõ trong công thức hiển thị) + α2 (giá trị riêng ngành
- * chưa công bố). `programs`/`cutoffs` = true vì đã có registry 54 chương trình + 162 cutoff record.
+ * Module USSH — re-audit 2026-08-15 với PDF chính thức "Thông tin tuyển sinh năm 2026" (36 trang,
+ * text layer), xác nhận độc lập lần 2 bởi thông báo "Một số lưu ý...". ĐHL1/ĐHL2/ĐHL3 đều tính
+ * được đầy đủ (không cần α — xem `calculator.ts`). `status: 'supported'` cho phạm vi thí sinh
+ * KHÔNG có thành tích được cộng điểm (ĐC=0) — thí sinh có thành tích cộng điểm vẫn partial vì mức
+ * cộng cụ thể theo tiêu chí chưa công bố (`bonus.ts`).
  */
 export const usshModule: SchoolModule = {
   id: 'ussh',
   name: 'Trường Đại học Khoa học Xã hội và Nhân văn – ĐHQG TP.HCM',
   shortName: 'USSH',
   year: 2026,
-  status: 'researching',
+  status: 'supported',
   summary:
-    'Đã có điểm chuẩn 2026 đầy đủ (54 chương trình × ĐT01/ĐT02/ĐT03) và tính được ĐT3 (90%ĐGNL+10%Học bạ) · ĐT1/ĐT2 và Điểm cộng/Điểm ưu tiên vẫn thiếu evidence (α1/α2)',
+    'Tính được điểm xét tuyển cuối (ĐHL1/ĐHL2/ĐHL3 + Điểm ưu tiên) cho thí sinh KHÔNG có thành tích được cộng điểm — thí sinh có thành tích cộng điểm vẫn partial vì mức cộng cụ thể theo tiêu chí chưa công bố.',
   capabilities: {
     admissionInfo: true,
     programs: true,

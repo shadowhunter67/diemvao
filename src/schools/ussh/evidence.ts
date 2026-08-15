@@ -32,3 +32,41 @@ export const usshDt3FormulaEvidence = {
     },
   ],
 } satisfies SourcedRule<{ dgnlWeight: number; transcriptWeight: number }>;
+
+/** Evidence cho công thức ĐHL1/ĐHL2 (mục 2.2.2 PDF chính thức) — 2 nguồn độc lập (PDF + thông báo
+ * text) đồng nhất, không chứa α trong công thức ĐHL của thí sinh. Supersedes hạn chế cũ về α1/α2. */
+export const usshDhl1Dhl2FormulaEvidence = {
+  value: { dt1: { thptWeight: 0.45, dgnlWeight: 0.45, transcriptWeight: 0.1 }, dt2: { thptWeight: 0.9, transcriptWeight: 0.1 } },
+  evidence: [
+    {
+      sourceId: 'ussh-info-pdf-2026',
+      location: 'Mục 2.2.2: ĐHL1 = Max[w1THPT+w2ĐGNL+w3HB] (w1=w2=45%,w3=10%); ĐHL2 = Max[w1THPT+w3HB] (w1=90%,w3=10%)',
+      verification: 'verified' as const,
+      effectiveYear: 2026,
+      verifiedAt: '2026-08-15',
+    },
+    {
+      sourceId: 'ussh-scoring-clarification-2026',
+      location: 'Công thức ĐHL1/ĐHL2 nhắc lại nguyên văn, xác nhận độc lập lần 2',
+      verification: 'verified' as const,
+      effectiveYear: 2026,
+      verifiedAt: '2026-08-15',
+    },
+  ],
+} satisfies SourcedRule<{ dt1: { thptWeight: number; dgnlWeight: number; transcriptWeight: number }; dt2: { thptWeight: number; transcriptWeight: number } }>;
+
+/** Evidence cho bảng ưu tiên chuẩn — bảng gốc quốc gia (thang 30) quy đổi ×100/30 theo đúng quy
+ * tắc quy đổi mà chính PDF USSH công bố cho mọi thành phần khác. Mức 'cross-checked' vì bảng số cụ
+ * thể trên thang 100 không được USSH tự in lại. */
+export const usshPriorityTableEvidence = {
+  value: { regionKV1_100: 2.5, category_UT1_100: 20 / 3 },
+  evidence: [
+    {
+      sourceId: 'ussh-info-pdf-2026',
+      location: 'Mục 5c: "theo quy chế tuyển sinh hiện hành" + quy tắc quy đổi ×100/30 (mục 3b) áp dụng lại cho bảng ưu tiên quốc gia',
+      verification: 'cross-checked' as const,
+      effectiveYear: 2026,
+      verifiedAt: '2026-08-15',
+    },
+  ],
+} satisfies SourcedRule<{ regionKV1_100: number; category_UT1_100: number }>;

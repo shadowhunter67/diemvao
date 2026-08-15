@@ -3,6 +3,7 @@ import { schoolRegistry } from './index';
 import { hcmutModule } from './hcmut';
 import { uehModule } from './ueh';
 import { iuModule } from './iu';
+import { usshModule } from './ussh';
 import readme from '../../README.md?raw';
 
 describe('schoolRegistry', () => {
@@ -37,10 +38,10 @@ describe('schoolRegistry', () => {
     expect(hcmutModule.status).toBe('supported');
   });
 
-  it('hcmut, ueh, iu có status supported — IU nâng lên exact 2026-08-14 (Đối tượng "Thí sinh tốt nghiệp THPT 2026")', () => {
+  it('hcmut, ueh, iu, ussh có status supported — USSH nâng lên exact 2026-08-15 (thí sinh không có thành tích cộng điểm)', () => {
     const supported = Object.values(schoolRegistry).filter((school) => school.status === 'supported');
-    expect(supported).toEqual(expect.arrayContaining([hcmutModule, uehModule, iuModule]));
-    expect(supported).toHaveLength(3);
+    expect(supported).toEqual(expect.arrayContaining([hcmutModule, uehModule, iuModule, usshModule]));
+    expect(supported).toHaveLength(4);
   });
 
   it('có đủ các trường đã research (ĐHQG-HCM + UEH ngoài hệ thống)', () => {

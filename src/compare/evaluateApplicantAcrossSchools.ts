@@ -22,6 +22,7 @@ import { evaluateHcmusAdmission, type HcmusEvaluationContext } from '../schools/
 import { hcmusAdmissionMethods } from '../schools/hcmus/methods';
 import { evaluateUsshAdmission, type UsshEvaluationContext } from '../schools/ussh/evaluate';
 import { usshAdmissionMethods } from '../schools/ussh/methods';
+import { usshCutoffs } from '../schools/ussh/data/cutoffs';
 import { evaluateUhsAdmission, type UhsEvaluationContext } from '../schools/uhs/evaluate';
 import { uhsAdmissionMethods } from '../schools/uhs/methods';
 import { evaluateIuAdmission, type IuEvaluationContext } from '../schools/iu/evaluate';
@@ -57,7 +58,9 @@ export interface MultiSchoolEvaluationContext {
     selectedProgramId?: string;
   };
   hcmus?: HcmusEvaluationContext;
-  ussh?: UsshEvaluationContext;
+  ussh?: UsshEvaluationContext & {
+    selectedProgramId?: string;
+  };
   uhs?: UhsEvaluationContext;
   iu?: IuEvaluationContext;
   agu?: AguEvaluationContext;
@@ -173,7 +176,7 @@ export function evaluateApplicantAcrossSchools(
     evaluateIu(profile, contexts),
     evaluateUel(profile, contexts),
     summarize('hcmus', hcmusAdmissionMethods[0].id, hcmusAdmissionMethods[0].name, evaluateHcmusAdmission(profile, contexts.hcmus)),
-    summarize('ussh', usshAdmissionMethods[0].id, usshAdmissionMethods[0].name, evaluateUsshAdmission(profile, contexts.ussh)),
+    evaluateUssh(profile, contexts),
     summarize('uhs', uhsAdmissionMethods[0].id, uhsAdmissionMethods[0].name, evaluateUhsAdmission(profile, contexts.uhs)),
     summarize('uit', uitAdmissionMethods[0].id, uitAdmissionMethods[0].name, evaluateUitAdmission(profile, contexts.uit)),
     summarize('agu', aguAdmissionMethods[0].id, aguAdmissionMethods[0].name, evaluateAguAdmission(profile, contexts.agu)),
@@ -201,6 +204,40 @@ function evaluateUel(profile: ApplicantProfile, contexts: MultiSchoolEvaluationC
       applicantScore: evaluation.score.value,
       applicantScale: evaluation.score.scale,
       selection: { programId: contexts.uel.selectedProgramId },
+    });
+  }
+  return summary;
+}
+
+function getUsshApplicantType(evaluation: AdmissionEvaluation): 'DT1' | 'DT2' | 'DT3' | undefined {
+  const finalLabel = evaluation.explanation.find((step) => step.id === 'ussh-final')?.label ?? '';
+  const match = /\((DT[123])\)/.exec(finalLabel);
+  return match?.[1] as 'DT1' | 'DT2' | 'DT3' | undefined;
+}
+
+function evaluateUssh(profile: ApplicantProfile, contexts: MultiSchoolEvaluationContext): SchoolEvaluationSummary {
+  const method = usshAdmissionMethods[0];
+  const evaluation = evaluateUsshAdmission(profile, contexts.ussh);
+  const summary = summarize('ussh', method.id, method.name, evaluation);
+  const applicantTypeId = getUsshApplicantType(evaluation);
+
+  if (canCompareEvaluationToCutoff(evaluation) && !contexts.ussh?.selectedProgramId) {
+    summary.evaluation = {
+      ...summary.evaluation,
+      missingRequirements: [
+        ...(summary.evaluation.missingRequirements ?? []),
+        { kind: 'school-context', code: 'program', label: 'Chon nganh USSH de so voi dung muc diem chuan.' },
+      ],
+    };
+  }
+  if (canCompareEvaluationToCutoff(evaluation) && evaluation.score && contexts.ussh?.selectedProgramId && applicantTypeId) {
+    const records = usshCutoffs.filter((cutoff) => cutoff.programId === contexts.ussh?.selectedProgramId);
+    summary.cutoffComparison = findCutoffComparison({
+      records,
+      targetYear: method.year,
+      applicantScore: evaluation.score.value,
+      applicantScale: evaluation.score.scale,
+      selection: { programId: contexts.ussh.selectedProgramId, applicantTypeId },
     });
   }
   return summary;
