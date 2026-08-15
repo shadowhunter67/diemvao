@@ -16,7 +16,7 @@ export const hcmusAdmissionMethods: AdmissionMethodDescriptor[] = [
     capabilities: {
       eligibility: true,
       scoreConversion: true,
-      bonus: false,
+      bonus: true,
       priority: false,
       exactCalculator: false,
     },

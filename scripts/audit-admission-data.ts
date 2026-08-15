@@ -18,7 +18,7 @@ import { uelAdmissionMethods } from '../src/schools/uel/methods.ts';
 import { uitCutoffs } from '../src/schools/uit/data/cutoffs.ts';
 import { uitAdmissionMethods } from '../src/schools/uit/methods.ts';
 import { hcmusAdmissionMethods } from '../src/schools/hcmus/methods.ts';
-import { hcmusAcademicScoreEvidence, hcmusProgramThresholdEvidence, hcmusThresholdEvidence } from '../src/schools/hcmus/evidence.ts';
+import { hcmusAcademicScoreEvidence, hcmusBonusEvidence, hcmusProgramThresholdEvidence, hcmusThresholdEvidence } from '../src/schools/hcmus/evidence.ts';
 import { usshAdmissionMethods } from '../src/schools/ussh/methods.ts';
 import { usshDt3FormulaEvidence, usshThresholdEvidence } from '../src/schools/ussh/evidence.ts';
 import { uhsAdmissionMethods } from '../src/schools/uhs/methods.ts';
@@ -26,9 +26,11 @@ import { uhsBonusEvidence, uhsIntegratedFormulaEvidence, uhsThresholdEvidence } 
 import { iuAdmissionMethods } from '../src/schools/iu/methods.ts';
 import { iuAcademicWeightsEvidence, iuBonusEvidence, iuPriorityEvidence, iuPriorityReductionEvidence } from '../src/schools/iu/evidence.ts';
 import { iuCutoffs2026 } from '../src/schools/iu/data/cutoffs.ts';
+import { aguAdmissionMethods } from '../src/schools/agu/methods.ts';
+import { aguBetaWeightsEvidence, aguLawExtraConditionEvidence, aguProgramThresholdEvidence } from '../src/schools/agu/evidence.ts';
 import { allAdmissionSources } from '../src/schools/sourceRegistry.ts';
 
-const SCHOOLS = ['hcmut', 'ueh', 'uel', 'uit', 'hcmus', 'ussh', 'uhs', 'iu'] as const;
+const SCHOOLS = ['hcmut', 'ueh', 'uel', 'uit', 'hcmus', 'ussh', 'uhs', 'iu', 'agu'] as const;
 const args = process.argv.slice(2);
 const verbose = args.includes('--verbose');
 const schoolFilter = args.find((arg) => arg.startsWith('--school='))?.slice('--school='.length) ?? args.find((arg) => SCHOOLS.includes(arg as (typeof SCHOOLS)[number]));
@@ -52,6 +54,7 @@ function verifiedRuntimeEvidence(): RuleEvidence[] {
     ...hcmusThresholdEvidence.evidence,
     ...hcmusAcademicScoreEvidence.evidence,
     ...hcmusProgramThresholdEvidence.evidence,
+    ...hcmusBonusEvidence.evidence,
     ...usshThresholdEvidence.evidence,
     ...usshDt3FormulaEvidence.evidence,
     ...uhsThresholdEvidence.evidence,
@@ -61,6 +64,9 @@ function verifiedRuntimeEvidence(): RuleEvidence[] {
     ...iuBonusEvidence.evidence,
     ...iuPriorityEvidence.evidence,
     ...iuPriorityReductionEvidence.evidence,
+    ...aguProgramThresholdEvidence.evidence,
+    ...aguBetaWeightsEvidence.evidence,
+    ...aguLawExtraConditionEvidence.evidence,
   ];
 }
 
@@ -103,6 +109,7 @@ const methods = [
   ...usshAdmissionMethods,
   ...uhsAdmissionMethods,
   ...iuAdmissionMethods,
+  ...aguAdmissionMethods,
 ];
 const issues = auditAdmissionDataFreshness({
   currentAdmissionYear: CURRENT_ADMISSION_YEAR,
@@ -124,6 +131,7 @@ const issues = auditAdmissionDataFreshness({
     ...methodGaps(usshAdmissionMethods),
     ...methodGaps(uhsAdmissionMethods),
     ...methodGaps(iuAdmissionMethods),
+    ...methodGaps(aguAdmissionMethods),
   ],
 });
 

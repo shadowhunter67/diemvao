@@ -1,5 +1,6 @@
 import type { SourcedRule } from '../../core/evidence';
 import { HCMUS_NUCLEAR_ENGINEERING_MIN_SUBJECT_SCORE, HCMUS_THPT_COMBINATION_THRESHOLD_30 } from './eligibility';
+import { HCMUS_BONUS_CATEGORIES_2026, HCMUS_BONUS_REDUCTION_THRESHOLD_30, HCMUS_MAX_SCORE_30 } from './data/bonus';
 
 export const hcmusThresholdEvidence = {
   value: { thptThreshold30: HCMUS_THPT_COMBINATION_THRESHOLD_30, nuclearMinSubject: HCMUS_NUCLEAR_ENGINEERING_MIN_SUBJECT_SCORE },
@@ -53,3 +54,26 @@ export const hcmusAcademicScoreEvidence = {
     },
   ],
 } satisfies SourcedRule<{ thptWeight: number; transcriptWeight: number }>;
+
+/**
+ * Evidence cho bảng "Điểm cộng" Phương thức 2 (2026) — re-audit 2026-08-15, ảnh chính thức mở qua
+ * chrome-devtools trực tiếp từ trang tuyensinh.hcmus.edu.vn/2026-thong-tin-tuyen-sinh/. Đóng gap
+ * `hcmus-bonus-table` (xem `knowledgeGaps.ts`). Điểm ưu tiên khu vực/đối tượng VẪN là gap riêng.
+ */
+export const hcmusBonusEvidence = {
+  value: {
+    categoryCount: HCMUS_BONUS_CATEGORIES_2026.length,
+    reductionThreshold30: HCMUS_BONUS_REDUCTION_THRESHOLD_30,
+    maxScore30: HCMUS_MAX_SCORE_30,
+  },
+  evidence: [
+    {
+      sourceId: 'hcmus-bonus-table-2026',
+      location:
+        'Ảnh "BẢNG ĐIỂM CỘNG PHƯƠNG THỨC 2..." + mục "2. Điểm cộng" trang tuyensinh.hcmus.edu.vn/2026-thong-tin-tuyen-sinh/ — 15 dòng thang điểm cơ sở, chỉ cộng 01 loại cao nhất, công thức giảm khi tổng điểm ≥28,5/30, điểm xét không vượt 30/30.',
+      verification: 'verified' as const,
+      effectiveYear: 2026,
+      verifiedAt: '2026-08-15',
+    },
+  ],
+} satisfies SourcedRule<{ categoryCount: number; reductionThreshold30: number; maxScore30: number }>;

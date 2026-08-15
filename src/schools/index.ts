@@ -7,6 +7,7 @@ import { hcmusModule } from './hcmus';
 import { usshModule } from './ussh';
 import { uhsModule } from './uhs';
 import { iuModule } from './iu';
+import { aguModule } from './agu';
 
 /**
  * Các trường ĐHQG-HCM khác đã research (xem docs/admission-research-2026.md) nhưng CHƯA có
@@ -20,22 +21,11 @@ import { iuModule } from './iu';
  * status='formula-incomplete': research chưa tìm đủ công thức từ nguồn đủ tin cậy.
  */
 /**
- * AGU — research 2026-08-13 (Priority 5, bounded): domain chính thức KHÔNG truy cập được —
- * `agu.edu.vn`/`www.agu.edu.vn` timeout DNS từ môi trường hiện tại. Đây là blocker truy cập
- * nguồn, KHÔNG phải "chưa đủ dữ liệu chính thức" chung chung — cần retry từ máy có DNS resolve
- * được domain này. (IU đã research xong qua trình duyệt thật — xem `schools/iu/`, không còn ở
- * danh sách identity-only này.)
+ * researchedSchools (identity-only) hiện trống — AGU đã research xong 2026-08-15 qua browser thật
+ * (domain con `tuyensinh.agu.edu.vn` truy cập bình thường, khác kết luận DNS-timeout của lần
+ * research trước với `agu.edu.vn`/`www.agu.edu.vn`) và có module thật ở `schools/agu/`.
  */
-const researchedSchools: SchoolModule[] = [
-  {
-    id: 'agu',
-    name: 'Trường Đại học An Giang – ĐHQG TP.HCM',
-    shortName: 'AGU',
-    year: 2026,
-    status: 'formula-incomplete',
-    summary: 'Chưa research được: domain agu.edu.vn không resolve được (DNS timeout) từ môi trường hiện tại',
-  },
-];
+const researchedSchools: SchoolModule[] = [];
 
 /**
  * Registry đơn giản, KHÔNG dynamic plugin loading/DI. Thêm trường mới (đã implement thật) =
@@ -52,5 +42,6 @@ export const schoolRegistry: Record<string, SchoolModule> = {
   ussh: usshModule,
   uhs: uhsModule,
   iu: iuModule,
+  agu: aguModule,
   ...Object.fromEntries(researchedSchools.map((school) => [school.id, school])),
 };

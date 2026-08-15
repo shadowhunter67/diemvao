@@ -100,12 +100,19 @@ describe('aggregateSchoolCapabilities — OR semantics qua nhiều method', () =
   });
 });
 
-describe('Trường identity-only (chưa implement methods.ts) vẫn hoạt động — fallback không crash', () => {
-  it('school không có capabilities field vẫn có shape hợp lệ (AGU)', async () => {
+describe('AGU — research 2026-08-15 nâng từ identity-only lên module thật (eligibility)', () => {
+  it('có capabilities thật derive từ aguAdmissionMethods (eligibility=true, chưa có Page riêng)', async () => {
     const { schoolRegistry } = await import('./index');
-    const identityOnly = schoolRegistry['agu'];
-    expect(identityOnly).toBeDefined();
-    expect(identityOnly.capabilities).toBeUndefined();
-    expect(identityOnly.Page).toBeUndefined();
+    const agu = schoolRegistry['agu'];
+    expect(agu).toBeDefined();
+    expect(agu.capabilities).toEqual({
+      admissionInfo: true,
+      programs: true,
+      cutoffs: false,
+      eligibility: true,
+      scoreConversion: false,
+      exactCalculator: false,
+    });
+    expect(agu.Page).toBeUndefined();
   });
 });

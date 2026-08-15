@@ -63,4 +63,14 @@ export const hcmusSources: HcmusSource[] = [
     sourceType: 'official-school',
     verification: 'verified',
   },
+  {
+    id: 'hcmus-bonus-table-2026',
+    publisher: 'Trường Đại học Khoa học Tự nhiên - ĐHQG TP.HCM',
+    title:
+      'Ảnh "BẢNG ĐIỂM CỘNG PHƯƠNG THỨC 2 TUYỂN SINH TRÌNH ĐỘ ĐẠI HỌC NĂM 2026" đính kèm mục "2. Điểm cộng" của trang Thông tin tuyển sinh 2026 - 15 dòng thang điểm cơ sở (0,15-1,5/30), quy tắc chỉ cộng 01 loại cao nhất, công thức giảm khi tổng điểm ≥28,5/30, mức trần điểm xét 30/30.',
+    url: 'https://tuyensinh.hcmus.edu.vn/2026-thong-tin-tuyen-sinh/',
+    accessedAt: '2026-08-15',
+    sourceType: 'official-school',
+    verification: 'verified',
+  },
 ];

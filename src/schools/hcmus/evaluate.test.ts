@@ -28,10 +28,11 @@ describe('evaluateHcmusAdmission', () => {
     expect(evaluation.eligibility?.status).toBe('ineligible');
   });
 
-  it('missingRules liệt kê 3 gap chính thức còn lại và không còn gap bảng ngưỡng 39 ngành', () => {
+  it('missingRules liệt kê 2 gap chính thức còn lại (re-audit 2026-08-15: hcmus-bonus-table đã resolved) và không còn gap bảng ngưỡng 39 ngành', () => {
     const evaluation = evaluateHcmusAdmission({});
-    expect(evaluation.missingRules).toHaveLength(3);
+    expect(evaluation.missingRules).toHaveLength(2);
     expect((evaluation.missingRequirements ?? []).map((requirement) => requirement.code)).not.toContain('hcmus-program-threshold-table-39');
+    expect((evaluation.missingRequirements ?? []).map((requirement) => requirement.code)).not.toContain('hcmus-bonus-table');
   });
 
   it('academicScore tính được thật khi đủ THPT + học bạ, xuất hiện trong explanation, không set evaluation.score', () => {
