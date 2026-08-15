@@ -1,4 +1,5 @@
 import { ExternalLink } from 'lucide-react';
+import type { ReactNode } from 'react';
 import type { MissingRequirement, MissingRequirementKind } from '../../core/admissionEvaluation';
 import type { SchoolEvaluationSummary } from '../../compare/evaluateApplicantAcrossSchools';
 import { summarizeEvaluationCompleteness } from '../../compare/evaluationCompleteness';
@@ -259,6 +260,7 @@ export function SchoolComparisonCard({
   selectedProgramId,
   options,
   combinationId,
+  contextControls,
   onSelectProgram,
   onOpenSchool,
 }: {
@@ -266,6 +268,7 @@ export function SchoolComparisonCard({
   selectedProgramId?: string;
   options: readonly ProgramOption[];
   combinationId?: string;
+  contextControls?: ReactNode;
   onSelectProgram: (schoolId: string, programId: string) => void;
   onOpenSchool: (schoolId: string) => void;
 }) {
@@ -287,6 +290,7 @@ export function SchoolComparisonCard({
 
       <div className="mt-4 space-y-3 text-sm">
         <SchoolContextSummary selectedProgram={selectedProgram} methodName={summary.methodName} combinationId={combinationId} />
+        {contextControls && <div className="rounded-md bg-surface-soft p-3">{contextControls}</div>}
         <ProgramSelector schoolId={summary.schoolId} selectedProgramId={selectedProgramId} options={options} onSelectProgram={onSelectProgram} />
 
         {score ? (

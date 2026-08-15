@@ -1,5 +1,6 @@
 import type { ApplicantProfile } from '../../core/applicantProfile';
-import type { UehPartialInput } from './evaluate';
+import type { UehExactEvaluationInput, UehPartialInput } from './evaluate';
+import { convertDgnlToThpt } from './dgnlConversion';
 
 /**
  * Đọc `profile.exams.vact.total` — điểm ĐGNL ĐHQG-HCM thô, thang 0-1200 (4 phần thi × 300, KHÔNG
@@ -18,5 +19,26 @@ export function buildUehEvaluationInput(
     dgnlScore: profile.exams?.vact?.total,
     campus: context.campus,
     knownAdmissionScore100: context.knownAdmissionScore100,
+  };
+}
+
+function averageGradeScores(scores: Partial<Record<string, number>> | undefined): number | undefined {
+  if (!scores) return undefined;
+  const values = Object.values(scores).filter((score): score is number => score !== undefined);
+  if (values.length === 0) return undefined;
+  return values.reduce((sum, score) => sum + score, 0) / values.length;
+}
+
+export function buildUehExactEvaluationInput(
+  profile: ApplicantProfile,
+  context: { campus?: 'hcmc' | 'mekong' } = {}
+): UehExactEvaluationInput {
+  const dgnlEquivalent = profile.exams?.vact?.total !== undefined ? convertDgnlToThpt(profile.exams.vact.total) : null;
+  return {
+    examScore30: dgnlEquivalent ?? undefined,
+    gpaGrade10: averageGradeScores(profile.transcript?.grade10),
+    gpaGrade11: averageGradeScores(profile.transcript?.grade11),
+    gpaGrade12: averageGradeScores(profile.transcript?.grade12),
+    campus: context.campus ?? 'hcmc',
   };
 }

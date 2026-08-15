@@ -12,6 +12,10 @@ const SCHOOL_CONTEXT_ACTIONS: Record<string, Record<string, MissingRequirementAc
   ueh: {
     program: { href: '/ueh#programs', label: 'Chon nganh de so diem chuan' },
   },
+  iu: {
+    program: { href: '/iu#programs', label: 'Chon nganh IU' },
+    'iu-subject-combination': { href: '/iu#academic-score', label: 'Chon to hop IU' },
+  },
   uit: {
     program: { href: '/uit#programs', label: 'Chon nganh de so diem chuan' },
   },
@@ -34,6 +38,8 @@ const PROFILE_INPUT_ACTIONS: Record<string, Record<string, MissingRequirementAct
   },
   ueh: {
     'ueh-dgnl': { href: '/ueh#dgnl', label: 'Nhap DGNL UEH' },
+    'ueh-exam-score-30': { href: '/ueh#calculator', label: 'Nhap diem thi UEH' },
+    'ueh-gpa': { href: '/ueh#calculator', label: 'Nhap hoc ba UEH' },
   },
   uel: {
     'uel-dgnl': { href: '/uel#dgnl', label: 'Nhap DGNL UEL' },
@@ -65,6 +71,9 @@ export function getMissingRequirementAction(schoolId: string, requirement: Missi
     }
     if (schoolId === 'uhs' && requirement.code.startsWith('uhs-thpt-')) {
       return { href: '/uhs#components', label: 'Nhap diem THPT UHS' };
+    }
+    if (schoolId === 'iu' && requirement.code.startsWith('iu-subject-')) {
+      return { href: '/iu#academic-score', label: 'Nhap diem THPT/hoc ba IU' };
     }
     return PROFILE_INPUT_ACTIONS[schoolId]?.[requirement.code];
   }

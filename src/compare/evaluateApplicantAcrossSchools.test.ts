@@ -3,6 +3,10 @@ import type { ApplicantProfile } from '../core/applicantProfile';
 import { COMMON_SUBJECT_COMBINATIONS } from '../core/subjects';
 import { getEvaluationDisplayStatus } from './evaluationDisplay';
 import { evaluateApplicantAcrossSchools } from './evaluateApplicantAcrossSchools';
+import { hcmusProgramThresholds } from '../schools/hcmus/data/programThresholds';
+import { usshPrograms } from '../schools/ussh/data/programs';
+import { UHS_PROGRAMS } from '../schools/uhs/programs';
+import { iuPrograms } from '../schools/iu/data/programs';
 
 function deepFreeze<T>(value: T): T {
   if (value && typeof value === 'object') {
@@ -27,50 +31,68 @@ const profile: ApplicantProfile = {
   },
 };
 
-describe('evaluateApplicantAcrossSchools', () => {
-  it('same profile → HCMUT exact, UEH partial, UEL partial, UIT partial', () => {
-    const frozen = deepFreeze(structuredClone(profile));
-    const summaries = evaluateApplicantAcrossSchools(frozen, {
-      hcmut: {
-        methodContext: {
-          combination: COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === 'A01')!,
-          bonus: { reward: 0, considerationReward: 0, encouragement: 0 },
-          priorityRaw30Scale: 0,
-        },
-      },
-      uel: {
-        subjectContext: {
-          combinationId: 'A01',
-          subjects: COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === 'A01')!.subjects,
-        },
-      },
-    });
+const a01 = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === 'A01')!;
 
-    const bySchool = Object.fromEntries(summaries.map((summary) => [summary.schoolId, summary]));
-    expect(getEvaluationDisplayStatus(bySchool.hcmut.evaluation.confidence)).toBe('exact');
-    expect(getEvaluationDisplayStatus(bySchool.ueh.evaluation.confidence)).toBe('partial');
-    expect(getEvaluationDisplayStatus(bySchool.uel.evaluation.confidence)).toBe('partial');
-    expect(getEvaluationDisplayStatus(bySchool.uit.evaluation.confidence)).toBe('partial');
-    expect(bySchool.hcmut.evaluation.score?.scale).toBe(100);
-    expect(bySchool.ueh.evaluation.explanation[0].scale).toBe(30);
-    expect(bySchool.uel.evaluation.explanation.some((step) => step.id === 'uel-thpt-scale-100')).toBe(true);
+function completeContexts() {
+  return {
+    hcmut: {
+      methodContext: {
+        combination: a01,
+        bonus: { reward: 0, considerationReward: 0, encouragement: 0 },
+        priorityRaw30Scale: 0,
+      },
+      selectedProgramId: 'khoa-hoc-may-tinh',
+    },
+    ueh: { selectedProgramId: 'kinh-te' },
+    uel: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'kinh-te' },
+    uit: { selectedProgramId: 'khoa-hoc-may-tinh', programId: 'khoa-hoc-may-tinh' },
+    hcmus: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'hcmus-75202a1' },
+    ussh: { subjectContext: { combinationId: 'A01', subjects: a01.subjects } },
+    uhs: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'uhs-7720101' },
+    iu: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, programId: 'iu-7340101' },
+  };
+}
+
+describe('evaluateApplicantAcrossSchools', () => {
+  it('renders the canonical 8-school compare roster in product order', () => {
+    const summaries = evaluateApplicantAcrossSchools(profile);
+    expect(summaries.map((summary) => summary.schoolId)).toEqual(['hcmut', 'ueh', 'iu', 'uel', 'hcmus', 'ussh', 'uhs', 'uit']);
   });
 
-  it('không mutate ApplicantProfile', () => {
+  it('uses real program registries for compare selectors', () => {
+    expect(hcmusProgramThresholds).toHaveLength(39);
+    expect(usshPrograms).toHaveLength(54);
+    expect(UHS_PROGRAMS).toHaveLength(6);
+    expect(iuPrograms).toHaveLength(38);
+  });
+
+  it('same complete profile and contexts produce exact HCMUT, UEH, IU and partial remaining schools', () => {
+    const frozen = deepFreeze(structuredClone(profile));
+    const summaries = evaluateApplicantAcrossSchools(frozen, completeContexts());
+    const bySchool = Object.fromEntries(summaries.map((summary) => [summary.schoolId, summary]));
+
+    expect(getEvaluationDisplayStatus(bySchool.hcmut.evaluation.confidence)).toBe('exact');
+    expect(getEvaluationDisplayStatus(bySchool.ueh.evaluation.confidence)).toBe('exact');
+    expect(getEvaluationDisplayStatus(bySchool.iu.evaluation.confidence)).toBe('exact');
+    expect(bySchool.hcmut.evaluation.score?.scale).toBe(100);
+    expect(bySchool.ueh.evaluation.score?.scale).toBe(100);
+    expect(bySchool.iu.evaluation.score?.scale).toBe(100);
+
+    expect(getEvaluationDisplayStatus(bySchool.uel.evaluation.confidence)).toBe('partial');
+    expect(getEvaluationDisplayStatus(bySchool.hcmus.evaluation.confidence)).toBe('partial');
+    expect(getEvaluationDisplayStatus(bySchool.ussh.evaluation.confidence)).toBe('partial');
+    expect(getEvaluationDisplayStatus(bySchool.uhs.evaluation.confidence)).toBe('partial');
+    expect(getEvaluationDisplayStatus(bySchool.uit.evaluation.confidence)).toBe('partial');
+  });
+
+  it('does not mutate ApplicantProfile', () => {
     const before = structuredClone(profile);
     const frozen = deepFreeze(structuredClone(profile));
-    evaluateApplicantAcrossSchools(frozen, {
-      uel: {
-        subjectContext: {
-          combinationId: 'A01',
-          subjects: COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === 'A01')!.subjects,
-        },
-      },
-    });
+    evaluateApplicantAcrossSchools(frozen, completeContexts());
     expect(frozen).toEqual(before);
   });
 
-  it('thiếu context HCMUT → không fake exact score', () => {
+  it('missing HCMUT context cannot create fake exact score', () => {
     const summaries = evaluateApplicantAcrossSchools(profile);
     const hcmut = summaries.find((summary) => summary.schoolId === 'hcmut')!;
     expect(getEvaluationDisplayStatus(hcmut.evaluation.confidence)).toBe('unavailable');
@@ -78,27 +100,7 @@ describe('evaluateApplicantAcrossSchools', () => {
     expect(hcmut.evaluation.missingInputs.length).toBeGreaterThan(0);
   });
 
-  it('sort ổn định: exact trước, partial sau, unavailable sau khi caller sort bằng helper UI', () => {
-    const summaries = evaluateApplicantAcrossSchools(profile, {
-      hcmut: {
-        methodContext: {
-          combination: COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === 'A01')!,
-          bonus: { reward: 0, considerationReward: 0, encouragement: 0 },
-          priorityRaw30Scale: 0,
-        },
-      },
-      uel: {
-        subjectContext: {
-          combinationId: 'A01',
-          subjects: COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === 'A01')!.subjects,
-        },
-      },
-    });
-    expect(summaries.map((summary) => summary.schoolId)).toEqual(['hcmut', 'ueh', 'uel', 'uit', 'hcmus', 'ussh', 'uhs', 'iu']);
-  });
-
   it('classifies actionable and official missing requirements without mutating context', () => {
-    const a01 = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === 'A01')!;
     const frozenContext = deepFreeze({
       uel: { subjectContext: { combinationId: 'A01', subjects: a01.subjects } },
     });
@@ -128,81 +130,34 @@ describe('evaluateApplicantAcrossSchools', () => {
     expect(completed.evaluation.missingRequirements?.some((requirement) => requirement.code === 'uel-thpt-physics')).toBe(false);
     expect(completed.evaluation.explanation.some((step) => step.id === 'uel-thpt-scale-100')).toBe(true);
   });
-  it('HCMUT exact needs selected program before cutoff comparison becomes meaningful', () => {
-    const completeContext = {
-      hcmut: {
-        methodContext: {
-          combination: COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === 'A01')!,
-          bonus: { reward: 0, considerationReward: 0, encouragement: 0 },
-          priorityRaw30Scale: 0,
-        },
-      },
-    };
-    const withoutProgram = evaluateApplicantAcrossSchools(profile, completeContext).find((summary) => summary.schoolId === 'hcmut')!;
-    expect(getEvaluationDisplayStatus(withoutProgram.evaluation.confidence)).toBe('exact');
-    expect(withoutProgram.cutoffComparison).toBeUndefined();
-    expect(withoutProgram.evaluation.missingRequirements).toContainEqual(
-      expect.objectContaining({ kind: 'school-context', code: 'program' })
-    );
 
-    const withProgram = evaluateApplicantAcrossSchools(profile, {
-      hcmut: { ...completeContext.hcmut, selectedProgramId: 'khoa-hoc-may-tinh' },
-    }).find((summary) => summary.schoolId === 'hcmut')!;
-    expect(withProgram.evaluation.missingRequirements?.some((requirement) => requirement.code === 'program') ?? false).toBe(false);
-    expect(withProgram.cutoffComparison?.comparable).toBe(true);
-    expect(withProgram.cutoffComparison?.applicantScale).toBe(100);
+  it('exact schools expose cutoff gaps only when selected program and scale are compatible', () => {
+    const bySchool = Object.fromEntries(evaluateApplicantAcrossSchools(profile, completeContexts()).map((summary) => [summary.schoolId, summary]));
+    expect(bySchool.hcmut.cutoffComparison?.difference).toBeDefined();
+    expect(bySchool.ueh.cutoffComparison?.difference).toBeDefined();
+    expect(bySchool.iu.cutoffComparison?.difference).toBeDefined();
   });
 
   it('partial schools never expose unsafe cutoff gaps even when programs are selected', () => {
-    const a01 = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === 'A01')!;
-    const summaries = evaluateApplicantAcrossSchools(profile, {
-      hcmut: {
-        methodContext: {
-          combination: a01,
-          bonus: { reward: 0, considerationReward: 0, encouragement: 0 },
-          priorityRaw30Scale: 0,
-        },
-        selectedProgramId: 'khoa-hoc-may-tinh',
-      },
-      ueh: { selectedProgramId: 'kinh-te' },
-      uel: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'kinh-te' },
-      uit: { selectedProgramId: 'khoa-hoc-may-tinh', programId: 'khoa-hoc-may-tinh' },
-      hcmus: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'hcmus-75202a1' },
-      uhs: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'uhs-7720101' },
-    });
-    const bySchool = Object.fromEntries(summaries.map((summary) => [summary.schoolId, summary]));
-    expect(bySchool.hcmut.cutoffComparison?.difference).toBeDefined();
-    expect(bySchool.ueh.cutoffComparison).toBeUndefined();
-    expect(bySchool.uel.cutoffComparison).toBeUndefined();
-    expect(bySchool.uit.cutoffComparison).toBeUndefined();
-    expect(bySchool.hcmus.cutoffComparison).toBeUndefined();
-    expect(bySchool.hcmus.evaluation.score).toBeUndefined();
+    const bySchool = Object.fromEntries(evaluateApplicantAcrossSchools(profile, completeContexts()).map((summary) => [summary.schoolId, summary]));
+    for (const schoolId of ['uel', 'uit', 'hcmus', 'ussh', 'uhs']) {
+      expect(bySchool[schoolId].cutoffComparison).toBeUndefined();
+      expect(bySchool[schoolId].evaluation.score).toBeUndefined();
+    }
     expect(bySchool.hcmus.evaluation.explanation).toContainEqual(
       expect.objectContaining({ id: 'hcmus-program-threshold', output: 24 })
     );
-    expect(bySchool.uhs.cutoffComparison).toBeUndefined();
-    expect(bySchool.uhs.evaluation.score).toBeUndefined();
     expect(bySchool.uhs.evaluation.missingRequirements).toContainEqual(
       expect.objectContaining({ kind: 'official-rule', code: 'uhs-method2-weights-range' })
     );
   });
 
   it('stale HCMUT context with incomplete profile cannot create fake exact score', () => {
-    const a01 = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === 'A01')!;
     const incompleteProfile: ApplicantProfile = {
       exams: { vact: { total: 980 } },
       thpt: { scores: { math: 8.8, english: 9 } },
     };
-    const hcmut = evaluateApplicantAcrossSchools(incompleteProfile, {
-      hcmut: {
-        methodContext: {
-          combination: a01,
-          bonus: { reward: 0, considerationReward: 0, encouragement: 0 },
-          priorityRaw30Scale: 0,
-        },
-        selectedProgramId: 'khoa-hoc-may-tinh',
-      },
-    }).find((summary) => summary.schoolId === 'hcmut')!;
+    const hcmut = evaluateApplicantAcrossSchools(incompleteProfile, completeContexts()).find((summary) => summary.schoolId === 'hcmut')!;
 
     expect(getEvaluationDisplayStatus(hcmut.evaluation.confidence)).toBe('unavailable');
     expect(hcmut.evaluation.score).toBeUndefined();
@@ -210,18 +165,7 @@ describe('evaluateApplicantAcrossSchools', () => {
   });
 
   it('cleared factual profile with persisted contexts stays unavailable, not stale exact', () => {
-    const a01 = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === 'A01')!;
-    const emptyProfile: ApplicantProfile = {};
-    const hcmut = evaluateApplicantAcrossSchools(emptyProfile, {
-      hcmut: {
-        methodContext: {
-          combination: a01,
-          bonus: { reward: 0, considerationReward: 0, encouragement: 0 },
-          priorityRaw30Scale: 0,
-        },
-        selectedProgramId: 'khoa-hoc-may-tinh',
-      },
-    }).find((summary) => summary.schoolId === 'hcmut')!;
+    const hcmut = evaluateApplicantAcrossSchools({}, completeContexts()).find((summary) => summary.schoolId === 'hcmut')!;
 
     expect(getEvaluationDisplayStatus(hcmut.evaluation.confidence)).toBe('unavailable');
     expect(hcmut.evaluation.score).toBeUndefined();

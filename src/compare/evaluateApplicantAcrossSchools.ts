@@ -8,9 +8,11 @@ import { buildHcmutAdmissionInput, type HcmutMethodContext } from '../schools/hc
 import { evaluateHcmutAdmission } from '../schools/hcmut/evaluate';
 import { hcmutAdmissionMethods } from '../schools/hcmut/methods';
 import { hcmutCutoffs } from '../schools/hcmut/data/cutoffs';
-import { buildUehEvaluationInput } from '../schools/ueh/applicantProfileAdapter';
-import { evaluateUehAdmission, type UehPartialInput } from '../schools/ueh/evaluate';
+import { buildUehEvaluationInput, buildUehExactEvaluationInput } from '../schools/ueh/applicantProfileAdapter';
+import { evaluateUehAdmission, evaluateUehExactAdmission, type UehPartialInput } from '../schools/ueh/evaluate';
 import { uehAdmissionMethods } from '../schools/ueh/methods';
+import { uehCutoffs } from '../schools/ueh/data/cutoffs';
+import { uehPrograms } from '../schools/ueh/data/programs';
 import { evaluateUelAdmission, type UelEvaluationContext } from '../schools/uel/evaluate';
 import { uelAdmissionMethods } from '../schools/uel/methods';
 import { evaluateUitAdmission, type UitEvaluationContext } from '../schools/uit/evaluate';
@@ -34,6 +36,8 @@ export interface SchoolEvaluationSummary {
   evaluation: AdmissionEvaluation;
   cutoffComparison?: CutoffComparison;
 }
+
+export const COMPARE_SCHOOL_ORDER = ['hcmut', 'ueh', 'iu', 'uel', 'hcmus', 'ussh', 'uhs', 'uit'] as const;
 
 export interface MultiSchoolEvaluationContext {
   hcmut?: {
@@ -159,19 +163,49 @@ export function evaluateApplicantAcrossSchools(
   profile: ApplicantProfile,
   contexts: MultiSchoolEvaluationContext = {}
 ): SchoolEvaluationSummary[] {
-  const uehInput = buildUehEvaluationInput(profile, contexts.ueh);
-  const summaries = [
+  return [
     evaluateHcmut(profile, contexts),
-    summarize('ueh', uehAdmissionMethods[0].id, uehAdmissionMethods[0].name, evaluateUehAdmission(uehInput)),
+    evaluateUeh(profile, contexts),
+    evaluateIu(profile, contexts),
     summarize('uel', uelAdmissionMethods[0].id, uelAdmissionMethods[0].name, evaluateUelAdmission(profile, contexts.uel)),
-    summarize('uit', uitAdmissionMethods[0].id, uitAdmissionMethods[0].name, evaluateUitAdmission(profile, contexts.uit)),
     summarize('hcmus', hcmusAdmissionMethods[0].id, hcmusAdmissionMethods[0].name, evaluateHcmusAdmission(profile, contexts.hcmus)),
     summarize('ussh', usshAdmissionMethods[0].id, usshAdmissionMethods[0].name, evaluateUsshAdmission(profile, contexts.ussh)),
     summarize('uhs', uhsAdmissionMethods[0].id, uhsAdmissionMethods[0].name, evaluateUhsAdmission(profile, contexts.uhs)),
-    evaluateIu(profile, contexts),
+    summarize('uit', uitAdmissionMethods[0].id, uitAdmissionMethods[0].name, evaluateUitAdmission(profile, contexts.uit)),
   ];
+}
 
-  return summaries;
+function evaluateUeh(profile: ApplicantProfile, contexts: MultiSchoolEvaluationContext): SchoolEvaluationSummary {
+  const method = uehAdmissionMethods[0];
+  const selectedProgram = uehPrograms.find((program) => program.id === contexts.ueh?.selectedProgramId);
+  const campus = contexts.ueh?.campus ?? selectedProgram?.campus ?? 'hcmc';
+  const exactInput = buildUehExactEvaluationInput(profile, { campus });
+  let evaluation = evaluateUehExactAdmission(exactInput);
+  if (evaluation.score === undefined && profile.exams?.vact?.total !== undefined && exactInput.examScore30 === undefined) {
+    evaluation = evaluateUehAdmission(buildUehEvaluationInput(profile, contexts.ueh));
+  }
+  const summary = summarize('ueh', method.id, method.name, evaluation);
+
+  if (canCompareEvaluationToCutoff(evaluation) && !contexts.ueh?.selectedProgramId) {
+    summary.evaluation = {
+      ...summary.evaluation,
+      missingRequirements: [
+        ...(summary.evaluation.missingRequirements ?? []),
+        { kind: 'school-context', code: 'program', label: 'Chọn ngành UEH để so với đúng mốc điểm chuẩn.' },
+      ],
+    };
+  }
+  if (canCompareEvaluationToCutoff(evaluation) && evaluation.score && contexts.ueh?.selectedProgramId) {
+    const records = uehCutoffs.filter((cutoff) => cutoff.programId === contexts.ueh?.selectedProgramId);
+    summary.cutoffComparison = findCutoffComparison({
+      records,
+      targetYear: method.year,
+      applicantScore: evaluation.score.value,
+      applicantScale: evaluation.score.scale,
+      selection: { programId: contexts.ueh.selectedProgramId },
+    });
+  }
+  return summary;
 }
 
 function evaluateIu(profile: ApplicantProfile, contexts: MultiSchoolEvaluationContext): SchoolEvaluationSummary {
