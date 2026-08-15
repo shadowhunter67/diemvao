@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { ApplicantProfile } from '../core/applicantProfile';
 import { COMMON_SUBJECT_COMBINATIONS } from '../core/subjects';
 import { getEvaluationDisplayStatus } from './evaluationDisplay';
-import { evaluateApplicantAcrossSchools } from './evaluateApplicantAcrossSchools';
+import { evaluateApplicantAcrossSchools, evaluateComparisonSelections } from './evaluateApplicantAcrossSchools';
 import type { UsshEvaluationContext } from '../schools/ussh/evaluate';
 import { hcmusProgramThresholds } from '../schools/hcmus/data/programThresholds';
 import { usshPrograms } from '../schools/ussh/data/programs';
@@ -50,6 +50,32 @@ function completeContexts() {
 }
 
 describe('evaluateApplicantAcrossSchools', () => {
+  it('selected comparison orchestration returns [] when there are no selections', () => {
+    expect(evaluateComparisonSelections(profile, [])).toEqual([]);
+  });
+
+  it('selected comparison orchestration supports the same school with different programs', () => {
+    const summaries = evaluateComparisonSelections(profile, [
+      { id: 'hcmus-a', schoolId: 'hcmus', programId: 'hcmus-75202a1', context: { combinationId: 'A01' } },
+      { id: 'hcmus-b', schoolId: 'hcmus', programId: 'hcmus-7520207', context: { combinationId: 'A01' } },
+    ]);
+    expect(summaries.map((summary) => summary.selectionId)).toEqual(['hcmus-a', 'hcmus-b']);
+    expect(summaries.map((summary) => summary.schoolId)).toEqual(['hcmus', 'hcmus']);
+    expect(summaries.every((summary) => summary.evaluation.score)).toBe(true);
+  });
+
+  it('selected comparison orchestration preserves USSH exact and bonus-partial semantics', () => {
+    const [exact, partial] = evaluateComparisonSelections(profile, [
+      { id: 'ussh-exact', schoolId: 'ussh', programId: 'ussh-7310401', context: { combinationId: 'A01' } },
+      { id: 'ussh-partial', schoolId: 'ussh', programId: 'ussh-7310401', context: { combinationId: 'A01', hasUsshBonusAchievement: true } },
+    ]);
+    expect(exact.evaluation.confidence).toBe('exact-verified');
+    expect(exact.cutoffComparison?.difference).toBeDefined();
+    expect(partial.evaluation.confidence).toBe('partial');
+    expect(partial.evaluation.score).toBeUndefined();
+    expect(partial.cutoffComparison).toBeUndefined();
+  });
+
   it('renders the canonical 9-school compare roster in product order', () => {
     expect(evaluateApplicantAcrossSchools(profile).map((summary) => summary.schoolId)).toEqual([
       'hcmut',

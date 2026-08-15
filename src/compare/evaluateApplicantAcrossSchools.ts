@@ -2,7 +2,9 @@ import type { ApplicantProfile } from '../core/applicantProfile';
 import type { AdmissionEvaluation, MissingRequirement } from '../core/admissionEvaluation';
 import type { CutoffComparison } from '../core/cutoffComparison';
 import { findCutoffComparison } from '../core/cutoffComparison';
+import { COMMON_SUBJECT_COMBINATIONS } from '../core/subjects';
 import { canCompareEvaluationToCutoff } from './cutoffEligibility';
+import type { ComparisonSelection } from './comparisonSelection';
 import { schoolRegistry } from '../schools';
 import { buildHcmutAdmissionInput, type HcmutMethodContext } from '../schools/hcmut/applicantProfileAdapter';
 import { evaluateHcmutAdmission } from '../schools/hcmut/evaluate';
@@ -25,6 +27,7 @@ import { usshAdmissionMethods } from '../schools/ussh/methods';
 import { usshCutoffs } from '../schools/ussh/data/cutoffs';
 import { evaluateUhsAdmission, type UhsEvaluationContext } from '../schools/uhs/evaluate';
 import { uhsAdmissionMethods } from '../schools/uhs/methods';
+import { UHS_PROGRAMS } from '../schools/uhs/programs';
 import { evaluateIuAdmission, type IuEvaluationContext } from '../schools/iu/evaluate';
 import { iuAdmissionMethods } from '../schools/iu/methods';
 import { iuCutoffs2026 } from '../schools/iu/data/cutoffs';
@@ -32,6 +35,7 @@ import { evaluateAguAdmission, type AguEvaluationContext } from '../schools/agu/
 import { aguAdmissionMethods } from '../schools/agu/methods';
 
 export interface SchoolEvaluationSummary {
+  selectionId?: string;
   schoolId: string;
   schoolName: string;
   shortName: string;
@@ -114,6 +118,15 @@ function summarize(schoolId: string, methodId: string, methodName: string, evalu
   };
 }
 
+function withSelection(summary: SchoolEvaluationSummary, selectionId: string): SchoolEvaluationSummary {
+  return { ...summary, selectionId };
+}
+
+function getSubjectContext(combinationId: string | undefined) {
+  const combination = COMMON_SUBJECT_COMBINATIONS.find((item) => item.id === combinationId);
+  return combination ? { combinationId: combination.id, subjects: combination.subjects } : undefined;
+}
+
 function evaluateHcmut(profile: ApplicantProfile, context: MultiSchoolEvaluationContext): SchoolEvaluationSummary {
   const method = hcmutAdmissionMethods[0];
   let evaluation: AdmissionEvaluation;
@@ -181,6 +194,114 @@ export function evaluateApplicantAcrossSchools(
     summarize('uit', uitAdmissionMethods[0].id, uitAdmissionMethods[0].name, evaluateUitAdmission(profile, contexts.uit)),
     summarize('agu', aguAdmissionMethods[0].id, aguAdmissionMethods[0].name, evaluateAguAdmission(profile, contexts.agu)),
   ];
+}
+
+export function evaluateComparisonSelections(profile: ApplicantProfile, selections: readonly ComparisonSelection[]): SchoolEvaluationSummary[] {
+  return selections.flatMap((selection) => {
+    const subjectContext = getSubjectContext(selection.context?.combinationId);
+    const selectedProgramId = selection.programId;
+    const context: MultiSchoolEvaluationContext = {};
+
+    if (selection.schoolId === 'hcmut') {
+      context.hcmut = {
+        selectedProgramId,
+        methodContext:
+          subjectContext && selection.context?.hcmutBonus
+            ? {
+                combination: {
+                  id: subjectContext.combinationId,
+                  subjects: subjectContext.subjects,
+                },
+                bonus: {
+                  reward: selection.context.hcmutBonus.reward,
+                  considerationReward: selection.context.hcmutBonus.considerationReward,
+                  encouragement: selection.context.hcmutBonus.encouragement,
+                },
+                priorityRaw30Scale: selection.context.hcmutBonus.priorityRaw30Scale,
+              }
+            : undefined,
+      };
+      return [withSelection(evaluateHcmut(profile, context), selection.id)];
+    }
+
+    if (selection.schoolId === 'ueh') {
+      const selectedProgram = uehPrograms.find((program) => program.id === selectedProgramId);
+      context.ueh = { selectedProgramId, campus: selectedProgram?.campus };
+      return [withSelection(evaluateUeh(profile, context), selection.id)];
+    }
+
+    if (selection.schoolId === 'uel') {
+      context.uel = { selectedProgramId, subjectContext };
+      return [withSelection(evaluateUel(profile, context), selection.id)];
+    }
+
+    if (selection.schoolId === 'hcmus') {
+      return [
+        withSelection(
+          summarize(
+            'hcmus',
+            hcmusAdmissionMethods[0].id,
+            hcmusAdmissionMethods[0].name,
+            evaluateHcmusAdmission(profile, { selectedProgramId, subjectContext })
+          ),
+          selection.id
+        ),
+      ];
+    }
+
+    if (selection.schoolId === 'ussh') {
+      context.ussh = {
+        selectedProgramId,
+        subjectContext,
+        hasBonusAchievement: selection.context?.hasUsshBonusAchievement,
+      };
+      return [withSelection(evaluateUssh(profile, context), selection.id)];
+    }
+
+    if (selection.schoolId === 'uhs') {
+      const selectedProgram = UHS_PROGRAMS.find((program) => program.id === selectedProgramId);
+      return [
+        withSelection(
+          summarize(
+            'uhs',
+            uhsAdmissionMethods[0].id,
+            uhsAdmissionMethods[0].name,
+            evaluateUhsAdmission(profile, {
+              selectedProgramId,
+              subjectContext:
+                subjectContext && (!selectedProgram || selectedProgram.combinations.includes(subjectContext.combinationId)) ? subjectContext : undefined,
+            })
+          ),
+          selection.id
+        ),
+      ];
+    }
+
+    if (selection.schoolId === 'uit') {
+      return [
+        withSelection(
+          summarize('uit', uitAdmissionMethods[0].id, uitAdmissionMethods[0].name, evaluateUitAdmission(profile, { programId: selectedProgramId })),
+          selection.id
+        ),
+      ];
+    }
+
+    if (selection.schoolId === 'iu') {
+      context.iu = { subjectContext, programId: selectedProgramId };
+      return [withSelection(evaluateIu(profile, context), selection.id)];
+    }
+
+    if (selection.schoolId === 'agu') {
+      return [
+        withSelection(
+          summarize('agu', aguAdmissionMethods[0].id, aguAdmissionMethods[0].name, evaluateAguAdmission(profile, { subjectContext, selectedProgramCode: selectedProgramId })),
+          selection.id
+        ),
+      ];
+    }
+
+    return [];
+  });
 }
 
 function evaluateUel(profile: ApplicantProfile, contexts: MultiSchoolEvaluationContext): SchoolEvaluationSummary {

@@ -1,23 +1,35 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Plus, Search, X } from 'lucide-react';
 import { useApplicantProfile } from '../core/applicantProfileContextCore';
 import { summarizeApplicantProfile } from '../core/applicantProfileSummary';
 import { COMMON_SUBJECT_COMBINATIONS } from '../core/subjects';
-import { evaluateApplicantAcrossSchools } from '../compare/evaluateApplicantAcrossSchools';
+import { evaluateComparisonSelections } from '../compare/evaluateApplicantAcrossSchools';
 import { getEvaluationDisplayStatus } from '../compare/evaluationDisplay';
-import { loadStoredProgramSelections, saveStoredProgramId } from '../compare/programSelectionStorage';
-import { hcmutPrograms } from '../schools/hcmut/data/programs';
-import { loadStoredHcmutMethodContext } from '../schools/hcmut/comparisonContextStorage';
-import { uelPrograms } from '../schools/uel/data/programs';
-import { loadStoredUelCombinationId, saveStoredUelCombinationId } from '../schools/uel/comparisonContextStorage';
-import { uehPrograms } from '../schools/ueh/data/programs';
-import { uitPrograms } from '../schools/uit/data/programs';
-import { usshPrograms } from '../schools/ussh/data/programs';
-import { hcmusProgramThresholds } from '../schools/hcmus/data/programThresholds';
-import { UHS_PROGRAMS } from '../schools/uhs/programs';
-import { iuPrograms } from '../schools/iu/data/programs';
-import { AGU_PROGRAM_THRESHOLDS_2026 } from '../schools/agu/data/thresholds';
+import {
+  addComparisonSelection,
+  COMPARE_SELECTION_HARD_LIMIT,
+  COMPARE_SELECTION_SOFT_LIMIT,
+  isDuplicateComparisonSelection,
+  loadStoredComparisonSelections,
+  moveComparisonSelection,
+  parseComparisonSelectionsFromUrl,
+  removeComparisonSelection,
+  saveStoredComparisonSelections,
+  updateComparisonSelection,
+  type ComparisonSelection,
+} from '../compare/comparisonSelection';
+import {
+  getCapabilityLabel,
+  getProgramCatalogEntry,
+  getUniversityCatalogEntry,
+  searchProgramCatalog,
+  searchUniversityCatalog,
+  universityCatalog,
+  type ProgramCatalogEntry,
+  type UniversityCatalogEntry,
+} from '../compare/universityCatalog';
+import { ComparisonEntryCard } from './compare/ComparisonEntryCard';
 import { ComparisonOverview } from './compare/ComparisonOverview';
-import { SchoolComparisonCard } from './compare/SchoolComparisonCard';
 import type { ProgramOption } from './compare/types';
 
 interface MultiSchoolComparisonPageProps {
@@ -25,112 +37,315 @@ interface MultiSchoolComparisonPageProps {
   onOpenSchool: (schoolId: string) => void;
 }
 
-const usshProgramOptions: ProgramOption[] = usshPrograms.map((program) => ({ id: program.id, code: program.code, name: program.name }));
-const hcmusProgramOptions: ProgramOption[] = hcmusProgramThresholds.map((program) => ({
-  id: program.id,
-  code: program.code,
-  name: program.name,
-}));
-const uhsProgramOptions: ProgramOption[] = UHS_PROGRAMS.map((program) => ({
-  id: program.id,
-  code: program.code,
-  name: program.name,
-}));
-const aguProgramOptions: ProgramOption[] = AGU_PROGRAM_THRESHOLDS_2026.map((program) => ({
-  id: program.programCode,
-  code: program.programCode,
-  name: program.name,
-}));
+interface PickerDraft {
+  schoolId: string;
+  programId: string;
+  combinationId: string;
+  hcmutReward: string;
+  hcmutConsiderationReward: string;
+  hcmutEncouragement: string;
+  hcmutPriority: string;
+  hasUsshBonusAchievement: boolean;
+}
 
-const programOptions: Record<string, readonly ProgramOption[]> = {
-  hcmut: hcmutPrograms,
-  ueh: uehPrograms,
-  uel: uelPrograms,
-  uit: uitPrograms,
-  ussh: usshProgramOptions,
-  hcmus: hcmusProgramOptions,
-  uhs: uhsProgramOptions,
-  iu: iuPrograms,
-  agu: aguProgramOptions,
+const EMPTY_DRAFT: PickerDraft = {
+  schoolId: '',
+  programId: '',
+  combinationId: '',
+  hcmutReward: '0',
+  hcmutConsiderationReward: '0',
+  hcmutEncouragement: '0',
+  hcmutPriority: '0',
+  hasUsshBonusAchievement: false,
 };
+
+const SCHOOLS_REQUIRING_COMBINATION = new Set(['hcmut', 'uel', 'hcmus', 'ussh', 'uhs', 'iu', 'agu']);
+
+function loadInitialSelections(): ComparisonSelection[] {
+  if (typeof window === 'undefined') return [];
+  const sharedSelections = parseComparisonSelectionsFromUrl(new URLSearchParams(window.location.search).get('s'));
+  return sharedSelections.length > 0 ? sharedSelections : loadStoredComparisonSelections();
+}
 
 function parseNumber(value: string): number | undefined {
   if (value.trim() === '') return undefined;
   const parsed = Number(value);
-  return Number.isNaN(parsed) ? undefined : parsed;
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function toProgramOption(program: ProgramCatalogEntry | undefined): ProgramOption | undefined {
+  return program
+    ? {
+        id: program.programId,
+        code: program.code,
+        name: program.name,
+        campus: program.campus,
+      }
+    : undefined;
+}
+
+function selectionToDraft(selection: ComparisonSelection): PickerDraft {
+  return {
+    ...EMPTY_DRAFT,
+    schoolId: selection.schoolId,
+    programId: selection.programId ?? '',
+    combinationId: selection.context?.combinationId ?? '',
+    hcmutReward: String(selection.context?.hcmutBonus?.reward ?? 0),
+    hcmutConsiderationReward: String(selection.context?.hcmutBonus?.considerationReward ?? 0),
+    hcmutEncouragement: String(selection.context?.hcmutBonus?.encouragement ?? 0),
+    hcmutPriority: String(selection.context?.hcmutBonus?.priorityRaw30Scale ?? 0),
+    hasUsshBonusAchievement: selection.context?.hasUsshBonusAchievement === true,
+  };
+}
+
+function buildSelectionFromDraft(draft: PickerDraft): Omit<ComparisonSelection, 'id'> | undefined {
+  if (!draft.schoolId || !draft.programId) return undefined;
+  if (SCHOOLS_REQUIRING_COMBINATION.has(draft.schoolId) && !draft.combinationId) return undefined;
+
+  const context: ComparisonSelection['context'] = {};
+  if (draft.combinationId) context.combinationId = draft.combinationId;
+  if (draft.schoolId === 'ussh') context.hasUsshBonusAchievement = draft.hasUsshBonusAchievement;
+  if (draft.schoolId === 'hcmut') {
+    const reward = parseNumber(draft.hcmutReward);
+    const considerationReward = parseNumber(draft.hcmutConsiderationReward);
+    const encouragement = parseNumber(draft.hcmutEncouragement);
+    const priorityRaw30Scale = parseNumber(draft.hcmutPriority);
+    if ([reward, considerationReward, encouragement, priorityRaw30Scale].some((value) => value === undefined)) return undefined;
+    context.hcmutBonus = {
+      reward: reward ?? 0,
+      considerationReward: considerationReward ?? 0,
+      encouragement: encouragement ?? 0,
+      priorityRaw30Scale: priorityRaw30Scale ?? 0,
+    };
+  }
+
+  return {
+    schoolId: draft.schoolId,
+    programId: draft.programId,
+    context: Object.keys(context).length > 0 ? context : undefined,
+  };
+}
+
+function CapabilityBadge({ school }: { school: UniversityCatalogEntry }) {
+  const tone =
+    school.capability === 'exact'
+      ? 'bg-success/10 text-ink'
+      : school.capability === 'partial'
+        ? 'bg-warning/10 text-ink'
+        : 'bg-surface-soft text-muted';
+  return <span className={`rounded-full px-2 py-1 text-[11px] font-medium ${tone}`}>{getCapabilityLabel(school.capability, school.schoolId)}</span>;
+}
+
+function ComparePicker({
+  selections,
+  editingSelectionId,
+  draft,
+  onDraftChange,
+  onClose,
+  onSubmit,
+}: {
+  selections: readonly ComparisonSelection[];
+  editingSelectionId?: string;
+  draft: PickerDraft;
+  onDraftChange: (draft: PickerDraft) => void;
+  onClose: () => void;
+  onSubmit: () => void;
+}) {
+  const [schoolQuery, setSchoolQuery] = useState('');
+  const [programQuery, setProgramQuery] = useState('');
+  const selectedSchool = getUniversityCatalogEntry(draft.schoolId);
+  const selectedProgram = getProgramCatalogEntry(draft.schoolId, draft.programId);
+  const candidate = buildSelectionFromDraft(draft);
+  const duplicate = candidate ? isDuplicateComparisonSelection(selections, candidate, editingSelectionId) : false;
+  const canSubmit = candidate !== undefined && !duplicate;
+  const schools = searchUniversityCatalog(schoolQuery).slice(0, 30);
+  const programs = selectedSchool ? searchProgramCatalog(programQuery, selectedSchool.programs).slice(0, 80) : [];
+
+  function selectSchool(schoolId: string) {
+    onDraftChange({ ...EMPTY_DRAFT, schoolId });
+    setProgramQuery('');
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-ink/30 px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="compare-picker-title">
+      <div className="mx-auto flex max-h-full max-w-5xl flex-col overflow-hidden rounded-card bg-surface shadow-card">
+        <div className="flex items-start justify-between border-b border-ink/10 p-4">
+          <div>
+            <h2 id="compare-picker-title" className="text-lg font-semibold text-ink">
+              {editingSelectionId ? 'Doi nguyen vong' : 'Them truong/nganh'}
+            </h2>
+            <p className="text-xs text-muted">Chon truong, nganh va ngu canh rieng cua truong. Ho so ca nhan khong nam trong lua chon nay.</p>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-md border border-ink/10 p-2 text-muted hover:text-ink" aria-label="Dong">
+            <X size={16} aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="grid flex-1 overflow-hidden md:grid-cols-[0.9fr_1.1fr]">
+          <section className="overflow-y-auto border-b border-ink/10 p-4 md:border-b-0 md:border-r">
+            <label className="text-xs font-medium text-ink" htmlFor="school-search">
+              Chon truong
+            </label>
+            <div className="mt-1 flex items-center gap-2 rounded-md border border-ink/10 bg-surface px-3 py-2">
+              <Search size={14} className="text-muted" aria-hidden="true" />
+              <input
+                id="school-search"
+                value={schoolQuery}
+                onChange={(event) => setSchoolQuery(event.target.value)}
+                placeholder="hcmut, bach khoa, nhan van..."
+                className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+              />
+            </div>
+            <div className="mt-3 space-y-2">
+              {schools.map((school) => (
+                <button
+                  key={school.schoolId}
+                  type="button"
+                  onClick={() => selectSchool(school.schoolId)}
+                  className={`w-full rounded-md border p-3 text-left hover:border-accent/50 ${draft.schoolId === school.schoolId ? 'border-accent bg-accent/5' : 'border-ink/10'}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-ink">{school.shortName}</span>
+                    <CapabilityBadge school={school} />
+                  </div>
+                  <p className="mt-1 text-xs text-muted">{school.fullName}</p>
+                  <p className="mt-1 text-[11px] text-muted">{school.programs.length} nganh co du lieu</p>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="overflow-y-auto p-4">
+            {selectedSchool ? (
+              <>
+                <label className="text-xs font-medium text-ink" htmlFor="program-search">
+                  Chon nganh
+                </label>
+                <div className="mt-1 flex items-center gap-2 rounded-md border border-ink/10 bg-surface px-3 py-2">
+                  <Search size={14} className="text-muted" aria-hidden="true" />
+                  <input
+                    id="program-search"
+                    value={programQuery}
+                    onChange={(event) => setProgramQuery(event.target.value)}
+                    placeholder="7480101, khoa hoc may tinh, bao chi..."
+                    className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+                  />
+                </div>
+                <div className="mt-3 max-h-56 space-y-2 overflow-y-auto rounded-md border border-ink/10 p-2">
+                  {programs.map((program) => (
+                    <button
+                      key={`${selectedSchool.schoolId}-${program.programId}`}
+                      type="button"
+                      onClick={() => onDraftChange({ ...draft, programId: program.programId })}
+                      className={`w-full rounded-md p-2 text-left text-sm hover:bg-surface-soft ${draft.programId === program.programId ? 'bg-accent/10 text-ink' : 'text-muted'}`}
+                    >
+                      <span className="font-medium text-ink">{program.code ? `${program.code} - ` : ''}</span>
+                      {program.name}
+                      {program.campus ? <span className="text-xs"> ({program.campus})</span> : null}
+                    </button>
+                  ))}
+                </div>
+
+                {SCHOOLS_REQUIRING_COMBINATION.has(draft.schoolId) && (
+                  <label className="mt-4 block text-xs font-medium text-ink">
+                    To hop
+                    <select
+                      value={draft.combinationId}
+                      onChange={(event) => onDraftChange({ ...draft, combinationId: event.target.value })}
+                      className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm"
+                    >
+                      <option value="">Chua chon</option>
+                      {COMMON_SUBJECT_COMBINATIONS.map((combination) => (
+                        <option key={combination.id} value={combination.id}>
+                          {combination.id}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+
+                {draft.schoolId === 'hcmut' && (
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    {[
+                      ['Diem uu tien thang 30', 'hcmutPriority'],
+                      ['Thuong', 'hcmutReward'],
+                      ['Xet thuong', 'hcmutConsiderationReward'],
+                      ['Khuyen khich', 'hcmutEncouragement'],
+                    ].map(([label, key]) => (
+                      <label key={key} className="text-xs font-medium text-ink">
+                        {label}
+                        <input
+                          value={draft[key as keyof PickerDraft] as string}
+                          onChange={(event) => onDraftChange({ ...draft, [key]: event.target.value })}
+                          type="number"
+                          inputMode="decimal"
+                          className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm"
+                        />
+                      </label>
+                    ))}
+                  </div>
+                )}
+
+                {draft.schoolId === 'ussh' && (
+                  <label className="mt-4 flex items-center gap-2 text-xs font-medium text-ink">
+                    <input
+                      type="checkbox"
+                      checked={draft.hasUsshBonusAchievement}
+                      onChange={(event) => onDraftChange({ ...draft, hasUsshBonusAchievement: event.target.checked })}
+                    />
+                    Thi sinh co thanh tich cong diem USSH
+                  </label>
+                )}
+
+                <div className="mt-5 rounded-md bg-surface-soft p-3 text-xs text-muted">
+                  {selectedProgram ? (
+                    <p>
+                      Dang chon: <span className="font-medium text-ink">{selectedSchool.shortName}</span> - {selectedProgram.code ? `${selectedProgram.code} ` : ''}
+                      {selectedProgram.name}
+                    </p>
+                  ) : (
+                    <p>Chon mot nganh de tiep tuc.</p>
+                  )}
+                  {duplicate && <p className="mt-1 text-danger">Nguyen vong nay da co trong danh sach.</p>}
+                </div>
+              </>
+            ) : (
+              <div className="rounded-md bg-surface-soft p-4 text-sm text-muted">Chon truong truoc, roi chon nganh tu registry that cua truong.</div>
+            )}
+          </section>
+        </div>
+
+        <div className="flex flex-col gap-2 border-t border-ink/10 p-4 sm:flex-row sm:justify-end">
+          <button type="button" onClick={onClose} className="rounded-md border border-ink/10 px-4 py-2 text-sm font-medium text-muted hover:text-ink">
+            Huy
+          </button>
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={!canSubmit}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {editingSelectionId ? 'Luu thay doi' : 'Them vao so sanh'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSchoolComparisonPageProps) {
   const { profile } = useApplicantProfile();
   const profileSummary = summarizeApplicantProfile(profile);
-  const storedHcmutContext = useMemo(loadStoredHcmutMethodContext, []);
-  const [hcmutCombinationId, setHcmutCombinationId] = useState(storedHcmutContext?.combination.id ?? '');
-  const [uelCombinationId, setUelCombinationId] = useState(loadStoredUelCombinationId);
-  const [sharedCombinationId, setSharedCombinationId] = useState('');
-  const [hcmutReward, setHcmutReward] = useState(storedHcmutContext ? String(storedHcmutContext.bonus.reward) : '');
-  const [hcmutConsiderationReward, setHcmutConsiderationReward] = useState(
-    storedHcmutContext ? String(storedHcmutContext.bonus.considerationReward) : ''
-  );
-  const [hcmutEncouragement, setHcmutEncouragement] = useState(storedHcmutContext ? String(storedHcmutContext.bonus.encouragement) : '');
-  const [hcmutPriority, setHcmutPriority] = useState(storedHcmutContext ? String(storedHcmutContext.priorityRaw30Scale) : '');
-  const [selectedPrograms, setSelectedPrograms] = useState<Partial<Record<string, string>>>(loadStoredProgramSelections);
+  const [selections, setSelections] = useState<ComparisonSelection[]>(loadInitialSelections);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [editingSelectionId, setEditingSelectionId] = useState<string | undefined>();
+  const [draft, setDraft] = useState<PickerDraft>(EMPTY_DRAFT);
 
-  const hcmutCombination = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === hcmutCombinationId);
-  const uelCombination = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === uelCombinationId);
-  const sharedCombination = COMMON_SUBJECT_COMBINATIONS.find((combination) => combination.id === sharedCombinationId);
-  const selectedUhsProgram = UHS_PROGRAMS.find((program) => program.id === selectedPrograms.uhs);
-  const selectedUehProgram = uehPrograms.find((program) => program.id === selectedPrograms.ueh);
+  useEffect(() => {
+    saveStoredComparisonSelections(selections);
+  }, [selections]);
 
-  const hcmutContext = useMemo(() => {
-    const reward = parseNumber(hcmutReward);
-    const considerationReward = parseNumber(hcmutConsiderationReward);
-    const encouragement = parseNumber(hcmutEncouragement);
-    const priorityRaw30Scale = parseNumber(hcmutPriority);
-    if (!hcmutCombination || reward === undefined || considerationReward === undefined || encouragement === undefined || priorityRaw30Scale === undefined) {
-      return undefined;
-    }
-    return {
-      combination: hcmutCombination,
-      bonus: { reward, considerationReward, encouragement },
-      priorityRaw30Scale,
-    };
-  }, [hcmutCombination, hcmutConsiderationReward, hcmutEncouragement, hcmutPriority, hcmutReward]);
-
-  const summaries = useMemo(() => {
-    return evaluateApplicantAcrossSchools(profile, {
-      hcmut: { methodContext: hcmutContext, selectedProgramId: selectedPrograms.hcmut },
-      ueh: { selectedProgramId: selectedPrograms.ueh, campus: selectedUehProgram?.campus },
-      uel: {
-        subjectContext: uelCombination ? { combinationId: uelCombination.id, subjects: uelCombination.subjects } : undefined,
-        selectedProgramId: selectedPrograms.uel,
-      },
-      uit: { selectedProgramId: selectedPrograms.uit, programId: selectedPrograms.uit },
-      hcmus: {
-        subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined,
-        selectedProgramId: selectedPrograms.hcmus,
-      },
-      ussh: {
-        subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined,
-        selectedProgramId: selectedPrograms.ussh,
-      },
-      uhs: {
-        selectedProgramId: selectedPrograms.uhs,
-        subjectContext:
-          sharedCombination && (!selectedUhsProgram || selectedUhsProgram.combinations.includes(sharedCombination.id))
-            ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects }
-            : undefined,
-      },
-      iu: {
-        subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined,
-        programId: selectedPrograms.iu,
-      },
-      agu: {
-        subjectContext: sharedCombination ? { combinationId: sharedCombination.id, subjects: sharedCombination.subjects } : undefined,
-        selectedProgramCode: selectedPrograms.agu,
-      },
-    });
-  }, [hcmutContext, profile, selectedPrograms, selectedUehProgram, selectedUhsProgram, sharedCombination, uelCombination]);
-
+  const summaries = useMemo(() => evaluateComparisonSelections(profile, selections), [profile, selections]);
   const statusCounts = useMemo(
     () =>
       summaries.reduce(
@@ -142,122 +357,116 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
       ),
     [summaries]
   );
+  const uniqueSchoolCount = useMemo(() => new Set(selections.map((selection) => selection.schoolId)).size, [selections]);
 
-  function setSelectedProgram(schoolId: string, programId: string) {
-    setSelectedPrograms((current) => ({ ...current, [schoolId]: programId || undefined }));
-    saveStoredProgramId(schoolId, programId);
+  function openAddPicker() {
+    setEditingSelectionId(undefined);
+    setDraft(EMPTY_DRAFT);
+    setPickerOpen(true);
   }
 
-  function renderCombinationSelect(label: string, value: string, onChange: (value: string) => void) {
-    return (
-      <label className="block text-xs font-medium text-ink">
-        {label}
-        <select value={value} onChange={(event) => onChange(event.target.value)} className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2">
-          <option value="">Chưa chọn</option>
-          {COMMON_SUBJECT_COMBINATIONS.map((combination) => (
-            <option key={combination.id} value={combination.id}>
-              {combination.id}
-            </option>
-          ))}
-        </select>
-      </label>
+  function openEditPicker(selection: ComparisonSelection) {
+    setEditingSelectionId(selection.id);
+    setDraft(selectionToDraft(selection));
+    setPickerOpen(true);
+  }
+
+  function submitPicker() {
+    const nextSelection = buildSelectionFromDraft(draft);
+    if (!nextSelection) return;
+    setSelections((current) =>
+      editingSelectionId
+        ? updateComparisonSelection(current, editingSelectionId, nextSelection)
+        : addComparisonSelection(current, nextSelection, `cmp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`)
     );
-  }
-
-  function getContextControls(schoolId: string) {
-    if (schoolId === 'hcmut') {
-      return (
-        <div className="grid gap-2 sm:grid-cols-2">
-          {renderCombinationSelect('Tổ hợp HCMUT', hcmutCombinationId, setHcmutCombinationId)}
-          <label className="text-xs font-medium text-ink">
-            Điểm ưu tiên thang 30
-            <input value={hcmutPriority} onChange={(event) => setHcmutPriority(event.target.value)} type="number" inputMode="decimal" placeholder="vd 0" className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2" />
-          </label>
-          <label className="text-xs font-medium text-ink">
-            Thưởng
-            <input value={hcmutReward} onChange={(event) => setHcmutReward(event.target.value)} type="number" inputMode="decimal" placeholder="0" className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2" />
-          </label>
-          <label className="text-xs font-medium text-ink">
-            Xét thưởng
-            <input value={hcmutConsiderationReward} onChange={(event) => setHcmutConsiderationReward(event.target.value)} type="number" inputMode="decimal" placeholder="0" className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2" />
-          </label>
-          <label className="text-xs font-medium text-ink">
-            Khuyến khích
-            <input value={hcmutEncouragement} onChange={(event) => setHcmutEncouragement(event.target.value)} type="number" inputMode="decimal" placeholder="0" className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2" />
-          </label>
-        </div>
-      );
-    }
-    if (schoolId === 'uel') {
-      return renderCombinationSelect('Tổ hợp UEL', uelCombinationId, (value) => {
-        setUelCombinationId(value);
-        saveStoredUelCombinationId(value);
-      });
-    }
-    if (['hcmus', 'ussh', 'uhs', 'iu', 'agu'].includes(schoolId)) {
-      return renderCombinationSelect('Tổ hợp xét tuyển', sharedCombinationId, setSharedCombinationId);
-    }
-    return undefined;
-  }
-
-  if (!profileSummary.hasData) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-10 sm:py-14">
-        <button type="button" onClick={onBackHome} className="text-xs font-medium text-accent underline-offset-2 hover:underline">
-          Về trang chủ
-        </button>
-        <section className="mt-6 rounded-card bg-surface p-6 shadow-card sm:p-8">
-          <h1 className="text-2xl font-bold text-ink">Chưa có dữ liệu điểm trong hồ sơ</h1>
-          <p className="mt-2 text-sm text-muted">
-            Hãy nhập điểm ở một trang trường trước. UniscoreVN sẽ không hiển thị giá trị 0 giả.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {['hcmut', 'ueh', 'iu', 'uel'].map((schoolId) => (
-              <button
-                key={schoolId}
-                type="button"
-                onClick={() => onOpenSchool(schoolId)}
-                className="rounded-md border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent hover:bg-accent/20"
-              >
-                Mở {schoolId.toUpperCase()}
-              </button>
-            ))}
-          </div>
-        </section>
-      </div>
-    );
+    setPickerOpen(false);
   }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
       <button type="button" onClick={onBackHome} className="text-xs font-medium text-accent underline-offset-2 hover:underline">
-        Về trang chủ
+        Ve trang chu
       </button>
 
-      <ComparisonOverview statusCounts={statusCounts} profileSummary={profileSummary} />
+      <ComparisonOverview selectionCount={selections.length} uniqueSchoolCount={uniqueSchoolCount} statusCounts={statusCounts} profileSummary={profileSummary} />
 
-      <section className="mt-5 grid gap-4 lg:grid-cols-2">
-        {summaries.map((summary) => (
-          <SchoolComparisonCard
-            key={summary.schoolId}
-            summary={summary}
-            selectedProgramId={selectedPrograms[summary.schoolId]}
-            options={programOptions[summary.schoolId]}
-            contextControls={getContextControls(summary.schoolId)}
-            combinationId={
-              summary.schoolId === 'hcmut'
-                ? hcmutCombinationId || undefined
-                : summary.schoolId === 'uel'
-                  ? uelCombinationId || undefined
-                  : ['hcmus', 'ussh', 'uhs', 'iu', 'agu'].includes(summary.schoolId)
-                    ? sharedCombinationId || undefined
-                    : undefined
-            }
-            onSelectProgram={setSelectedProgram}
-            onOpenSchool={onOpenSchool}
-          />
-        ))}
-      </section>
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <button
+          type="button"
+          onClick={openAddPicker}
+          disabled={selections.length >= COMPARE_SELECTION_HARD_LIMIT}
+          className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Plus size={16} aria-hidden="true" />
+          Them truong/nganh
+        </button>
+        {selections.length > COMPARE_SELECTION_SOFT_LIMIT && (
+          <p className="text-xs text-muted">Ban dang so sanh nhieu nguyen vong. Nen giu khoang 3-6 de de doc.</p>
+        )}
+      </div>
+
+      {selections.length === 0 ? (
+        <section className="mt-6 rounded-card border border-dashed border-ink/20 bg-surface p-8 text-center">
+          <h2 className="text-xl font-semibold text-ink">So sanh nguyen vong</h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-muted">Chon truong va nganh ban muon so sanh. Du lieu ho so chi can nhap mot lan.</p>
+          <button type="button" onClick={openAddPicker} className="mt-5 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90">
+            <Plus size={16} aria-hidden="true" />
+            Them truong/nganh
+          </button>
+          <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs">
+            {universityCatalog
+              .filter((school) => school.capability === 'exact' || school.capability === 'partial')
+              .slice(0, 6)
+              .map((school) => (
+                <button
+                  key={school.schoolId}
+                  type="button"
+                  onClick={() => {
+                    setEditingSelectionId(undefined);
+                    setDraft({ ...EMPTY_DRAFT, schoolId: school.schoolId });
+                    setPickerOpen(true);
+                  }}
+                  className="rounded-full border border-ink/10 px-3 py-1 text-muted"
+                >
+                  {school.shortName}
+                </button>
+              ))}
+          </div>
+        </section>
+      ) : (
+        <section className="mt-5 grid gap-4 lg:grid-cols-2">
+          {summaries.map((summary, index) => {
+            const selection = selections.find((item) => item.id === summary.selectionId);
+            const program = toProgramOption(getProgramCatalogEntry(summary.schoolId, selection?.programId));
+            return (
+              <ComparisonEntryCard
+                key={summary.selectionId ?? `${summary.schoolId}-${index}`}
+                summary={summary}
+                program={program}
+                combinationId={selection?.context?.combinationId}
+                canMoveUp={index > 0}
+                canMoveDown={index < selections.length - 1}
+                onEdit={() => selection && openEditPicker(selection)}
+                onRemove={() => selection && setSelections((current) => removeComparisonSelection(current, selection.id))}
+                onMoveUp={() => selection && setSelections((current) => moveComparisonSelection(current, selection.id, 'up'))}
+                onMoveDown={() => selection && setSelections((current) => moveComparisonSelection(current, selection.id, 'down'))}
+                onOpenSchool={onOpenSchool}
+              />
+            );
+          })}
+        </section>
+      )}
+
+      {pickerOpen && (
+        <ComparePicker
+          selections={selections}
+          editingSelectionId={editingSelectionId}
+          draft={draft}
+          onDraftChange={setDraft}
+          onClose={() => setPickerOpen(false)}
+          onSubmit={submitPicker}
+        />
+      )}
     </div>
   );
 }
