@@ -47,6 +47,65 @@ Quy trình research + implement 1 trường mới, quy tắc bảng lớn, và �
 [docs/data-maintainer-guide.md](data-maintainer-guide.md). Quy trình release checkpoint nằm ở
 [docs/release-checklist.md](release-checklist.md).
 
+## Tổng quan thư mục
+
+```text
+src/
+├── core/
+│   ├── schoolModule.ts          # SchoolModule contract + SchoolStatus/SchoolCapabilities
+│   ├── admissionMethod.ts       # AdmissionMethodDescriptor — method-level capability (source of truth)
+│   ├── applicantProfile.ts      # Shared factual profile type (ĐGNL/THPT/học bạ thô, không có điểm quy đổi)
+│   ├── applicantProfileStorage.ts / storage.ts   # Persist + migration (uniscorevn:* namespace)
+│   └── round2, validateRange, ...                # Thật sự generic, không thuộc trường nào
+├── schools/
+│   ├── index.ts    # schoolRegistry
+│   └── <id>/       # Business logic riêng từng trường (methods/sources/evidence/evaluate/comparison)
+├── config/
+│   └── site.ts     # Brand: tên, slug, canonicalUrl, tagline, description
+├── components/      # UI dùng chung (bao gồm ApplicantProfileContext runtime), không chứa business logic riêng trường nào
+├── compare/         # Orchestrator/presentation adapter cho /compare, không chứa công thức trường
+└── App.tsx
+```
+
+Thêm trường mới = tạo `schools/<id>/` theo cấu trúc tương tự + thêm 1 dòng vào `schoolRegistry`
+(`src/schools/index.ts`). Route dạng `/hcmut`, `/uit` xử lý bởi `src/hooks/useRoute.ts` (hand-rolled,
+không thêm router lib) — không cần sửa `App.tsx`/router khi thêm trường. Muốn trường đó tham gia
+`/compare` thì thêm bước 2: tạo `schools/<id>/comparison.ts` export 1 `SchoolComparisonAdapter` rồi
+thêm 1 dòng vào `schoolComparisonAdapters` (`src/compare/comparisonRegistry.ts`) —
+`comparisonRegistry.test.ts` fail ngay nếu 1 trong 2 bước bị quên.
+
+### Module HCMUT (tham khảo cấu trúc 1 trường đầy đủ)
+
+```text
+schools/hcmut/
+├── config/admission-2026.ts     # Trọng số + tham số công thức 2026
+├── calculator/
+│   ├── calculator.ts            # Engine tính điểm — pure function, không phụ thuộc React
+│   └── targetCalculator.ts      # Tính ngược ĐGNL cần đạt (binary search) + scenario simulator
+├── data/
+│   ├── programs.ts               # Ngành/chương trình
+│   ├── cutoffs.ts                # Điểm chuẩn tham khảo, có sourceLabel/sourceUrl/accessedAt
+│   └── validateDataset.ts        # Kiểm tra toàn vẹn dataset (dev/test)
+├── types/                         # admission.ts, form.ts, programs.ts
+├── programs.ts / validation.ts / urlState.ts
+└── index.ts                       # export hcmutModule (SchoolModule) để đăng ký registry
+```
+
+Công thức HCMUT (không đổi khi rebrand):
+
+```text
+Điểm gốc (ĐGNL 4 phần thi, THPT 3 môn, học bạ 9 ô điểm 3 năm)
+  → chuẩn hóa từng thành phần về thang 100
+  → điểm học lực = 70% ĐGNL + 20% THPT + 10% học bạ
+  → điểm cộng = thưởng + xét thưởng + khuyến khích (tối đa 10)
+  → điểm ưu tiên KV/ĐT quy đổi từ thang 30, giảm dần khi (học lực + điểm cộng) ≥ 75
+  → điểm xét tuyển = học lực + điểm cộng + ưu tiên thực nhận (tối đa 100)
+```
+
+Chi tiết xem `src/schools/hcmut/calculator/calculator.ts` (pure function, test ở `calculator.test.ts`).
+Để thêm năm tuyển sinh mới: tạo `schools/hcmut/config/admission-<năm>.ts` theo cùng cấu trúc
+`AdmissionConfig` rồi trỏ `activeAdmissionConfig` sang file mới — không cần đổi `calculator.ts`.
+
 ## Release Candidate note (2026-08-13)
 
 Core architecture is considered stable for release. Future schools should plug into the existing
