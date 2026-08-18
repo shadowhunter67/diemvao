@@ -70,3 +70,26 @@ export const usshPriorityTableEvidence = {
     },
   ],
 } satisfies SourcedRule<{ regionKV1_100: number; category_UT1_100: number }>;
+
+/**
+ * Evidence cho công thức giảm điểm ưu tiên (`priorityReduction.ts`, ngưỡng 75, chia 25) — batch
+ * provenance-hygiene (2026-08-17) phát hiện file đó chỉ có comment prose trích nguyên văn nguồn,
+ * KHÔNG có `SourcedRule`/`RuleEvidence` machine-readable, và KHÔNG được đưa vào `evidence` trả về
+ * user ở `evaluate.ts` (khác `iuPriorityReductionEvidence` — cùng dạng công thức, IU đã wire đủ).
+ * Nguồn `ussh-scoring-principles-2026` đã có sẵn trong `sources.ts`, trích nguyên văn: "Điểm ưu
+ * tiên đối với thí sinh có tổng điểm (bao gồm cả điểm cộng) đạt được từ 75 điểm... = [(100 – Tổng
+ * điểm đạt được đã bao gồm điểm cộng)/25] × Mức điểm ưu tiên khu vực, đối tượng".
+ */
+export const usshPriorityReductionEvidence = {
+  value: { threshold: 75, divisor: 25, scale: 100 },
+  evidence: [
+    {
+      sourceId: 'ussh-scoring-principles-2026',
+      location:
+        'Nguyên tắc tính điểm xét tuyển: "Điểm ưu tiên... đạt được từ 75 điểm... = [(100 – Tổng điểm đạt được đã bao gồm điểm cộng)/25] × Mức điểm ưu tiên khu vực, đối tượng"',
+      verification: 'verified' as const,
+      effectiveYear: 2026,
+      verifiedAt: '2026-08-15',
+    },
+  ],
+} satisfies SourcedRule<{ threshold: number; divisor: number; scale: number }>;

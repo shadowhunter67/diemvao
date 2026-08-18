@@ -88,19 +88,36 @@ export function moveComparisonSelection(selections: readonly ComparisonSelection
   return next;
 }
 
+function isFiniteNonNegativeNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+}
+
+/**
+ * `undefined`/absence: valid (context là optional field). `null`/string/number/boolean/array: KHÔNG
+ * valid — trước đây `!value || typeof value !== 'object'` coi luôn mọi primitive là "valid" (bug:
+ * `"hello"`/`123` lọt qua như context hợp lệ). Object đúng shape: valid, kèm validate numeric field
+ * là finite number và đúng range đã biết (`hcmutBonus.*` domain min 0, cùng range với
+ * `validateBonusComponent`/`validatePriorityRaw` ở `schools/hcmut/validation.ts` — không có upper
+ * bound cố định ở đây vì bound phụ thuộc `AdmissionConfig` theo năm, context này không giữ config).
+ */
 function isValidContext(value: unknown): value is SchoolComparisonContext {
-  if (!value || typeof value !== 'object') return true;
+  if (value === undefined) return true;
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+
   const context = value as SchoolComparisonContext;
-  if (context.combinationId !== undefined && !COMMON_SUBJECT_COMBINATIONS.some((combination) => combination.id === context.combinationId)) return false;
+  if (context.combinationId !== undefined) {
+    if (typeof context.combinationId !== 'string') return false;
+    if (!COMMON_SUBJECT_COMBINATIONS.some((combination) => combination.id === context.combinationId)) return false;
+  }
   if (context.hasUsshBonusAchievement !== undefined && typeof context.hasUsshBonusAchievement !== 'boolean') return false;
   if (context.hcmutBonus !== undefined) {
     const bonus = context.hcmutBonus;
+    if (typeof bonus !== 'object' || bonus === null || Array.isArray(bonus)) return false;
     if (
-      typeof bonus !== 'object' ||
-      typeof bonus.reward !== 'number' ||
-      typeof bonus.considerationReward !== 'number' ||
-      typeof bonus.encouragement !== 'number' ||
-      typeof bonus.priorityRaw30Scale !== 'number'
+      !isFiniteNonNegativeNumber(bonus.reward) ||
+      !isFiniteNonNegativeNumber(bonus.considerationReward) ||
+      !isFiniteNonNegativeNumber(bonus.encouragement) ||
+      !isFiniteNonNegativeNumber(bonus.priorityRaw30Scale)
     ) {
       return false;
     }

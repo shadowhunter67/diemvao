@@ -62,3 +62,72 @@ describe('comparisonSelection', () => {
     expect(parsed).toEqual([{ ...base, id: 'share-1' }]);
   });
 });
+
+/**
+ * `isValidContext` xử lý dữ liệu untrusted từ localStorage/URL. Bug đã fix: `!value ||
+ * typeof value !== 'object'` coi MỌI primitive (string/number/...) là valid — chỉ `undefined`
+ * (context absent, field optional) mới hợp lệ khi không phải object; `null`/string/number/
+ * boolean/array phải bị từ chối.
+ */
+describe('comparisonSelection context validation (parseStoredComparisonSelections)', () => {
+  function withContext(context: unknown): string {
+    return JSON.stringify([{ id: 'one', schoolId: 'hcmus', context }]);
+  }
+
+  it('accepts a selection with undefined (absent) context', () => {
+    const raw = JSON.stringify([{ id: 'one', schoolId: 'hcmus' }]);
+    expect(parseStoredComparisonSelections(raw)).toEqual([{ id: 'one', schoolId: 'hcmus' }]);
+  });
+
+  it('accepts a valid object context', () => {
+    const parsed = parseStoredComparisonSelections(withContext({ combinationId: 'A00', hasUsshBonusAchievement: true }));
+    expect(parsed).toEqual([{ id: 'one', schoolId: 'hcmus', context: { combinationId: 'A00', hasUsshBonusAchievement: true } }]);
+  });
+
+  it('rejects a string context', () => {
+    expect(parseStoredComparisonSelections(withContext('hello'))).toEqual([]);
+  });
+
+  it('rejects a number context', () => {
+    expect(parseStoredComparisonSelections(withContext(123))).toEqual([]);
+  });
+
+  it('rejects a null context', () => {
+    expect(parseStoredComparisonSelections(withContext(null))).toEqual([]);
+  });
+
+  it('rejects an array context', () => {
+    expect(parseStoredComparisonSelections(withContext(['A00']))).toEqual([]);
+  });
+
+  it('rejects a context with an invalid combinationId/hasUsshBonusAchievement combination', () => {
+    expect(parseStoredComparisonSelections(withContext({ combinationId: 'NOT-A-REAL-COMBINATION' }))).toEqual([]);
+    expect(parseStoredComparisonSelections(withContext({ hasUsshBonusAchievement: 'yes' }))).toEqual([]);
+  });
+
+  it('rejects malformed hcmutBonus (missing/non-numeric fields)', () => {
+    expect(parseStoredComparisonSelections(withContext({ hcmutBonus: { reward: 1, considerationReward: 1, encouragement: 1 } }))).toEqual([]);
+    expect(
+      parseStoredComparisonSelections(withContext({ hcmutBonus: { reward: '1', considerationReward: 1, encouragement: 1, priorityRaw30Scale: 1 } }))
+    ).toEqual([]);
+    expect(parseStoredComparisonSelections(withContext({ hcmutBonus: null }))).toEqual([]);
+    expect(parseStoredComparisonSelections(withContext({ hcmutBonus: [1, 2, 3, 4] }))).toEqual([]);
+  });
+
+  it('rejects hcmutBonus with non-finite numeric values', () => {
+    expect(
+      parseStoredComparisonSelections(
+        withContext({ hcmutBonus: { reward: Number.POSITIVE_INFINITY, considerationReward: 1, encouragement: 1, priorityRaw30Scale: 1 } })
+      )
+    ).toEqual([]);
+    expect(
+      parseStoredComparisonSelections(withContext({ hcmutBonus: { reward: -1, considerationReward: 1, encouragement: 1, priorityRaw30Scale: 1 } }))
+    ).toEqual([]);
+  });
+
+  it('accepts a valid hcmutBonus context', () => {
+    const bonus = { reward: 2, considerationReward: 1, encouragement: 0, priorityRaw30Scale: 1.5 };
+    const parsed = parseStoredComparisonSelections(withContext({ hcmutBonus: bonus }));
+    expect(parsed).toEqual([{ id: 'one', schoolId: 'hcmus', context: { hcmutBonus: bonus } }]);
+  });
+});

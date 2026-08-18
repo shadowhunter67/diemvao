@@ -24,8 +24,8 @@ export interface PriorityReductionResult {
   reduced: boolean;
 }
 
-const REDUCTION_THRESHOLD = 75;
-const REDUCTION_DIVISOR = 25;
+export const REDUCTION_THRESHOLD = 75;
+export const REDUCTION_DIVISOR = 25;
 const SCALE_MAX = 100;
 
 export function calculateUelEffectivePriority(input: PriorityReductionInput): PriorityReductionResult {

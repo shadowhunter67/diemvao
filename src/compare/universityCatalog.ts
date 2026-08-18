@@ -1,27 +1,10 @@
 import type { SchoolModule } from '../core/schoolModule';
 import { schoolRegistry } from '../schools';
-import { hcmutPrograms } from '../schools/hcmut/data/programs';
-import { uehPrograms } from '../schools/ueh/data/programs';
-import { uelPrograms } from '../schools/uel/data/programs';
-import { uitPrograms } from '../schools/uit/data/programs';
-import { hcmusProgramThresholds } from '../schools/hcmus/data/programThresholds';
-import { usshPrograms } from '../schools/ussh/data/programs';
-import { UHS_PROGRAMS } from '../schools/uhs/programs';
-import { iuPrograms } from '../schools/iu/data/programs';
-import { AGU_PROGRAM_THRESHOLDS_2026 } from '../schools/agu/data/thresholds';
-import { hcmueProgramThresholds } from '../schools/hcmue/data/programs';
 import { normalizeVietnameseText } from './comparisonSelection';
+import { programCatalogBySchool, getProgramCatalogEntry as getProgramCatalogEntryFromCatalog, type ProgramCatalogEntry } from './programCatalog';
 
+export type { ProgramCatalogEntry };
 export type UniversityCapability = 'exact' | 'partial' | 'eligibility' | 'catalog-only';
-
-export interface ProgramCatalogEntry {
-  programId: string;
-  code?: string;
-  name: string;
-  campus?: string;
-  track?: string;
-  admissionMethods?: string[];
-}
 
 export interface UniversityCatalogEntry {
   schoolId: string;
@@ -40,25 +23,6 @@ function getCapability(module: SchoolModule): UniversityCapability {
   return module.status === 'supported' ? 'exact' : 'catalog-only';
 }
 
-const programCatalogBySchool: Record<string, ProgramCatalogEntry[]> = {
-  hcmut: hcmutPrograms.map((program) => ({ programId: program.id, code: program.code, name: program.name, track: program.group })),
-  ueh: uehPrograms.map((program) => ({ programId: program.id, code: program.code, name: program.name, campus: program.campus })),
-  uel: uelPrograms.map((program) => ({ programId: program.id, code: program.code, name: program.name, track: program.group })),
-  uit: uitPrograms.map((program) => ({ programId: program.id, code: program.code, name: program.name })),
-  hcmus: hcmusProgramThresholds.map((program) => ({ programId: program.id, code: program.code, name: program.name })),
-  ussh: usshPrograms.map((program) => ({ programId: program.id, code: program.code, name: program.name })),
-  uhs: UHS_PROGRAMS.map((program) => ({ programId: program.id, code: program.code, name: program.name })),
-  iu: iuPrograms.map((program) => ({ programId: program.id, code: program.code, name: program.name })),
-  agu: AGU_PROGRAM_THRESHOLDS_2026.map((program) => ({ programId: program.programCode, code: program.programCode, name: program.name })),
-  hcmue: hcmueProgramThresholds.map((program) => ({
-    programId: program.id,
-    code: program.code,
-    name: program.name,
-    campus: program.campus,
-    track: program.group,
-  })),
-};
-
 export const universityCatalog: UniversityCatalogEntry[] = Object.values(schoolRegistry)
   .map((module) => ({
     schoolId: module.id,
@@ -75,10 +39,7 @@ export function getUniversityCatalogEntry(schoolId: string): UniversityCatalogEn
   return universityCatalog.find((entry) => entry.schoolId === schoolId);
 }
 
-export function getProgramCatalogEntry(schoolId: string, programId: string | undefined): ProgramCatalogEntry | undefined {
-  if (!programId) return undefined;
-  return getUniversityCatalogEntry(schoolId)?.programs.find((program) => program.programId === programId);
-}
+export const getProgramCatalogEntry = getProgramCatalogEntryFromCatalog;
 
 export function getCapabilityLabel(capability: UniversityCapability, schoolId?: string): string {
   if (schoolId === 'ussh' && capability === 'exact') return 'Chinh xac voi ho so phu hop';

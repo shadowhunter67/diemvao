@@ -2,8 +2,10 @@
 
 ## Code
 
-- HCMUT exact calculator remains the only exact calculator.
-- UEH, UEL, and UIT stay partial/unavailable where official rules are missing.
+- Exact calculators (current, verify against `AdmissionMethodDescriptor.capabilities.exactCalculator`
+  before relying on this list — see `docs/architecture.md` golden/domain conformance section):
+  HCMUT, UEH, UEL (all 3 applicant types), HCMUS, USSH (scope: no bonus achievement), IU (scope:
+  "Thí sinh tốt nghiệp THPT 2026"). UIT stays partial/unavailable where official rules are missing.
 - No derived school score is stored in `ApplicantProfile`.
 - No prediction, ranking, recommendation, login, backend, database, or crawler is part of this release.
 
@@ -36,6 +38,7 @@
 
 ## Known Limitations
 
-- UEH is partial: final thang-100 formula and bonus/priority table remain incomplete.
-- UEL is partial: official Appendix 2 certificate bonus table is view-only/download denied and unparsed.
 - UIT is partial/unavailable: percentile conversion and several certificate/transcript rules remain unparsed.
+- USSH exact scope excludes applicants with a bonus achievement (specific award amount not yet published).
+- IU exact scope excludes applicant types 2/3 (graduated before 2026 / foreign THPT).
+- AGU/UHS/HCMUE stay partial/eligibility-only (see per-school `knowledgeGaps.ts`).

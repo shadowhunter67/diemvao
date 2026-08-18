@@ -7,7 +7,7 @@ import { buildHcmusEvaluationInput } from './applicantProfileAdapter';
 import { checkHcmusNuclearEngineeringCondition, checkHcmusThptThreshold } from './eligibility';
 import { hcmusAdmissionMethods } from './methods';
 import { hcmusKnowledgeGaps } from './knowledgeGaps';
-import { hcmusThresholdEvidence, hcmusAcademicScoreEvidence, hcmusProgramThresholdEvidence } from './evidence';
+import { hcmusThresholdEvidence, hcmusAcademicScoreEvidence, hcmusProgramThresholdEvidence, hcmusBonusEvidence, hcmusPriorityEvidence } from './evidence';
 import { calculateHcmusAcademicScore } from './academicScore';
 import { findHcmusProgramThreshold } from './data/programThresholds';
 import { calculateHcmusBonus } from './bonus';
@@ -105,6 +105,7 @@ export function evaluateHcmusAdmission(profile: ApplicantProfile, context: Hcmus
         output: bonus.awardedPoints30,
         scale: 30,
         formula: bonus.reduced ? '[(30 - Tong diem dat duoc) / 1.5] x Diem cong co so' : 'Diem cong co so, chi lay 1 muc cao nhat',
+        evidence: hcmusBonusEvidence.evidence,
       },
       {
         id: 'hcmus-priority',
@@ -112,6 +113,7 @@ export function evaluateHcmusAdmission(profile: ApplicantProfile, context: Hcmus
         output: priority.effectivePriority30,
         scale: 30,
         formula: priority.reduced ? '[(30 - Tong diem dat duoc) / 7.5] x Muc diem uu tien KV/DT' : 'Muc diem uu tien KV/DT',
+        evidence: hcmusPriorityEvidence.evidence,
       },
       {
         id: 'hcmus-final',
@@ -188,7 +190,7 @@ export function evaluateHcmusAdmission(profile: ApplicantProfile, context: Hcmus
       missingRules: [],
       missingRequirements: missingRequirements.filter((requirement) => requirement.kind !== 'official-rule'),
       explanation,
-      evidence: [...hcmusThresholdEvidence.evidence, ...hcmusAcademicScoreEvidence.evidence],
+      evidence: [...hcmusThresholdEvidence.evidence, ...hcmusAcademicScoreEvidence.evidence, ...hcmusBonusEvidence.evidence, ...hcmusPriorityEvidence.evidence],
     };
   }
 

@@ -3,7 +3,7 @@ import type { ApplicantProfile } from '../../core/applicantProfile';
 import { COMMON_SUBJECT_COMBINATIONS } from '../../core/subjects';
 import { activeAdmissionConfig } from './config/admission-2026';
 import { calculateAdmissionScore } from './calculator/calculator';
-import { buildHcmutAdmissionInput } from './applicantProfileAdapter';
+import { buildHcmutAdmissionInput, buildHcmutAdmissionInputResult } from './applicantProfileAdapter';
 import type { AdmissionInput } from './types/admission';
 
 const config = activeAdmissionConfig;
@@ -73,5 +73,52 @@ describe('buildHcmutAdmissionInput — consumer thật của ApplicantProfile (w
         priorityRaw30Scale: 0,
       })
     ).toThrow(/Toán/);
+  });
+});
+
+/**
+ * `buildHcmutAdmissionInputResult` — Result-based sibling của `buildHcmutAdmissionInput`, dùng bởi
+ * `schools/hcmut/comparison.ts` để tránh dùng exception cho case "user chưa nhập đủ dữ liệu" (đã
+ * biết, không phải lỗi bất ngờ). Test trực tiếp cả 2 nhánh success/failure của Result.
+ */
+describe('buildHcmutAdmissionInputResult — Result-based (không throw cho missing profile input)', () => {
+  it('success: trả { ok: true, input } khớp buildHcmutAdmissionInput', () => {
+    const context = { combination: A00, bonus: { reward: 2, considerationReward: 1, encouragement: 0 }, priorityRaw30Scale: 1.5 };
+    const result = buildHcmutAdmissionInputResult(profile, context);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.input).toEqual(equivalentManualInput);
+  });
+
+  it('failure: thiếu ĐGNL => { ok: false, requirement: { code: "hcmut-dgnl" } }, KHÔNG throw', () => {
+    const noDgnl: ApplicantProfile = { ...profile, exams: undefined };
+    const context = { combination: A00, bonus: { reward: 0, considerationReward: 0, encouragement: 0 }, priorityRaw30Scale: 0 };
+    expect(() => buildHcmutAdmissionInputResult(noDgnl, context)).not.toThrow();
+    const result = buildHcmutAdmissionInputResult(noDgnl, context);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.requirement).toMatchObject({ kind: 'profile-input', code: 'hcmut-dgnl' });
+  });
+
+  it('failure: thiếu THPT => { ok: false, requirement: { code: "hcmut-thpt" } }', () => {
+    const noThpt: ApplicantProfile = { ...profile, thpt: { scores: { math: 9 } } };
+    const context = { combination: A00, bonus: { reward: 0, considerationReward: 0, encouragement: 0 }, priorityRaw30Scale: 0 };
+    const result = buildHcmutAdmissionInputResult(noThpt, context);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.requirement).toMatchObject({ kind: 'profile-input', code: 'hcmut-thpt' });
+  });
+
+  it('failure: thiếu transcript => { ok: false, requirement: { code: "hcmut-transcript" } }', () => {
+    const noTranscript: ApplicantProfile = { ...profile, transcript: { ...profile.transcript, grade12: { math: 9 } } };
+    const context = { combination: A00, bonus: { reward: 0, considerationReward: 0, encouragement: 0 }, priorityRaw30Scale: 0 };
+    const result = buildHcmutAdmissionInputResult(noTranscript, context);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.requirement).toMatchObject({ kind: 'profile-input', code: 'hcmut-transcript' });
+  });
+
+  it('failure: combination sai dạng => { ok: false, requirement: { code: "hcmut-invalid-combination" } }', () => {
+    const invalidCombination = { id: 'invalid', subjects: ['physics', 'chemistry', 'math'] as const };
+    const context = { combination: invalidCombination, bonus: { reward: 0, considerationReward: 0, encouragement: 0 }, priorityRaw30Scale: 0 };
+    const result = buildHcmutAdmissionInputResult(profile, context);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.requirement).toMatchObject({ kind: 'school-context', code: 'hcmut-invalid-combination' });
   });
 });

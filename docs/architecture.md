@@ -19,6 +19,293 @@ School Source Registry -> sourceId -> RuleEvidence -> School Rule -> AdmissionEv
 
 The offline audit validates both halves of the chain: source registry health (duplicate IDs, date-only metadata, lifecycle/supersession consistency) and rule references (missing source IDs, superseded sources, score-affecting rules backed only by secondary sources). The audit is still deterministic and offline.
 
+## Batch 17 (2026-08-17) — loại bỏ classify-bằng-parse-human-readable-text
+
+### Vấn đề: 2 finding đã biết + audit toàn repo
+
+`schools/hcmut/comparison.ts` (`classifyHcmutMissingInput`) suy `MissingRequirement.code` bằng
+`error.message.toLowerCase().includes('dgnl'|'thpt'|'học bạ')`; `schools/ussh/comparison.ts`
+(`getUsshApplicantType`) suy `applicantTypeId` bằng regex `/\((DT[123])\)/` trên
+`explanation[].label`. Cả 2 đều KHÔNG throw khi wording UI đổi (không có test khóa), nhưng business
+behavior (classification / cutoff matching) âm thầm phụ thuộc presentation text.
+
+Audit toàn repo (`.includes(`/`.match(`/`.exec(`/`error.message`/`.label`/`explanation`) tìm thêm:
+
+- `core/dataFreshnessAudit.ts` `summarizeFreshness()` — parse `issue.message.includes('superseded'|
+  'historical'|...)` để đếm theo `FreshnessStatus`, dù `issue` đã có `code` structured
+  (`SUPERSEDED_SOURCE_REFERENCE`...). **Domain-dangerous SHAPE nhưng hàm này KHÔNG có consumer nào**
+  (dead code, không import ở đâu, không test) — không sửa trong batch này (tránh rewrite logic
+  không ai dùng), ghi follow-up.
+- `components/compare/SchoolComparisonCard.tsx` `displayLabel()` — dispatch chính bằng
+  `requirement.code` (đúng pattern), NHƯNG 1 nhánh UIT dùng `requirement.label.includes('SAT')` để
+  chọn 1 trong 2 câu hiển thị ngắn gọn hơn. Chỉ ảnh hưởng ĐÚNG hint text hiển thị (không phải
+  business decision nào), giữ nguyên — Category B/C, ghi follow-up.
+- `compare/missingRequirementActions.ts`, `compare/evaluationCompleteness.ts`,
+  `compare/evaluationDisplay.ts` — đều dispatch bằng `requirement.kind`/`requirement.code`/
+  `confidence` (structured), KHÔNG parse text. Không cần sửa.
+- Mọi `eligibility.ts` (`requiredText`) — quyết định thật nằm ở `pass: boolean` structured, `text`
+  chỉ đi kèm để hiển thị, không bị parse lại ở đâu khác. Không cần sửa.
+
+### Fix 1 — HCMUT: Result type thay throw-on-missing-input
+
+`schools/hcmut/applicantProfileAdapter.ts`: thêm `buildHcmutAdmissionInputResult()` —
+`{ ok: true; input } | { ok: false; requirement: MissingRequirement }`. Bên trong dùng 1
+`HcmutInputRequirementError` (internal, không leak ra ngoài module) mang sẵn `MissingRequirement`
+(`code`: `hcmut-dgnl`/`hcmut-thpt`/`hcmut-transcript`/`hcmut-invalid-combination`) được gán TẠI
+ĐÚNG chỗ phát hiện thiếu field — không còn suy ngược từ message ở downstream. `buildHcmutAdmissionInput`
+(throw-based) GIỮ NGUYÊN cho caller cũ (`applicantProfileAdapter.test.ts`,
+`applicantProfile.crossSchool.test.ts`) — cả 2 entrypoint dùng chung 1 hàm detect duy nhất
+(`buildAdmissionInputOrThrow`), không duplicate rule. Chọn Result type (không phải typed-error-only)
+theo đúng gợi ý spec vì đây là comparison layer gọi NHIỀU trường trong 1 vòng lặp — throw ở 1
+trường không nên cần try/catch riêng lẻ mỗi lần, Result diễn tả rõ hơn "user chưa nhập đủ" là
+expected case.
+
+`schools/hcmut/comparison.ts` giờ:
+
+```text
+buildHcmutAdmissionInputResult(profile, methodContext)
+  → { ok: true, input }   → evaluateHcmutAdmission(input)
+  → { ok: false, requirement } → unavailableEvaluation({ missingRequirements: [requirement] })
+```
+
+Vẫn giữ 1 try/catch NGOÀI CÙNG — nhưng chỉ bắt lỗi THẬT SỰ ngoài dự kiến (mọi case "thiếu dữ liệu"
+đã biết đều đi qua Result, không throw nữa). Catch-all gắn `{ kind: 'unsupported', code:
+'hcmut-unexpected-error' }` — trung thực là lỗi kỹ thuật chưa phân loại, KHÔNG bị giả thành 1 trong
+3 code cụ thể (bug cũ: mọi exception, kể cả không liên quan, đều bị nhét vào 1 bucket theo substring
+match).
+
+### Fix 2 — USSH: `AdmissionEvaluation.comparisonContext.applicantTypeId`
+
+`core/admissionEvaluation.ts` thêm field GENERIC (không phải USSH-specific):
+
+```ts
+comparisonContext?: { applicantTypeId?: string };
+```
+
+Dùng chung type (`string`) với `ComparableCutoffRecord.applicantTypeId`/
+`findCutoffComparison({ selection: { applicantTypeId } })` đã có sẵn ở `core/cutoffComparison.ts`
+— đây KHÔNG phải field mới bịa ra, mà là thread lại 1 khái niệm core đã tồn tại (dimension cutoff
+theo "đối tượng xét tuyển") lên tới `AdmissionEvaluation`, nơi evaluator (đã biết rule) có thể set
+trực tiếp. Core KHÔNG import gì từ `schools/ussh` — type vẫn là `string` chung, không phải union
+`'DT1'|'DT2'|'DT3'` (union đó vẫn sống trong `schools/ussh/calculator.ts` như cũ).
+
+`evaluateUsshAdmission` set `comparisonContext: { applicantTypeId: dhl.applicantType }` ngay khi
+`dhl` (kết quả `calculateUsshBestDhl`, nơi DUY NHẤT biết đối tượng) tồn tại — kể cả nhánh `partial`
+(bonus có thành tích, chưa tính được finalScore) vẫn expose để trung thực với state đã biết.
+`schools/ussh/comparison.ts` đọc thẳng `evaluation.comparisonContext?.applicantTypeId` — xóa hẳn
+`getUsshApplicantType()` (regex) và import `AdmissionEvaluation` không cần nữa.
+
+**Đổi wording UI cùng lượt** (chứng minh decoupling thật, không phải chỉ đổi type): label
+`Điểm học lực (DT1)` / `Điểm xét tuyển cuối cùng USSH (DT1)` → `Điểm học lực — Đối tượng 1` /
+`Điểm xét tuyển cuối cùng USSH — Đối tượng 1` (helper `applicantTypeDisplayLabel`, thuần
+presentation). Label thật giờ KHÔNG còn chứa token `DT1`/`DT2`/`DT3` nào — test khóa bằng
+`expect(label).not.toMatch(/\(DT1\)/)` đi kèm `expect(comparisonContext.applicantTypeId).toBe('DT1')`
+cùng lúc.
+
+### Tests mới
+
+- `schools/hcmut/applicantProfileAdapter.test.ts` — 5 test Result-based (`buildHcmutAdmissionInputResult`
+  success/failure × dgnl/thpt/transcript/invalid-combination); test throw-based cũ giữ nguyên,
+  không đổi 1 dòng nào (chứng minh 2 entrypoint parity thật).
+- `schools/hcmut/comparison.test.ts` (mới) — 9 test: 3 code classification (dgnl/thpt/transcript) +
+  đổi field khác nhau ra cùng code (label khác nhau) + unexpected-error an toàn/không giả code +
+  complete-profile parity + invalid-combination + no-context.
+- `schools/ussh/evaluate.test.ts` — 2 test cũ (`.toContain('(DT1)')`/`'(DT2)'`) đổi sang assert
+  `comparisonContext.applicantTypeId` (label wording đã đổi, đúng dự kiến); thêm DT3 + test wording
+  change không đổi identity.
+- `schools/ussh/comparison.test.ts` (mới) — 5 test: DT1/DT2/DT3 cutoff comparison đúng qua
+  `comparisonContext`, không cutoff khi không xác định được đối tượng, và test tường minh "xóa
+  token DT1 khỏi label vẫn không đổi cutoff match".
+
+### Không đổi
+
+Không công thức/exact-partial-unavailable semantics/cutoff data nào thay đổi. 630 test pass (từ
+609 trước batch này — +21 test mới, 0 test cũ bị xóa, 4 test cũ được cập nhật ĐÚNG theo spec: đổi
+wording assertion, không đổi ý nghĩa).
+
+## Batch 18 (2026-08-17) — golden/domain conformance tests
+
+### Vấn đề: implementation + test có thể cùng đồng ý nhưng cùng hiểu sai công thức
+
+Rủi ro khác hẳn "code sai lệch với test" — ở đây code VÀ test có thể khớp nhau hoàn hảo nhưng
+CÙNG hiểu sai công thức chính thức, vì test cũ lấy expected value bằng cách gọi CHÍNH calculator
+đang test (circular — không chứng minh được gì với nguồn thật). `exactCalculator: true` trước batch
+này chỉ đảm bảo "có evidence + không còn knowledge gap" — KHÔNG đảm bảo "kết quả tính khớp với 1
+worked example/bảng/formula THẬT đọc từ nguồn chính thức".
+
+### `core/goldenAdmissionCase.ts` — infra 4 tier
+
+```text
+Tier A (OfficialExampleFixture, đã có từ trước) — nguồn công bố sẵn CẢ input LẪN output.
+Tier B (GoldenAdmissionCase, tier: 'B') — nguồn công bố 1 bảng (conversion table/bonus table/
+        priority table) — chọn 1 dòng cụ thể làm anchor, không tính toán gì thêm ngoài
+        interpolation đã verified.
+Tier C (GoldenAdmissionCase, tier: 'C') — nguồn chỉ có formula + constants, KHÔNG có worked
+        example. `expected` tính TAY (không gọi calculator), `derivation` BẮT BUỘC ghi rõ phép
+        tính — `assertGoldenCaseProvenance()` throw ngay nếu quên.
+Tier D — cross-check phụ, không dùng thay primary source cho rule ảnh hưởng điểm.
+```
+
+### Inventory exact methods hiện tại (audit main, không suy từ README cũ)
+
+6 method đang khai `capabilities.exactCalculator === true`: `hcmut-comprehensive-2026`,
+`ueh-integrated-2026`, `uel-comprehensive-2026` (unlock qua `uelExactCalculatorAvailable`, re-audit
+2026-08-15 — README/docs batch cũ vẫn ghi UEL "chưa exact", đã LỖI THỜI), `hcmus-method2-2026`,
+`ussh-integrated-2026` (chỉ phạm vi ĐC=0), `iu-method2-2026` (chỉ đối tượng "Thí sinh tốt nghiệp
+THPT 2026"). UIT/UHS/AGU/HCMUE vẫn `false` — không cần golden coverage (chưa exact).
+
+### Golden fixtures theo trường (`schools/<id>/__fixtures__/officialExamples2026.ts` + `golden.test.ts`)
+
+| Trường | Tier | # case | Anchor |
+|---|---|---|---|
+| HCMUT | C | 4 | Không có worked example (`HCMUT_MISSING_OFFICIAL_WORKED_EXAMPLE=true`) — input CHỌN CỐ Ý để mọi `round2()` trung gian là no-op (né rủi ro rounding-assumption đã ghi ở `docs/rounding-audit.md`). 3 case ĐGNL (normal/priority-reduction-boundary/bonus+final-cap) + 1 case no-ĐGNL (cross-checked). |
+| UEH | A + C | 1 + 2 | **Tier A thật**: worked example nguyên văn từ nguồn ("[(25.55×100)/30]×0.6=51.10 + (8.6×10)×0.4=34.40 → 90.50"), đã có sẵn trong `evidence.ts` trước batch này — chỉ cần nối vào calculator thật. 2 case Tier C cho priority (không có trong worked example gốc). |
+| UEL | C | 2 | β1/β2/β3 + quy tắc giảm ưu tiên verified, không worked example. |
+| HCMUS | B + C | 3 + 1 | **Tier B thật**: 3 dòng bảng phân vị ĐGNL↔THPT chính thức (exact breakpoint 995→27.25, nội suy giữa 967-995, ceiling clamp 1200→30). 1 case Tier C full chain. |
+| USSH | C | 3 | Phủ cả 3 applicant type branch (ĐHL1/ĐHL2/ĐHL3 — công thức trọng số khác hẳn nhau). |
+| IU | C | 2 | Phủ 2 nhánh công thức điểm học lực (có ĐGNL thật vs. Hs3×THPT substitute khi không có ĐGNL 2026). |
+
+### Mismatch phát hiện khi verify fixture (KHÔNG phải bug, chỉ là rounding asymmetry)
+
+Khi verify case UEH priority-reduction, `computeUehPriority()` trả `received` KHÔNG qua `round2()`
+(1.9314, không phải 1.93) — khác UEL/IU/HCMUS, cả 3 ĐỀU `round2()` kết quả giảm ưu tiên tương ứng.
+`finalScore` UEH vẫn `round2()` đúng ở bước cuối nên KHÔNG ảnh hưởng số hiển thị user thấy. KHÔNG
+sửa code (chưa có nguồn xác nhận UEH có/không round bước này) — golden expected phản ánh ĐÚNG hành
+vi hiện tại, ghi rõ trong fixture. Followup: nếu tìm được nguồn, quyết định thống nhất.
+
+### `exactMethodGoldenCoverage` — invariant CI, không cho phép bypass
+
+`compare/exactMethodGoldenCoverage.test.ts`: set `exactMethods` DERIVE trực tiếp từ
+`AdmissionMethodDescriptor.capabilities.exactCalculator` của cả 10 trường; set `coveredMethods`
+DERIVE trực tiếp từ chính các mảng `*GoldenCases` (mỗi golden case tự khai `schoolId`/`methodId`) —
+KHÔNG phải 1 `Set` khai tay dễ lệch (đúng bug-shape đã sửa ở Batch 16 cho `COMPARE_SCHOOL_ORDER`).
+Thêm exact method mới mà quên fixture → set lệch → test fail rõ ràng, không mơ hồ. Test thêm 2
+chiều: golden case không được trỏ nhầm vào method KHÔNG exact, và `sourceId` mỗi golden case phải
+tồn tại thật trong `schoolSourceRegistries` (dùng lại helper có sẵn, không duplicate existence
+check).
+
+### Quy trình maintainer khi thêm 1 exact method mới
+
+1. Có evidence + `knowledgeGaps` rỗng cho method đó (điều kiện hiện tại để bật `exactCalculator: true`).
+2. Tìm worked example chính thức (Tier A) — ưu tiên cao nhất. Không có thì tìm bảng/converter
+   (Tier B). Không có nữa thì Tier C: tính tay từ formula+constants đã verified, ghi `derivation`.
+3. Thêm fixture ở `schools/<id>/__fixtures__/officialExamples2026.ts`, `sourceId` PHẢI trỏ vào
+   `schools/<id>/sources.ts` có thật.
+4. Thêm `schools/<id>/golden.test.ts` gọi calculator thật, assert cả intermediate lẫn final.
+5. Chạy `npm run test` — `exactMethodGoldenCoverage.test.ts` tự xác nhận coverage, không cần sửa
+   tay set nào.
+
+### Không đổi
+
+Không công thức/rounding/capability nào bị sửa trong batch này — mọi golden case hand-derived đều
+verify khớp implementation hiện tại NGAY LẦN CHẠY ĐẦU (trừ 1 lần sửa expected của chính fixture khi
+phát hiện UEH không round `priority.received`, xem trên — không phải sửa production code). 663 test
+pass (630 trước batch + 33 mới).
+
+## Batch 16 (2026-08-17) — compare orchestration: `SchoolComparisonAdapter` registry
+
+### Vấn đề: integration drift ở `/compare`
+
+Trước batch này, `src/compare/evaluateApplicantAcrossSchools.ts` import trực tiếp evaluator/
+methods/cutoffs/program data của TỪNG trường và có 2 danh sách trường ĐỘC LẬP:
+
+- `COMPARE_SCHOOL_ORDER` (hằng số, không được orchestration thật sự dùng tới — dead constant).
+- Danh sách gọi tay trong `evaluateApplicantAcrossSchools()` (roster mặc định).
+- Một chuỗi `if (selection.schoolId === 'x')` riêng trong `evaluateComparisonSelections()`.
+
+3 nơi này phải luôn khớp nhau bằng kỷ luật thủ công, không có gì ép buộc. Bằng chứng thật: **HCMUE**
+(thêm ở commit trước batch này) có `schoolModule` thật trong `schoolRegistry` + có branch trong
+`evaluateComparisonSelections`, nhưng bị QUÊN ở cả `COMPARE_SCHOOL_ORDER` lẫn danh sách mặc định
+của `evaluateApplicantAcrossSchools()` — user chọn HCMUE ở `/compare` (selection-driven) thấy kết
+quả bình thường, nhưng roster mặc định (dùng ở test parity + tương lai nếu UI nào gọi thẳng) im
+lặng thiếu 1 trường. Không có test nào bắt được vì 2 đường test riêng biệt, không đối chiếu nhau.
+
+### Design: `SchoolComparisonAdapter` — 1 hợp đồng, 1 registry, không universal formula engine
+
+`src/compare/schoolComparisonAdapter.ts` định nghĩa:
+
+```ts
+interface SchoolComparisonAdapter<TContext = unknown> {
+  schoolId: string;
+  methodId: string;
+  methodName: string;
+  buildContext(selection: Omit<ComparisonSelection, 'id'>): TContext;
+  evaluate(profile: ApplicantProfile, context: TContext): SchoolComparisonResult;
+}
+```
+
+Mỗi trường implement ĐÚNG 1 adapter ở `schools/<id>/comparison.ts` (10/10 trường, batch này migrate
+toàn bộ logic từ 2 nơi cũ vào đây, KHÔNG đổi công thức/kết quả). `TContext` CỐ TÌNH khác nhau theo
+trường (HCMUT: bonus/priority/combination; USSH: bonus achievement; UIT: chỉ `programId`...) — thay
+vì ép về 1 object chung hàng chục field optional vô nghĩa. `evaluate()`/`buildContext()` dùng
+method-signature syntax (không phải property kiểu arrow) để TypeScript check tham số bivariant, cho
+phép `schoolComparisonAdapters: readonly SchoolComparisonAdapter[]` (TContext xóa kiểu về `unknown`)
+chứa 10 adapter với `TContext` cụ thể khác nhau mà không cần `any`/cast ở registry.
+
+`src/compare/comparisonRegistry.ts` là nguồn sự thật DUY NHẤT:
+
+```ts
+export const schoolComparisonAdapters = [hcmutComparisonAdapter, uehComparisonAdapter, ...]; // 10 dòng
+export const schoolComparisonAdapterRegistry = Object.fromEntries(...); // lookup theo schoolId
+export const COMPARE_SCHOOL_ORDER = schoolComparisonAdapters.map((a) => a.schoolId); // derive, không phải hằng số song song
+```
+
+`evaluateApplicantAcrossSchools.ts` giờ CHỈ orchestrate — không còn `if (schoolId === ...)` nào,
+không còn import evaluator/cutoffs/methods riêng từng trường:
+
+```ts
+evaluateApplicantAcrossSchools(profile, contexts)  → schoolComparisonAdapters.map(adapter => summarize(adapter, adapter.evaluate(profile, contexts[adapter.schoolId] ?? {})))
+evaluateComparisonSelections(profile, selections)  → selections.flatMap(selection => { adapter = registry[selection.schoolId]; ...adapter.buildContext + adapter.evaluate })
+```
+
+Cả 2 hàm lặp qua ĐÚNG 1 mảng — không thể "thêm HCMUE ở đường này, quên đường kia" nữa vì chỉ còn 1
+đường.
+
+### Giảm duplication ở cutoff comparison
+
+5 trường có cutoff comparison thật (HCMUT/UEH/UEL/USSH/IU) từng lặp lại gần y hệt ~15 dòng "chưa
+chọn ngành → thêm `missingRequirement`; có ngành + có score → gọi `findCutoffComparison`". Gộp vào
+`withProgramCutoffComparison()` (`schoolComparisonAdapter.ts`) — business logic (records nào dùng,
+dimension riêng như `applicantTypeId` của USSH) VẪN do từng trường tự quyết qua closure
+`getCutoffComparison`, helper chỉ gói phần plumbing lặp lại. 5 trường còn lại (HCMUS/UHS/UIT/AGU/
+HCMUE) chưa có cutoff comparison ở `/compare` — giữ nguyên, KHÔNG thêm mới (ngoài scope, cũng không
+phải bug).
+
+### `programSelectionStorage.ts` — drift tương tự, đã fix cùng lượt
+
+`programIdsBySchool` (validate `programId` đã lưu localStorage) là 1 map khai tay khác — chỉ có
+7/10 trường, cũng thiếu `agu`/`hcmue` (âm thầm coi mọi `programId` đã lưu của 2 trường này là
+invalid). Tách phần data ra `src/compare/programCatalog.ts` (leaf module, KHÔNG phụ thuộc
+`schoolRegistry`) để cả `universityCatalog.ts` lẫn `programSelectionStorage.ts` dùng chung — trường
+mới thêm vào `programCatalogBySchool` tự động được validate ở cả 2 nơi.
+
+**Circular import phát hiện khi làm batch này**: `programSelectionStorage.ts` không được import
+`universityCatalog.ts` (dù cả 2 đều cần validate theo `programId`) — `universityCatalog.ts` phụ
+thuộc `schoolRegistry`, và `HcmusPage.tsx` (import `programSelectionStorage.ts`) nằm trong chính
+chain khởi tạo `schoolRegistry` (`schools/index.ts` → `schools/hcmus/index.ts` → `HcmusPage.tsx`).
+Import ngược lại tạo cycle thật (`schoolRegistry` đọc `undefined` lúc `universityCatalog.ts` chạy
+`Object.values`), bắt được ngay khi chạy `npm run test` (không phải lý thuyết). Vì vậy
+`programCatalog.ts` cố tình là leaf module không đụng `schools/index.ts`.
+
+### Invariant tests mới (`comparisonRegistry.test.ts`)
+
+- Mọi school trong `schoolRegistry` có đúng 1 adapter, và ngược lại (bijective — bắt được y hệt bug
+  HCMUE cũ nếu tái diễn).
+- Không `schoolId` trùng trong registry (kèm test chứng minh detector tự phát hiện được trùng khi
+  cố tình dựng 1 mảng có duplicate).
+- `adapter.methodId` phải khớp 1 `AdmissionMethodDescriptor.id` thật của đúng trường đó.
+- `COMPARE_SCHOOL_ORDER` phải bằng `schoolComparisonAdapters.map(schoolId)` — khóa việc không ai
+  quay lại hardcode 1 hằng số song song.
+- Roster mặc định VÀ selection-driven đều phải cover đúng tập adapter (không lệch nhau).
+- Selection với `schoolId` không tồn tại bị bỏ qua an toàn, không crash.
+
+### Không đổi
+
+Không công thức/`AdmissionMethodDescriptor.capabilities`/exact-partial-unavailable semantics nào
+thay đổi — `evaluateApplicantAcrossSchools.test.ts` cũ (596 test) giữ nguyên, chỉ 1 test đổi ĐÚNG
+theo spec (roster mặc định giờ có 10 trường thay vì 9, vì đã fix drift HCMUE — có ghi chú rõ trong
+test tại sao đổi).
+
 ## Batch 13 (2026-08-13) — freshness lifecycle
 
 UniScoreVN now models two independent questions:

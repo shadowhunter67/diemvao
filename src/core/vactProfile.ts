@@ -44,6 +44,16 @@ export type VactValueSource =
   | 'legacy-import'
   | 'unknown';
 
+/** Danh sách runtime của `VactValueSource` — dùng để validate giá trị đọc từ localStorage/URL
+ * (không tin cậy) mà không duplicate literal union ở nơi validate (`applicantProfileStorage.ts`). */
+export const VACT_VALUE_SOURCES: readonly VactValueSource[] = [
+  'user-components-input',
+  'derived-from-components',
+  'user-total-input',
+  'legacy-import',
+  'unknown',
+];
+
 export interface VactProfile {
   total?: number;
   components?: VactComponents;

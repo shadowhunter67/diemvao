@@ -87,7 +87,14 @@ describe('evaluateApplicantAcrossSchools', () => {
     expect(hcmue.cutoffComparison).toBeUndefined();
   });
 
-  it('renders the canonical 9-school compare roster in product order', () => {
+  /**
+   * Trước refactor (`comparisonRegistry.ts`), HCMUE có module thật trong `schoolRegistry` + branch
+   * trong `evaluateComparisonSelections` nhưng KHÔNG có mặt ở roster mặc định này — đúng loại
+   * integration drift refactor này ngăn (school "implement rồi" nhưng bị quên ở 1 đường compare).
+   * Giờ roster mặc định lặp qua đúng `schoolComparisonAdapters` (1 nguồn duy nhất), nên HCMUE tự
+   * động xuất hiện — xem `docs/architecture.md` Batch 16.
+   */
+  it('renders the canonical 15-school compare roster in product order (incl. HCMUE/HCMUTE/TDTU/HUFLIT/HUTECH/UFM, fixed integration drift)', () => {
     expect(evaluateApplicantAcrossSchools(profile).map((summary) => summary.schoolId)).toEqual([
       'hcmut',
       'ueh',
@@ -98,6 +105,12 @@ describe('evaluateApplicantAcrossSchools', () => {
       'uhs',
       'uit',
       'agu',
+      'hcmue',
+      'hcmute',
+      'tdtu',
+      'huflit',
+      'hutech',
+      'ufm',
     ]);
   });
 
@@ -117,7 +130,7 @@ describe('evaluateApplicantAcrossSchools', () => {
       expect(getEvaluationDisplayStatus(bySchool[schoolId].evaluation.confidence)).toBe('exact');
       expect(bySchool[schoolId].evaluation.score).toBeDefined();
     }
-    for (const schoolId of ['uhs', 'uit', 'agu']) {
+    for (const schoolId of ['uhs', 'uit', 'agu', 'hcmue', 'hcmute']) {
       expect(getEvaluationDisplayStatus(bySchool[schoolId].evaluation.confidence)).toBe('partial');
     }
   });
@@ -191,7 +204,7 @@ describe('evaluateApplicantAcrossSchools', () => {
 
   it('partial schools never expose unsafe cutoff gaps even when programs are selected', () => {
     const bySchool = Object.fromEntries(evaluateApplicantAcrossSchools(profile, completeContexts()).map((summary) => [summary.schoolId, summary]));
-    for (const schoolId of ['uit', 'uhs', 'agu']) {
+    for (const schoolId of ['uit', 'uhs', 'agu', 'hcmue', 'hcmute']) {
       expect(bySchool[schoolId].cutoffComparison).toBeUndefined();
       expect(bySchool[schoolId].evaluation.score).toBeUndefined();
     }

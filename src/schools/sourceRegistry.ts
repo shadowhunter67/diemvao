@@ -9,6 +9,11 @@ import { uhsSources } from './uhs/sources';
 import { iuSources } from './iu/sources';
 import { aguSources } from './agu/sources';
 import { hcmueSources } from './hcmue/sources';
+import { hcmuteSources } from './hcmute/sources';
+import { tdtuSources } from './tdtu/sources';
+import { huflitSources } from './huflit/sources';
+import { hutechSources } from './hutech/sources';
+import { ufmSources } from './ufm/sources';
 
 function withSchoolId(schoolId: string, sources: Omit<AdmissionSource, 'schoolId'>[]): AdmissionSource[] {
   return sources.map((source) => ({ ...source, schoolId }));
@@ -24,6 +29,11 @@ export const uhsSourceRegistry: AdmissionSource[] = withSchoolId('uhs', uhsSourc
 export const iuSourceRegistry: AdmissionSource[] = withSchoolId('iu', iuSources);
 export const aguSourceRegistry: AdmissionSource[] = withSchoolId('agu', aguSources);
 export const hcmueSourceRegistry: AdmissionSource[] = withSchoolId('hcmue', hcmueSources);
+export const hcmuteSourceRegistry: AdmissionSource[] = withSchoolId('hcmute', hcmuteSources);
+export const tdtuSourceRegistry: AdmissionSource[] = withSchoolId('tdtu', tdtuSources);
+export const huflitSourceRegistry: AdmissionSource[] = withSchoolId('huflit', huflitSources);
+export const hutechSourceRegistry: AdmissionSource[] = withSchoolId('hutech', hutechSources);
+export const ufmSourceRegistry: AdmissionSource[] = withSchoolId('ufm', ufmSources);
 
 export const schoolSourceRegistries: Record<string, AdmissionSource[]> = {
   hcmut: hcmutSourceRegistry,
@@ -36,6 +46,11 @@ export const schoolSourceRegistries: Record<string, AdmissionSource[]> = {
   iu: iuSourceRegistry,
   agu: aguSourceRegistry,
   hcmue: hcmueSourceRegistry,
+  hcmute: hcmuteSourceRegistry,
+  tdtu: tdtuSourceRegistry,
+  huflit: huflitSourceRegistry,
+  hutech: hutechSourceRegistry,
+  ufm: ufmSourceRegistry,
 };
 
 export const allAdmissionSources: AdmissionSource[] = [
@@ -49,4 +64,9 @@ export const allAdmissionSources: AdmissionSource[] = [
   ...iuSourceRegistry,
   ...aguSourceRegistry,
   ...hcmueSourceRegistry,
+  ...hcmuteSourceRegistry,
+  ...tdtuSourceRegistry,
+  ...huflitSourceRegistry,
+  ...hutechSourceRegistry,
+  ...ufmSourceRegistry,
 ];

@@ -1,36 +1,14 @@
 import { CURRENT_ADMISSION_YEAR } from '../src/core/admissionYear.ts';
-import {
-  auditAdmissionDataFreshness,
-  type AuditableCutoffRecord,
-  type FreshnessAuditIssue,
-  type FreshnessAuditSeverity,
-} from '../src/core/dataFreshnessAudit.ts';
-import type { AdmissionMethodDescriptor } from '../src/core/admissionMethod.ts';
-import type { RuleEvidence } from '../src/core/evidence.ts';
-import type { KnowledgeGap } from '../src/core/knowledgeStatus.ts';
+import { auditAdmissionDataFreshness, type AuditableCutoffRecord, type FreshnessAuditIssue, type FreshnessAuditSeverity } from '../src/core/dataFreshnessAudit.ts';
+import { hcmutEvidence, verifiedRuntimeEvidence, allAdmissionMethods, allMethodKnowledgeGaps } from '../src/core/admissionAuditInputs.ts';
 import { hcmutCutoffs } from '../src/schools/hcmut/data/cutoffs.ts';
-import { hcmutRuleEvidence } from '../src/schools/hcmut/evidence.ts';
-import { hcmutAdmissionMethods } from '../src/schools/hcmut/methods.ts';
 import { uehCutoffs } from '../src/schools/ueh/data/cutoffs.ts';
-import { uehAdmissionMethods } from '../src/schools/ueh/methods.ts';
 import { uelCutoffs } from '../src/schools/uel/data/cutoffs.ts';
-import { uelAdmissionMethods } from '../src/schools/uel/methods.ts';
 import { uitCutoffs } from '../src/schools/uit/data/cutoffs.ts';
-import { uitAdmissionMethods } from '../src/schools/uit/methods.ts';
-import { hcmusAdmissionMethods } from '../src/schools/hcmus/methods.ts';
-import { hcmusAcademicScoreEvidence, hcmusBonusEvidence, hcmusProgramThresholdEvidence, hcmusThresholdEvidence } from '../src/schools/hcmus/evidence.ts';
-import { usshAdmissionMethods } from '../src/schools/ussh/methods.ts';
-import { usshDt3FormulaEvidence, usshThresholdEvidence, usshDhl1Dhl2FormulaEvidence, usshPriorityTableEvidence } from '../src/schools/ussh/evidence.ts';
-import { uhsAdmissionMethods } from '../src/schools/uhs/methods.ts';
-import { uhsBonusEvidence, uhsIntegratedFormulaEvidence, uhsThresholdEvidence } from '../src/schools/uhs/evidence.ts';
-import { iuAdmissionMethods } from '../src/schools/iu/methods.ts';
-import { iuAcademicWeightsEvidence, iuBonusEvidence, iuPriorityEvidence, iuPriorityReductionEvidence } from '../src/schools/iu/evidence.ts';
 import { iuCutoffs2026 } from '../src/schools/iu/data/cutoffs.ts';
-import { aguAdmissionMethods } from '../src/schools/agu/methods.ts';
-import { aguBetaWeightsEvidence, aguLawExtraConditionEvidence, aguProgramThresholdEvidence } from '../src/schools/agu/evidence.ts';
 import { allAdmissionSources } from '../src/schools/sourceRegistry.ts';
 
-const SCHOOLS = ['hcmut', 'ueh', 'uel', 'uit', 'hcmus', 'ussh', 'uhs', 'iu', 'agu'] as const;
+const SCHOOLS = ['hcmut', 'ueh', 'uel', 'uit', 'hcmus', 'ussh', 'uhs', 'iu', 'agu', 'hcmute', 'tdtu', 'huflit', 'hutech', 'ufm'] as const;
 const args = process.argv.slice(2);
 const verbose = args.includes('--verbose');
 const schoolFilter = args.find((arg) => arg.startsWith('--school='))?.slice('--school='.length) ?? args.find((arg) => SCHOOLS.includes(arg as (typeof SCHOOLS)[number]));
@@ -38,38 +16,6 @@ const selectedSchools = schoolFilter ? SCHOOLS.filter((schoolId) => schoolId ===
 
 function withSchoolId(schoolId: string, cutoffs: AuditableCutoffRecord[]): AuditableCutoffRecord[] {
   return cutoffs.map((cutoff) => ({ ...cutoff, schoolId }));
-}
-
-function methodGaps(methods: AdmissionMethodDescriptor[]): Array<KnowledgeGap & { schoolId?: string; methodId?: string }> {
-  return methods.flatMap((method) => (method.knowledgeGaps ?? []).map((gap) => ({ ...gap, schoolId: method.schoolId, methodId: method.id })));
-}
-
-function hcmutEvidence(): RuleEvidence[] {
-  return (Object.values(hcmutRuleEvidence) as Array<{ evidence: RuleEvidence[] }>).flatMap((rule) => rule.evidence);
-}
-
-function verifiedRuntimeEvidence(): RuleEvidence[] {
-  return [
-    ...hcmutEvidence(),
-    ...hcmusThresholdEvidence.evidence,
-    ...hcmusAcademicScoreEvidence.evidence,
-    ...hcmusProgramThresholdEvidence.evidence,
-    ...hcmusBonusEvidence.evidence,
-    ...usshThresholdEvidence.evidence,
-    ...usshDt3FormulaEvidence.evidence,
-    ...usshDhl1Dhl2FormulaEvidence.evidence,
-    ...usshPriorityTableEvidence.evidence,
-    ...uhsThresholdEvidence.evidence,
-    ...uhsIntegratedFormulaEvidence.evidence,
-    ...uhsBonusEvidence.evidence,
-    ...iuAcademicWeightsEvidence.evidence,
-    ...iuBonusEvidence.evidence,
-    ...iuPriorityEvidence.evidence,
-    ...iuPriorityReductionEvidence.evidence,
-    ...aguProgramThresholdEvidence.evidence,
-    ...aguBetaWeightsEvidence.evidence,
-    ...aguLawExtraConditionEvidence.evidence,
-  ];
 }
 
 function severityRank(severity: FreshnessAuditSeverity): number {
@@ -102,20 +48,9 @@ function printSchoolIssues(schoolId: string, issues: FreshnessAuditIssue[]): voi
   }
 }
 
-const methods = [
-  ...hcmutAdmissionMethods,
-  ...uehAdmissionMethods,
-  ...uelAdmissionMethods,
-  ...uitAdmissionMethods,
-  ...hcmusAdmissionMethods,
-  ...usshAdmissionMethods,
-  ...uhsAdmissionMethods,
-  ...iuAdmissionMethods,
-  ...aguAdmissionMethods,
-];
 const issues = auditAdmissionDataFreshness({
   currentAdmissionYear: CURRENT_ADMISSION_YEAR,
-  methods,
+  methods: allAdmissionMethods,
   cutoffs: [
     ...withSchoolId('hcmut', hcmutCutoffs),
     ...withSchoolId('ueh', uehCutoffs),
@@ -125,16 +60,7 @@ const issues = auditAdmissionDataFreshness({
   ],
   ruleEvidence: verifiedRuntimeEvidence(),
   sourceRegistry: allAdmissionSources,
-  knowledgeGaps: [
-    ...methodGaps(uehAdmissionMethods),
-    ...methodGaps(uelAdmissionMethods),
-    ...methodGaps(uitAdmissionMethods),
-    ...methodGaps(hcmusAdmissionMethods),
-    ...methodGaps(usshAdmissionMethods),
-    ...methodGaps(uhsAdmissionMethods),
-    ...methodGaps(iuAdmissionMethods),
-    ...methodGaps(aguAdmissionMethods),
-  ],
+  knowledgeGaps: allMethodKnowledgeGaps,
 });
 
 const scopedIssues = schoolFilter ? issues.filter((issue) => issue.schoolId === schoolFilter || !issue.schoolId) : issues;

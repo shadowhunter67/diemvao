@@ -6,6 +6,7 @@ import {
   clearStoredApplicantProfile,
   loadApplicantProfile,
   repairApplicantProfile,
+  sanitizeApplicantProfile,
   saveApplicantProfile,
 } from './applicantProfileStorage';
 
@@ -150,5 +151,170 @@ describe('storage migration uniscore:* → uniscorevn:* (Batch 7)', () => {
     expect(localStorage.getItem(LEGACY_KEY)).toBeNull();
     const afterReload = loadApplicantProfile();
     expect(afterReload).toEqual({});
+  });
+});
+
+/**
+ * Hardening runtime validation cho `ApplicantProfile` từ localStorage/URL (untrusted input) —
+ * trước đây `parseApplicantProfile` chỉ check root là object rồi cast thẳng sang `ApplicantProfile`,
+ * không validate field con nào. `sanitizeApplicantProfile` drop field sai type/range, giữ field
+ * hợp lệ khác — không bao giờ throw, không mất toàn bộ profile chỉ vì 1 field hỏng.
+ */
+describe('sanitizeApplicantProfile', () => {
+  it('giữ nguyên một profile hợp lệ đầy đủ field', () => {
+    const valid: ApplicantProfile = {
+      graduationYear: 2026,
+      thpt: { scores: { math: 8.5, literature: 7 } },
+      transcript: { grade10: { math: 8 }, grade11: { math: 8.5 }, grade12: { math: 9 } },
+      exams: { vact: { total: 980, components: { vietnamese: 250, english: 230, math: 260, scientificThinking: 240 }, totalSource: 'derived-from-components', componentsSource: 'user-components-input' } },
+      certificates: { ielts: 6.5, sat: 1400 },
+      priority: { region: 'KV1', category: 'UT1' },
+    };
+    expect(sanitizeApplicantProfile(valid)).toEqual(valid);
+  });
+
+  it('giữ nguyên một profile hợp lệ chỉ có vài field (partial)', () => {
+    const partial: ApplicantProfile = { graduationYear: 2026, thpt: { scores: { math: 8 } } };
+    expect(sanitizeApplicantProfile(partial)).toEqual(partial);
+  });
+
+  it('root không phải object (string/number/array/null) → trả {}', () => {
+    expect(sanitizeApplicantProfile('not-an-object')).toEqual({});
+    expect(sanitizeApplicantProfile(123)).toEqual({});
+    expect(sanitizeApplicantProfile(null)).toEqual({});
+    expect(sanitizeApplicantProfile(undefined)).toEqual({});
+    expect(sanitizeApplicantProfile(['a', 'b'])).toEqual({});
+    expect(sanitizeApplicantProfile(true)).toEqual({});
+  });
+
+  it('THPT scores lồng bị hỏng — key lạ/value sai type bị drop, giữ nguyên entry hợp lệ khác', () => {
+    const result = sanitizeApplicantProfile({
+      thpt: { scores: { math: 8, literature: 'bad', notASubject: 5, physics: [1, 2] } },
+    });
+    expect(result).toEqual({ thpt: { scores: { math: 8 } } });
+  });
+
+  it('transcript lồng bị hỏng — grade sai type bị drop riêng lẻ, giữ grade hợp lệ khác', () => {
+    const result = sanitizeApplicantProfile({
+      transcript: { grade10: { math: 8 }, grade11: 'not-an-object', grade12: { math: 9, badSubject: 20 } },
+    });
+    expect(result).toEqual({ transcript: { grade10: { math: 8 }, grade12: { math: 9 } } });
+  });
+
+  it('NaN/Infinity qua direct object (không đi qua JSON.parse) bị coi là invalid, drop field', () => {
+    const result = sanitizeApplicantProfile({
+      thpt: { scores: { math: Number.NaN, literature: Number.POSITIVE_INFINITY, english: 7 } },
+      graduationYear: Number.NaN,
+      certificates: { ielts: Number.NEGATIVE_INFINITY, sat: 1400 },
+    });
+    expect(result).toEqual({ thpt: { scores: { english: 7 } }, certificates: { sat: 1400 } });
+  });
+
+  it('score ngoài range (thang 10) bị drop', () => {
+    const result = sanitizeApplicantProfile({ thpt: { scores: { math: 15, literature: -1, english: 10 } } });
+    expect(result).toEqual({ thpt: { scores: { english: 10 } } });
+  });
+
+  it('V-ACT total/components malformed — sai range/type bị drop từng field, invariant vactProfile.ts vẫn áp dụng', () => {
+    const result = sanitizeApplicantProfile({
+      exams: {
+        vact: {
+          total: 5000, // ngoài VACT_TOTAL_RANGE (0-1200)
+          components: { vietnamese: 250, english: 'bad', math: 999, scientificThinking: 240 }, // math ngoài VACT_COMPONENT_RANGE (0-300)
+          totalSource: 'not-a-real-source',
+          componentsSource: 'user-components-input',
+        },
+      },
+    });
+    expect(result).toEqual({
+      exams: { vact: { components: { vietnamese: 250, scientificThinking: 240 }, componentsSource: 'user-components-input' } },
+    });
+  });
+
+  it('V-ACT source string không hợp lệ bị drop nhưng total/components hợp lệ vẫn giữ', () => {
+    const result = sanitizeApplicantProfile({
+      exams: { vact: { total: 900, totalSource: 'hacked-source' } },
+    });
+    expect(result).toEqual({ exams: { vact: { total: 900 } } });
+  });
+
+  it('V-ACT không phải object bị drop toàn bộ exams', () => {
+    expect(sanitizeApplicantProfile({ exams: { vact: 'not-an-object' } })).toEqual({});
+    expect(sanitizeApplicantProfile({ exams: 'not-an-object' })).toEqual({});
+  });
+
+  it('certificates malformed — key lạ/out-of-range/sai type bị drop riêng lẻ', () => {
+    const result = sanitizeApplicantProfile({
+      certificates: { ielts: 12, toeflIbt: 90, toeic: 'high', act: 36, unknownCert: 100 },
+    });
+    expect(result).toEqual({ certificates: { toeflIbt: 90, act: 36 } });
+  });
+
+  it('graduationYear không phải integer hợp lý bị drop, không ảnh hưởng field khác', () => {
+    expect(sanitizeApplicantProfile({ graduationYear: 2026.5, thpt: { scores: { math: 8 } } })).toEqual({ thpt: { scores: { math: 8 } } });
+    expect(sanitizeApplicantProfile({ graduationYear: 30000, thpt: { scores: { math: 8 } } })).toEqual({ thpt: { scores: { math: 8 } } });
+    expect(sanitizeApplicantProfile({ graduationYear: '2026' })).toEqual({});
+  });
+
+  it('field optional hỏng không làm mất các factual field hợp lệ khác trong cùng profile', () => {
+    const result = sanitizeApplicantProfile({
+      graduationYear: 'garbage',
+      thpt: { scores: { math: 8 } },
+      transcript: 'not-an-object',
+      exams: { vact: { total: 900 } },
+      certificates: 42,
+      priority: { region: 'KV1', category: 123 },
+    });
+    expect(result).toEqual({
+      thpt: { scores: { math: 8 } },
+      exams: { vact: { total: 900 } },
+      priority: { region: 'KV1' },
+    });
+  });
+
+  it('không throw với input adversarial (browser extension/schema cũ/corrupt)', () => {
+    expect(() => sanitizeApplicantProfile({ thpt: null, transcript: [1, 2, 3], exams: { vact: { components: null } } })).not.toThrow();
+    expect(() => sanitizeApplicantProfile(Symbol('weird'))).not.toThrow();
+  });
+});
+
+describe('parseApplicantProfile / loadApplicantProfile — end-to-end qua localStorage (untrusted input)', () => {
+  it('legacy migration vẫn hoạt động khi profile legacy có field hỏng lẫn field hợp lệ', () => {
+    const LEGACY_KEY = APPLICANT_PROFILE_LEGACY_KEYS[0];
+    localStorage.setItem(
+      LEGACY_KEY,
+      JSON.stringify({ graduationYear: 2026, thpt: { scores: { math: 8, badSubject: 99 } }, certificates: { ielts: 999 } })
+    );
+
+    const loaded = loadApplicantProfile();
+
+    expect(loaded).toEqual({ graduationYear: 2026, thpt: { scores: { math: 8 } } });
+    expect(localStorage.getItem(APPLICANT_PROFILE_STORAGE_KEY)).not.toBeNull();
+  });
+
+  it('repair conflict V-ACT vẫn hoạt động sau khi profile đi qua sanitize (range hợp lệ nhưng total != sum components)', () => {
+    localStorage.setItem(
+      APPLICANT_PROFILE_STORAGE_KEY,
+      JSON.stringify({
+        exams: { vact: { total: 1050, components: { vietnamese: 250, english: 230, math: 260, scientificThinking: 240 } } }, // sum 980
+      })
+    );
+
+    const loaded = loadApplicantProfile();
+
+    expect(loaded.exams?.vact?.total).toBe(1050);
+    expect(loaded.exams?.vact?.components).toBeUndefined();
+    expect(loaded.exams?.vact?.totalSource).toBe('legacy-import');
+  });
+
+  it('root JSON không phải object → profile rỗng, không crash', () => {
+    localStorage.setItem(APPLICANT_PROFILE_STORAGE_KEY, JSON.stringify('just-a-string'));
+    expect(() => loadApplicantProfile()).not.toThrow();
+    expect(loadApplicantProfile()).toEqual({});
+  });
+
+  it('root JSON là array → profile rỗng, không crash', () => {
+    localStorage.setItem(APPLICANT_PROFILE_STORAGE_KEY, JSON.stringify([1, 2, 3]));
+    expect(loadApplicantProfile()).toEqual({});
   });
 });

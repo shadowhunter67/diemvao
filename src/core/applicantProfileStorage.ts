@@ -1,6 +1,196 @@
 import type { ApplicantProfile } from './applicantProfile';
 import { readWithMigration } from './storage';
-import { hasCompleteVactComponents, sumVactComponents } from './vactProfile';
+import {
+  hasCompleteVactComponents,
+  sumVactComponents,
+  VACT_COMPONENT_RANGE,
+  VACT_TOTAL_RANGE,
+  VACT_VALUE_SOURCES,
+  type VactComponents,
+  type VactProfile,
+} from './vactProfile';
+import { SUBJECT_LABELS, type SubjectId } from './subjects';
+
+/**
+ * Batch — runtime validation cho dữ liệu đến từ localStorage/URL (untrusted input, có thể là
+ * schema cũ, bị user sửa tay, bị extension can thiệp, hoặc code version cũ). Chính sách: SANITIZE
+ * (drop field sai type/range, giữ field hợp lệ khác), KHÔNG reject nguyên profile chỉ vì 1 field
+ * hỏng — trừ root không phải object thì không còn gì để giữ. Không bao giờ throw.
+ *
+ * Range/danh sách hợp lệ reuse từ nơi đã có: `VACT_COMPONENT_RANGE`/`VACT_TOTAL_RANGE`/
+ * `VACT_VALUE_SOURCES` (`core/vactProfile.ts`), `SUBJECT_LABELS` (`core/subjects.ts`, exhaustive
+ * theo `SubjectId` nhờ TS ép kiểu `Record<SubjectId, string>` — dùng `Object.keys` thay vì
+ * duplicate danh sách subject id ở đây). Certificate range (IELTS/TOEFL iBT/TOEIC/SAT/ACT/IB) và
+ * graduation year range KHÔNG có canonical constant sẵn trong repo (chỉ có bonus lookup table theo
+ * threshold, không phải valid-range) — khai báo tại chỗ theo thang điểm chuẩn quốc tế/VN, chỉ để
+ * chặn giá trị corrupt/vô lý (vd âm, NaN, 99999), KHÔNG phải business rule quy đổi điểm của trường.
+ */
+
+const VALID_SUBJECT_IDS: ReadonlySet<string> = new Set(Object.keys(SUBJECT_LABELS));
+const THPT_SCORE_RANGE = { min: 0, max: 10 } as const;
+const GRADUATION_YEAR_RANGE = { min: 1950, max: 2100 } as const;
+const CERTIFICATE_RANGES = {
+  ielts: { min: 0, max: 9 },
+  toeflIbt: { min: 0, max: 120 },
+  toeic: { min: 0, max: 990 },
+  sat: { min: 0, max: 1600 },
+  act: { min: 0, max: 36 },
+  ib: { min: 0, max: 45 },
+} as const;
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isInRange(value: number, range: { min: number; max: number }): boolean {
+  return value >= range.min && value <= range.max;
+}
+
+/** Không giữ object rỗng sau khi lọc — nếu KHÔNG còn field con hợp lệ nào, coi cả field cha là
+ * "không có" (undefined) thay vì để lại noise dạng `{}` trong profile đã sanitize. */
+function emptyToUndefined<T extends object>(value: T): T | undefined {
+  return Object.keys(value).length > 0 ? value : undefined;
+}
+
+/** Lọc `{ [SubjectId]: number }` — chỉ giữ key là `SubjectId` hợp lệ VÀ value là finite number
+ * trong thang điểm 10 (THPT/học bạ VN). Field/key lạ hoặc value sai type bị drop lặng lẽ, không
+ * làm mất các subject score hợp lệ khác trong cùng object. */
+function sanitizeSubjectScores(value: unknown): Partial<Record<SubjectId, number>> {
+  if (!isPlainObject(value)) return {};
+  const result: Partial<Record<SubjectId, number>> = {};
+  for (const [key, raw] of Object.entries(value)) {
+    if (!VALID_SUBJECT_IDS.has(key)) continue;
+    if (isFiniteNumber(raw) && isInRange(raw, THPT_SCORE_RANGE)) {
+      result[key as SubjectId] = raw;
+    }
+  }
+  return result;
+}
+
+function sanitizeThpt(value: unknown): ApplicantProfile['thpt'] | undefined {
+  if (!isPlainObject(value)) return undefined;
+  const scores = sanitizeSubjectScores(value.scores);
+  return Object.keys(scores).length > 0 ? { scores } : undefined;
+}
+
+function sanitizeTranscript(value: unknown): ApplicantProfile['transcript'] | undefined {
+  if (!isPlainObject(value)) return undefined;
+  const result: NonNullable<ApplicantProfile['transcript']> = {};
+  (['grade10', 'grade11', 'grade12'] as const).forEach((grade) => {
+    if (isPlainObject(value[grade])) {
+      const scores = sanitizeSubjectScores(value[grade]);
+      if (Object.keys(scores).length > 0) result[grade] = scores;
+    }
+  });
+  return emptyToUndefined(result);
+}
+
+function sanitizeVact(value: unknown): VactProfile | undefined {
+  if (!isPlainObject(value)) return undefined;
+  const result: VactProfile = {};
+
+  if (isFiniteNumber(value.total) && isInRange(value.total, VACT_TOTAL_RANGE)) {
+    result.total = value.total;
+  }
+
+  if (isPlainObject(value.components)) {
+    const components: VactComponents = {};
+    (['vietnamese', 'english', 'math', 'scientificThinking'] as const).forEach((key) => {
+      const raw = (value.components as Record<string, unknown>)[key];
+      if (isFiniteNumber(raw) && isInRange(raw, VACT_COMPONENT_RANGE)) {
+        components[key] = raw;
+      }
+    });
+    if (Object.keys(components).length > 0) result.components = components;
+  }
+
+  if (result.total !== undefined && typeof value.totalSource === 'string' && (VACT_VALUE_SOURCES as readonly string[]).includes(value.totalSource)) {
+    result.totalSource = value.totalSource as VactProfile['totalSource'];
+  }
+  if (
+    result.components !== undefined &&
+    typeof value.componentsSource === 'string' &&
+    (VACT_VALUE_SOURCES as readonly string[]).includes(value.componentsSource)
+  ) {
+    result.componentsSource = value.componentsSource as VactProfile['componentsSource'];
+  }
+
+  return emptyToUndefined(result);
+}
+
+function sanitizeCertificates(value: unknown): ApplicantProfile['certificates'] | undefined {
+  if (!isPlainObject(value)) return undefined;
+  const result: NonNullable<ApplicantProfile['certificates']> = {};
+  (Object.keys(CERTIFICATE_RANGES) as (keyof typeof CERTIFICATE_RANGES)[]).forEach((key) => {
+    const raw = value[key];
+    if (isFiniteNumber(raw) && isInRange(raw, CERTIFICATE_RANGES[key])) {
+      result[key] = raw;
+    }
+  });
+  return emptyToUndefined(result);
+}
+
+function sanitizePriority(value: unknown): ApplicantProfile['priority'] | undefined {
+  if (!isPlainObject(value)) return undefined;
+  const result: NonNullable<ApplicantProfile['priority']> = {};
+  if (typeof value.region === 'string') result.region = value.region;
+  if (typeof value.category === 'string') result.category = value.category;
+  return emptyToUndefined(result);
+}
+
+/**
+ * Validator/sanitizer chính — nhận `unknown` (đã `JSON.parse` hoặc object literal trực tiếp trong
+ * test) và trả về `ApplicantProfile` luôn hợp lệ theo type, không bao giờ throw. Root không phải
+ * plain object (string/number/boolean/array/null) → trả `{}` (không còn field nào để giữ). Root
+ * hợp lệ nhưng field con sai type/range → drop field đó, giữ nguyên các field hợp lệ khác.
+ *
+ * KHÔNG tự resolve xung đột `total`/`components` V-ACT ở đây — mỗi field được sanitize độc lập
+ * theo range riêng, xung đột (nếu có) do `repairApplicantProfile` xử lý sau (đã có ở
+ * `loadApplicantProfile`), tránh trùng policy ở 2 chỗ.
+ */
+export function sanitizeApplicantProfile(value: unknown): ApplicantProfile {
+  if (!isPlainObject(value)) return {};
+  const result: ApplicantProfile = {};
+
+  if (isInteger(value.graduationYear) && isInRange(value.graduationYear, GRADUATION_YEAR_RANGE)) {
+    result.graduationYear = value.graduationYear;
+  }
+
+  if (value.thpt !== undefined) {
+    const thpt = sanitizeThpt(value.thpt);
+    if (thpt) result.thpt = thpt;
+  }
+
+  if (value.transcript !== undefined) {
+    const transcript = sanitizeTranscript(value.transcript);
+    if (transcript) result.transcript = transcript;
+  }
+
+  if (isPlainObject(value.exams)) {
+    const vact = sanitizeVact(value.exams.vact);
+    if (vact) result.exams = { vact };
+  }
+
+  if (value.certificates !== undefined) {
+    const certificates = sanitizeCertificates(value.certificates);
+    if (certificates) result.certificates = certificates;
+  }
+
+  if (value.priority !== undefined) {
+    const priority = sanitizePriority(value.priority);
+    if (priority) result.priority = priority;
+  }
+
+  return result;
+}
+
+function isInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value);
+}
 
 /**
  * Key riêng, KHÔNG namespace theo trường (khác `getSchoolStorageKey`) — đây là factual profile
@@ -11,11 +201,16 @@ import { hasCompleteVactComponents, sumVactComponents } from './vactProfile';
 export const APPLICANT_PROFILE_STORAGE_KEY = 'uniscorevn:applicant-profile:v1';
 export const APPLICANT_PROFILE_LEGACY_KEYS = ['uniscore:applicant-profile:v1'];
 
+/**
+ * `readWithMigration` coi `null` là "key này không dùng được, thử key tiếp theo trong chain" —
+ * KHÔNG đổi `null` này thành `{}` (dù `sanitizeApplicantProfile` luôn trả object hợp lệ), để giữ
+ * nguyên contract migration fallback hiện có khi root JSON không phải object (string/array/...).
+ */
 function parseApplicantProfile(raw: string): ApplicantProfile | null {
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return null;
-    return parsed as ApplicantProfile;
+    if (!isPlainObject(parsed)) return null;
+    return sanitizeApplicantProfile(parsed);
   } catch {
     return null;
   }

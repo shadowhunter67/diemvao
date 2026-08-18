@@ -7,11 +7,24 @@ import { buildUsshEvaluationInput } from './applicantProfileAdapter';
 import { checkUsshDgnlThreshold, checkUsshThptThreshold, checkUsshTranscriptThreshold } from './eligibility';
 import { usshAdmissionMethods } from './methods';
 import { usshKnowledgeGaps } from './knowledgeGaps';
-import { usshThresholdEvidence, usshDt3FormulaEvidence, usshDhl1Dhl2FormulaEvidence, usshPriorityTableEvidence } from './evidence';
+import {
+  usshThresholdEvidence,
+  usshDt3FormulaEvidence,
+  usshDhl1Dhl2FormulaEvidence,
+  usshPriorityTableEvidence,
+  usshPriorityReductionEvidence,
+} from './evidence';
 import { calculateUsshBestDhl } from './calculator';
 import { calculateUsshBonus } from './bonus';
 import { calculateUsshEffectivePriority } from './priorityReduction';
 import { lookupUsshStandardPriority } from './priority';
+
+/** Nhãn hiển thị THUẦN presentation — KHÔNG dùng lại để suy business state (đối tượng thật đọc từ
+ * `AdmissionEvaluation.comparisonContext.applicantTypeId`, xem `schools/ussh/comparison.ts`). Đổi
+ * wording ở đây (vd bỏ token "DT1" thô) không được phép làm gãy cutoff matching. */
+function applicantTypeDisplayLabel(applicantType: 'DT1' | 'DT2' | 'DT3'): string {
+  return { DT1: 'Đối tượng 1', DT2: 'Đối tượng 2', DT3: 'Đối tượng 3' }[applicantType];
+}
 
 export interface UsshEvaluationContext {
   subjectContext?: UsshSubjectContext;
@@ -98,6 +111,9 @@ export function evaluateUsshAdmission(profile: ApplicantProfile, context: UsshEv
   });
 
   const dhlEvidence = dhl?.applicantType === 'DT3' ? usshDt3FormulaEvidence.evidence : usshDhl1Dhl2FormulaEvidence.evidence;
+  /** Structured identity cho cutoff comparison (`compare/`) — KHÔNG suy từ `explanation[].label`
+   * (label chỉ còn presentation, xem `applicantTypeDisplayLabel` bên dưới). */
+  const comparisonContext = dhl ? { applicantTypeId: dhl.applicantType } : undefined;
 
   if (dhl) {
     const formulaText =
@@ -108,7 +124,7 @@ export function evaluateUsshAdmission(profile: ApplicantProfile, context: UsshEv
           : '0.90×[ĐGNL×100/1200] + 0.10×[HB×100/30]';
     explanation.push({
       id: 'ussh-dhl-score',
-      label: `Điểm học lực (${dhl.applicantType})`,
+      label: `Điểm học lực — ${applicantTypeDisplayLabel(dhl.applicantType)}`,
       inputs: {
         ...(input.thptRawTotal30 !== undefined ? { thptRawTotal30: input.thptRawTotal30 } : {}),
         ...(input.dgnlRaw1200 !== undefined ? { dgnlRaw1200: input.dgnlRaw1200 } : {}),
@@ -146,11 +162,13 @@ export function evaluateUsshAdmission(profile: ApplicantProfile, context: UsshEv
           formula: priority.reduced
             ? '[(100 - Tổng điểm đã gồm ĐC) / 25] × Mức điểm ưu tiên KV/ĐT'
             : 'Mức điểm ưu tiên khu vực/đối tượng (chưa giảm)',
-          evidence: usshPriorityTableEvidence.evidence,
+          evidence: priority.reduced
+            ? [...usshPriorityTableEvidence.evidence, ...usshPriorityReductionEvidence.evidence]
+            : usshPriorityTableEvidence.evidence,
         },
         {
           id: 'ussh-final',
-          label: `Điểm xét tuyển cuối cùng USSH (${dhl.applicantType})`,
+          label: `Điểm xét tuyển cuối cùng USSH — ${applicantTypeDisplayLabel(dhl.applicantType)}`,
           output: finalScore,
           scale: 100,
         }
@@ -182,7 +200,8 @@ export function evaluateUsshAdmission(profile: ApplicantProfile, context: UsshEv
       missingRules: [],
       missingRequirements: missingRequirements.filter((requirement) => requirement.kind !== 'official-rule'),
       explanation,
-      evidence: [...usshThresholdEvidence.evidence, ...dhlEvidence, ...usshPriorityTableEvidence.evidence],
+      evidence: [...usshThresholdEvidence.evidence, ...dhlEvidence, ...usshPriorityTableEvidence.evidence, ...usshPriorityReductionEvidence.evidence],
+      comparisonContext,
     };
   }
 
@@ -197,6 +216,7 @@ export function evaluateUsshAdmission(profile: ApplicantProfile, context: UsshEv
     missingInputs,
     missingRules: usshKnowledgeGaps.map((gap) => gap.label),
     missingRequirements,
+    comparisonContext,
     explanation,
     evidence: usshThresholdEvidence.evidence,
   };

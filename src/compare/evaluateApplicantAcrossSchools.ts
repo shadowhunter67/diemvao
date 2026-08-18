@@ -1,40 +1,20 @@
 import type { ApplicantProfile } from '../core/applicantProfile';
-import type { AdmissionEvaluation, MissingRequirement } from '../core/admissionEvaluation';
+import type { AdmissionEvaluation } from '../core/admissionEvaluation';
 import type { CutoffComparison } from '../core/cutoffComparison';
-import { findCutoffComparison } from '../core/cutoffComparison';
-import { COMMON_SUBJECT_COMBINATIONS } from '../core/subjects';
-import { canCompareEvaluationToCutoff } from './cutoffEligibility';
 import type { ComparisonSelection } from './comparisonSelection';
 import { schoolRegistry } from '../schools';
-import { buildHcmutAdmissionInput, type HcmutMethodContext } from '../schools/hcmut/applicantProfileAdapter';
-import { evaluateHcmutAdmission } from '../schools/hcmut/evaluate';
-import { hcmutAdmissionMethods } from '../schools/hcmut/methods';
-import { hcmutCutoffs } from '../schools/hcmut/data/cutoffs';
-import { buildUehEvaluationInput, buildUehExactEvaluationInput } from '../schools/ueh/applicantProfileAdapter';
-import { evaluateUehAdmission, evaluateUehExactAdmission, type UehPartialInput } from '../schools/ueh/evaluate';
-import { uehAdmissionMethods } from '../schools/ueh/methods';
-import { uehCutoffs } from '../schools/ueh/data/cutoffs';
-import { uehPrograms } from '../schools/ueh/data/programs';
-import { evaluateUelAdmission, type UelEvaluationContext } from '../schools/uel/evaluate';
-import { uelAdmissionMethods } from '../schools/uel/methods';
-import { uelCutoffs } from '../schools/uel/data/cutoffs';
-import { evaluateUitAdmission, type UitEvaluationContext } from '../schools/uit/evaluate';
-import { uitAdmissionMethods } from '../schools/uit/methods';
-import { evaluateHcmusAdmission, type HcmusEvaluationContext } from '../schools/hcmus/evaluate';
-import { hcmusAdmissionMethods } from '../schools/hcmus/methods';
-import { evaluateUsshAdmission, type UsshEvaluationContext } from '../schools/ussh/evaluate';
-import { usshAdmissionMethods } from '../schools/ussh/methods';
-import { usshCutoffs } from '../schools/ussh/data/cutoffs';
-import { evaluateUhsAdmission, type UhsEvaluationContext } from '../schools/uhs/evaluate';
-import { uhsAdmissionMethods } from '../schools/uhs/methods';
-import { UHS_PROGRAMS } from '../schools/uhs/programs';
-import { evaluateIuAdmission, type IuEvaluationContext } from '../schools/iu/evaluate';
-import { iuAdmissionMethods } from '../schools/iu/methods';
-import { iuCutoffs2026 } from '../schools/iu/data/cutoffs';
-import { evaluateAguAdmission, type AguEvaluationContext } from '../schools/agu/evaluate';
-import { aguAdmissionMethods } from '../schools/agu/methods';
-import { evaluateHcmueAdmission, type HcmueEvaluationContext } from '../schools/hcmue/evaluate';
-import { hcmueAdmissionMethods } from '../schools/hcmue/methods';
+import { schoolComparisonAdapters, schoolComparisonAdapterRegistry, COMPARE_SCHOOL_ORDER } from './comparisonRegistry';
+import type { SchoolComparisonAdapter, SchoolComparisonResult } from './schoolComparisonAdapter';
+import type { HcmutComparisonContext } from '../schools/hcmut/comparison';
+import type { UehComparisonContext } from '../schools/ueh/comparison';
+import type { UelComparisonContext } from '../schools/uel/comparison';
+import type { UitEvaluationContext } from '../schools/uit/evaluate';
+import type { HcmusEvaluationContext } from '../schools/hcmus/evaluate';
+import type { UsshComparisonContext } from '../schools/ussh/comparison';
+import type { UhsEvaluationContext } from '../schools/uhs/evaluate';
+import type { IuEvaluationContext } from '../schools/iu/evaluate';
+import type { AguEvaluationContext } from '../schools/agu/evaluate';
+import type { HcmueEvaluationContext } from '../schools/hcmue/evaluate';
 
 export interface SchoolEvaluationSummary {
   selectionId?: string;
@@ -47,77 +27,38 @@ export interface SchoolEvaluationSummary {
   cutoffComparison?: CutoffComparison;
 }
 
-export const COMPARE_SCHOOL_ORDER = ['hcmut', 'ueh', 'iu', 'uel', 'hcmus', 'ussh', 'uhs', 'uit', 'agu'] as const;
+export { COMPARE_SCHOOL_ORDER };
 
+/**
+ * Context riêng từng trường khi gọi `evaluateApplicantAcrossSchools()` trực tiếp (không qua
+ * `ComparisonSelection`) — dùng bởi test parity/fixture cần dựng context đầy đủ 1 lượt cho nhiều
+ * trường. Field key PHẢI khớp `schoolId` tương ứng trong `comparisonRegistry.ts` (khóa bởi
+ * `comparisonRegistry.test.ts`, không khóa được ở compile-time vì đây là object type rời rạc theo
+ * từng trường — cố tình KHÔNG universal hóa thành 1 context chung).
+ */
 export interface MultiSchoolEvaluationContext {
-  hcmut?: {
-    methodContext?: HcmutMethodContext;
-    selectedProgramId?: string;
-  };
-  ueh?: UehPartialInput & {
-    selectedProgramId?: string;
-  };
-  uel?: UelEvaluationContext & {
-    selectedProgramId?: string;
-  };
-  uit?: UitEvaluationContext & {
-    selectedProgramId?: string;
-  };
+  hcmut?: HcmutComparisonContext;
+  ueh?: UehComparisonContext;
+  uel?: UelComparisonContext;
+  uit?: UitEvaluationContext & { selectedProgramId?: string };
   hcmus?: HcmusEvaluationContext;
-  ussh?: UsshEvaluationContext & {
-    selectedProgramId?: string;
-  };
+  ussh?: UsshComparisonContext;
   uhs?: UhsEvaluationContext;
   iu?: IuEvaluationContext;
   agu?: AguEvaluationContext;
   hcmue?: HcmueEvaluationContext;
 }
 
-function unavailableEvaluation(input: {
-  schoolId: string;
-  year: number;
-  methodId: string;
-  missingInputs: string[];
-  missingRules?: string[];
-  missingRequirements?: MissingRequirement[];
-}): AdmissionEvaluation {
+function summarize(adapter: SchoolComparisonAdapter, result: SchoolComparisonResult): SchoolEvaluationSummary {
+  const school = schoolRegistry[adapter.schoolId];
   return {
-    schoolId: input.schoolId,
-    year: input.year,
-    methodId: input.methodId,
-    confidence: 'unavailable',
-    eligibility: { status: 'unknown', reasons: ['Chưa đủ dữ liệu hoặc ngữ cảnh để đánh giá.'] },
-    missingInputs: input.missingInputs,
-    missingRules: input.missingRules ?? [],
-    missingRequirements: input.missingRequirements ?? [],
-    explanation: [],
-    evidence: [],
-  };
-}
-
-function classifyHcmutMissingInput(message: string): MissingRequirement {
-  const normalized = message.toLowerCase();
-  if (normalized.includes('dgnl') || normalized.includes('đgnl')) {
-    return { kind: 'profile-input', code: 'hcmut-dgnl', label: message };
-  }
-  if (normalized.includes('thpt')) {
-    return { kind: 'profile-input', code: 'hcmut-thpt', label: message };
-  }
-  if (normalized.includes('học bạ') || normalized.includes('hoc ba') || normalized.includes('transcript')) {
-    return { kind: 'profile-input', code: 'hcmut-transcript', label: message };
-  }
-  return { kind: 'profile-input', code: 'hcmut-profile-input', label: message };
-}
-
-function summarize(schoolId: string, methodId: string, methodName: string, evaluation: AdmissionEvaluation): SchoolEvaluationSummary {
-  const school = schoolRegistry[schoolId];
-  return {
-    schoolId,
+    schoolId: adapter.schoolId,
     schoolName: school.name,
     shortName: school.shortName,
-    methodId,
-    methodName,
-    evaluation,
+    methodId: adapter.methodId,
+    methodName: adapter.methodName,
+    evaluation: result.evaluation,
+    cutoffComparison: result.cutoffComparison,
   };
 }
 
@@ -125,318 +66,33 @@ function withSelection(summary: SchoolEvaluationSummary, selectionId: string): S
   return { ...summary, selectionId };
 }
 
-function getSubjectContext(combinationId: string | undefined) {
-  const combination = COMMON_SUBJECT_COMBINATIONS.find((item) => item.id === combinationId);
-  return combination ? { combinationId: combination.id, subjects: combination.subjects } : undefined;
-}
-
-function evaluateHcmut(profile: ApplicantProfile, context: MultiSchoolEvaluationContext): SchoolEvaluationSummary {
-  const method = hcmutAdmissionMethods[0];
-  let evaluation: AdmissionEvaluation;
-  if (!context.hcmut?.methodContext) {
-    const label = 'Cần chọn tổ hợp, điểm cộng và điểm ưu tiên theo ngữ cảnh HCMUT.';
-    evaluation = unavailableEvaluation({
-      schoolId: 'hcmut',
-      year: method.year,
-      methodId: method.id,
-      missingInputs: [label],
-      missingRequirements: [{ kind: 'school-context', code: 'hcmut-context', label }],
-    });
-  } else {
-    try {
-      evaluation = evaluateHcmutAdmission(buildHcmutAdmissionInput(profile, context.hcmut.methodContext));
-    } catch (error) {
-      const label = error instanceof Error ? error.message : 'Không thể build input HCMUT từ hồ sơ.';
-      evaluation = unavailableEvaluation({
-        schoolId: 'hcmut',
-        year: method.year,
-        methodId: method.id,
-        missingInputs: [label],
-        missingRequirements: [classifyHcmutMissingInput(label)],
-      });
-    }
-  }
-
-  const summary = summarize('hcmut', method.id, method.name, evaluation);
-  if (canCompareEvaluationToCutoff(evaluation) && !context.hcmut?.selectedProgramId) {
-    const label = 'Chọn ngành HCMUT để so với đúng mốc điểm chuẩn.';
-    summary.evaluation = {
-      ...summary.evaluation,
-      missingInputs: summary.evaluation.missingInputs,
-      missingRules: summary.evaluation.missingRules,
-      missingRequirements: [...(summary.evaluation.missingRequirements ?? []), { kind: 'school-context', code: 'program', label }],
-    };
-  }
-  if (canCompareEvaluationToCutoff(evaluation) && evaluation.score && context.hcmut?.selectedProgramId) {
-    const records = hcmutCutoffs
-      .filter((cutoff) => cutoff.programId === context.hcmut?.selectedProgramId && cutoff.method === 'combined')
-      .map((cutoff) => ({ ...cutoff, scoreScale: 100 }));
-    summary.cutoffComparison = findCutoffComparison({
-      records,
-      targetYear: method.year,
-      applicantScore: evaluation.score.value,
-      applicantScale: evaluation.score.scale,
-      selection: { programId: context.hcmut.selectedProgramId, methodId: 'combined' },
-    });
-  }
-  return summary;
-}
-
+/**
+ * Roster mặc định `/compare` — orchestration pure, KHÔNG chứa công thức trường nào. Lặp qua đúng
+ * `schoolComparisonAdapters` (1 nguồn sự thật duy nhất, xem `comparisonRegistry.ts`) — thêm/xóa
+ * trường khỏi compare chỉ cần sửa registry, không sửa file này.
+ */
 export function evaluateApplicantAcrossSchools(
   profile: ApplicantProfile,
   contexts: MultiSchoolEvaluationContext = {}
 ): SchoolEvaluationSummary[] {
-  return [
-    evaluateHcmut(profile, contexts),
-    evaluateUeh(profile, contexts),
-    evaluateIu(profile, contexts),
-    evaluateUel(profile, contexts),
-    summarize('hcmus', hcmusAdmissionMethods[0].id, hcmusAdmissionMethods[0].name, evaluateHcmusAdmission(profile, contexts.hcmus)),
-    evaluateUssh(profile, contexts),
-    summarize('uhs', uhsAdmissionMethods[0].id, uhsAdmissionMethods[0].name, evaluateUhsAdmission(profile, contexts.uhs)),
-    summarize('uit', uitAdmissionMethods[0].id, uitAdmissionMethods[0].name, evaluateUitAdmission(profile, contexts.uit)),
-    summarize('agu', aguAdmissionMethods[0].id, aguAdmissionMethods[0].name, evaluateAguAdmission(profile, contexts.agu)),
-  ];
+  const contextsByschoolId = contexts as Record<string, unknown>;
+  return schoolComparisonAdapters.map((adapter) =>
+    summarize(adapter, adapter.evaluate(profile, contextsByschoolId[adapter.schoolId] ?? {}))
+  );
 }
 
+/**
+ * Orchestration cho `/compare` selection-based (UI thật, share URL, localStorage) — mỗi trường tự
+ * biết cách đọc 1 `ComparisonSelection` generic qua `adapter.buildContext`, KHÔNG còn chuỗi
+ * `if (selection.schoolId === 'x')` nào ở đây. Unknown `schoolId` (chưa có adapter đăng ký, hoặc
+ * dữ liệu cũ tham chiếu trường đã gỡ) bị bỏ qua an toàn — không crash.
+ */
 export function evaluateComparisonSelections(profile: ApplicantProfile, selections: readonly ComparisonSelection[]): SchoolEvaluationSummary[] {
   return selections.flatMap((selection) => {
-    const subjectContext = getSubjectContext(selection.context?.combinationId);
-    const selectedProgramId = selection.programId;
-    const context: MultiSchoolEvaluationContext = {};
-
-    if (selection.schoolId === 'hcmut') {
-      context.hcmut = {
-        selectedProgramId,
-        methodContext:
-          subjectContext && selection.context?.hcmutBonus
-            ? {
-                combination: {
-                  id: subjectContext.combinationId,
-                  subjects: subjectContext.subjects,
-                },
-                bonus: {
-                  reward: selection.context.hcmutBonus.reward,
-                  considerationReward: selection.context.hcmutBonus.considerationReward,
-                  encouragement: selection.context.hcmutBonus.encouragement,
-                },
-                priorityRaw30Scale: selection.context.hcmutBonus.priorityRaw30Scale,
-              }
-            : undefined,
-      };
-      return [withSelection(evaluateHcmut(profile, context), selection.id)];
-    }
-
-    if (selection.schoolId === 'ueh') {
-      const selectedProgram = uehPrograms.find((program) => program.id === selectedProgramId);
-      context.ueh = { selectedProgramId, campus: selectedProgram?.campus };
-      return [withSelection(evaluateUeh(profile, context), selection.id)];
-    }
-
-    if (selection.schoolId === 'uel') {
-      context.uel = { selectedProgramId, subjectContext };
-      return [withSelection(evaluateUel(profile, context), selection.id)];
-    }
-
-    if (selection.schoolId === 'hcmus') {
-      return [
-        withSelection(
-          summarize(
-            'hcmus',
-            hcmusAdmissionMethods[0].id,
-            hcmusAdmissionMethods[0].name,
-            evaluateHcmusAdmission(profile, { selectedProgramId, subjectContext })
-          ),
-          selection.id
-        ),
-      ];
-    }
-
-    if (selection.schoolId === 'ussh') {
-      context.ussh = {
-        selectedProgramId,
-        subjectContext,
-        hasBonusAchievement: selection.context?.hasUsshBonusAchievement,
-      };
-      return [withSelection(evaluateUssh(profile, context), selection.id)];
-    }
-
-    if (selection.schoolId === 'uhs') {
-      const selectedProgram = UHS_PROGRAMS.find((program) => program.id === selectedProgramId);
-      return [
-        withSelection(
-          summarize(
-            'uhs',
-            uhsAdmissionMethods[0].id,
-            uhsAdmissionMethods[0].name,
-            evaluateUhsAdmission(profile, {
-              selectedProgramId,
-              subjectContext:
-                subjectContext && (!selectedProgram || selectedProgram.combinations.includes(subjectContext.combinationId)) ? subjectContext : undefined,
-            })
-          ),
-          selection.id
-        ),
-      ];
-    }
-
-    if (selection.schoolId === 'uit') {
-      return [
-        withSelection(
-          summarize('uit', uitAdmissionMethods[0].id, uitAdmissionMethods[0].name, evaluateUitAdmission(profile, { programId: selectedProgramId })),
-          selection.id
-        ),
-      ];
-    }
-
-    if (selection.schoolId === 'iu') {
-      context.iu = { subjectContext, programId: selectedProgramId };
-      return [withSelection(evaluateIu(profile, context), selection.id)];
-    }
-
-    if (selection.schoolId === 'agu') {
-      return [
-        withSelection(
-          summarize('agu', aguAdmissionMethods[0].id, aguAdmissionMethods[0].name, evaluateAguAdmission(profile, { subjectContext, selectedProgramCode: selectedProgramId })),
-          selection.id
-        ),
-      ];
-    }
-
-    if (selection.schoolId === 'hcmue') {
-      return [
-        withSelection(
-          summarize(
-            'hcmue',
-            hcmueAdmissionMethods[0].id,
-            hcmueAdmissionMethods[0].name,
-            evaluateHcmueAdmission(profile, { subjectContext, selectedProgramId })
-          ),
-          selection.id
-        ),
-      ];
-    }
-
-    return [];
+    const adapter = schoolComparisonAdapterRegistry[selection.schoolId];
+    if (!adapter) return [];
+    const context = adapter.buildContext(selection);
+    const result = adapter.evaluate(profile, context);
+    return [withSelection(summarize(adapter, result), selection.id)];
   });
-}
-
-function evaluateUel(profile: ApplicantProfile, contexts: MultiSchoolEvaluationContext): SchoolEvaluationSummary {
-  const method = uelAdmissionMethods[0];
-  const evaluation = evaluateUelAdmission(profile, contexts.uel);
-  const summary = summarize('uel', method.id, method.name, evaluation);
-  if (canCompareEvaluationToCutoff(evaluation) && !contexts.uel?.selectedProgramId) {
-    summary.evaluation = {
-      ...summary.evaluation,
-      missingRequirements: [
-        ...(summary.evaluation.missingRequirements ?? []),
-        { kind: 'school-context', code: 'program', label: 'Chon nganh UEL de so voi dung muc diem chuan.' },
-      ],
-    };
-  }
-  if (canCompareEvaluationToCutoff(evaluation) && evaluation.score && contexts.uel?.selectedProgramId) {
-    const records = uelCutoffs.filter((cutoff) => cutoff.programId === contexts.uel?.selectedProgramId);
-    summary.cutoffComparison = findCutoffComparison({
-      records,
-      targetYear: method.year,
-      applicantScore: evaluation.score.value,
-      applicantScale: evaluation.score.scale,
-      selection: { programId: contexts.uel.selectedProgramId },
-    });
-  }
-  return summary;
-}
-
-function getUsshApplicantType(evaluation: AdmissionEvaluation): 'DT1' | 'DT2' | 'DT3' | undefined {
-  const finalLabel = evaluation.explanation.find((step) => step.id === 'ussh-final')?.label ?? '';
-  const match = /\((DT[123])\)/.exec(finalLabel);
-  return match?.[1] as 'DT1' | 'DT2' | 'DT3' | undefined;
-}
-
-function evaluateUssh(profile: ApplicantProfile, contexts: MultiSchoolEvaluationContext): SchoolEvaluationSummary {
-  const method = usshAdmissionMethods[0];
-  const evaluation = evaluateUsshAdmission(profile, contexts.ussh);
-  const summary = summarize('ussh', method.id, method.name, evaluation);
-  const applicantTypeId = getUsshApplicantType(evaluation);
-
-  if (canCompareEvaluationToCutoff(evaluation) && !contexts.ussh?.selectedProgramId) {
-    summary.evaluation = {
-      ...summary.evaluation,
-      missingRequirements: [
-        ...(summary.evaluation.missingRequirements ?? []),
-        { kind: 'school-context', code: 'program', label: 'Chon nganh USSH de so voi dung muc diem chuan.' },
-      ],
-    };
-  }
-  if (canCompareEvaluationToCutoff(evaluation) && evaluation.score && contexts.ussh?.selectedProgramId && applicantTypeId) {
-    const records = usshCutoffs.filter((cutoff) => cutoff.programId === contexts.ussh?.selectedProgramId);
-    summary.cutoffComparison = findCutoffComparison({
-      records,
-      targetYear: method.year,
-      applicantScore: evaluation.score.value,
-      applicantScale: evaluation.score.scale,
-      selection: { programId: contexts.ussh.selectedProgramId, applicantTypeId },
-    });
-  }
-  return summary;
-}
-
-function evaluateUeh(profile: ApplicantProfile, contexts: MultiSchoolEvaluationContext): SchoolEvaluationSummary {
-  const method = uehAdmissionMethods[0];
-  const selectedProgram = uehPrograms.find((program) => program.id === contexts.ueh?.selectedProgramId);
-  const campus = contexts.ueh?.campus ?? selectedProgram?.campus ?? 'hcmc';
-  const exactInput = buildUehExactEvaluationInput(profile, { campus });
-  let evaluation = evaluateUehExactAdmission(exactInput);
-  if (evaluation.score === undefined && profile.exams?.vact?.total !== undefined && exactInput.examScore30 === undefined) {
-    evaluation = evaluateUehAdmission(buildUehEvaluationInput(profile, contexts.ueh));
-  }
-  const summary = summarize('ueh', method.id, method.name, evaluation);
-
-  if (canCompareEvaluationToCutoff(evaluation) && !contexts.ueh?.selectedProgramId) {
-    summary.evaluation = {
-      ...summary.evaluation,
-      missingRequirements: [
-        ...(summary.evaluation.missingRequirements ?? []),
-        { kind: 'school-context', code: 'program', label: 'Chọn ngành UEH để so với đúng mốc điểm chuẩn.' },
-      ],
-    };
-  }
-  if (canCompareEvaluationToCutoff(evaluation) && evaluation.score && contexts.ueh?.selectedProgramId) {
-    const records = uehCutoffs.filter((cutoff) => cutoff.programId === contexts.ueh?.selectedProgramId);
-    summary.cutoffComparison = findCutoffComparison({
-      records,
-      targetYear: method.year,
-      applicantScore: evaluation.score.value,
-      applicantScale: evaluation.score.scale,
-      selection: { programId: contexts.ueh.selectedProgramId },
-    });
-  }
-  return summary;
-}
-
-function evaluateIu(profile: ApplicantProfile, contexts: MultiSchoolEvaluationContext): SchoolEvaluationSummary {
-  const method = iuAdmissionMethods[0];
-  const evaluation = evaluateIuAdmission(profile, contexts.iu);
-  const summary = summarize('iu', method.id, method.name, evaluation);
-
-  if (canCompareEvaluationToCutoff(evaluation) && !contexts.iu?.programId) {
-    summary.evaluation = {
-      ...summary.evaluation,
-      missingRequirements: [
-        ...(summary.evaluation.missingRequirements ?? []),
-        { kind: 'school-context', code: 'program', label: 'Chọn ngành IU để so với đúng mốc điểm chuẩn.' },
-      ],
-    };
-  }
-  if (canCompareEvaluationToCutoff(evaluation) && evaluation.score && contexts.iu?.programId) {
-    const records = iuCutoffs2026.filter((cutoff) => cutoff.programId === contexts.iu?.programId);
-    summary.cutoffComparison = findCutoffComparison({
-      records,
-      targetYear: method.year,
-      applicantScore: evaluation.score.value,
-      applicantScale: evaluation.score.scale,
-      selection: { programId: contexts.iu.programId },
-    });
-  }
-  return summary;
 }

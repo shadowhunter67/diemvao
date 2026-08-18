@@ -146,6 +146,20 @@ export function evaluateUelAdmission(profile: ApplicantProfile, context: UelEval
         output: result.priority.effectivePriority,
         scale: 100,
         formula: result.priority.reduced ? '(100 - Diem hoc luc - Diem cong) / 25 x Diem uu tien quy doi' : 'Diem uu tien quy doi',
+        // Batch provenance-hygiene (2026-08-17): source rieng cua cong thuc giam (khac source cong
+        // thuc tong hop) chi duoc cite khi nhanh giam THAT SU kich hoat — trung thuc voi rule nao
+        // thuc su duoc dung, khong cite mot source "cho co".
+        evidence: result.priority.reduced
+          ? [
+              {
+                sourceId: 'uel-priority-reduction-2026',
+                location: '(100 – Diem hoc luc – Diem cong) / 25 x Diem uu tien quy doi, ap dung khi tong >= 75/100',
+                verification: 'verified',
+                effectiveYear: 2026,
+                verifiedAt: '2026-08-13',
+              },
+            ]
+          : undefined,
       },
       { id: 'uel-final', label: 'Diem xet tuyen cuoi cung UEL', output: result.finalScore, scale: 100 }
     );
@@ -167,6 +181,17 @@ export function evaluateUelAdmission(profile: ApplicantProfile, context: UelEval
       evidence: [
         { sourceId: 'uel-formula-2026', location: 'Cong thuc tong hop UEL 2026', verification: 'verified', effectiveYear: 2026, verifiedAt: '2026-08-15' },
         { sourceId: 'uel-certificate-bonus-html-2026', location: 'Bang diem cong chung chi tieng Anh HTML', verification: 'verified', effectiveYear: 2026, verifiedAt: '2026-08-15' },
+        ...(result.priority.reduced
+          ? [
+              {
+                sourceId: 'uel-priority-reduction-2026',
+                location: 'Quy tac giam diem uu tien khi tong diem >= 75/100',
+                verification: 'verified' as const,
+                effectiveYear: 2026,
+                verifiedAt: '2026-08-13',
+              },
+            ]
+          : []),
       ],
     };
   }

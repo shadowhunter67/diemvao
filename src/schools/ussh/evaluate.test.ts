@@ -57,7 +57,9 @@ describe('evaluateUsshAdmission', () => {
     const evaluation = evaluateUsshAdmission(profile, { subjectContext: { combinationId: 'A00', subjects: ['math', 'physics', 'chemistry'] } });
     expect(evaluation.confidence).toBe('exact-verified');
     expect(evaluation.score?.scale).toBe(100);
-    expect(evaluation.explanation.find((s) => s.id === 'ussh-final')?.label).toContain('(DT1)');
+    // Đối tượng xét tuyển là structured metadata (`comparisonContext`), KHÔNG phải suy từ label —
+    // xem invariant test "label wording change does not affect applicant type" bên dưới.
+    expect(evaluation.comparisonContext?.applicantTypeId).toBe('DT1');
   });
 
   it('DT2 exact supported scope uses THPT + transcript on scale 100', () => {
@@ -72,7 +74,39 @@ describe('evaluateUsshAdmission', () => {
     const evaluation = evaluateUsshAdmission(profile, { subjectContext: { combinationId: 'A00', subjects: ['math', 'physics', 'chemistry'] } });
     expect(evaluation.confidence).toBe('exact-verified');
     expect(evaluation.score?.scale).toBe(100);
-    expect(evaluation.explanation.find((s) => s.id === 'ussh-final')?.label).toContain('(DT2)');
+    expect(evaluation.comparisonContext?.applicantTypeId).toBe('DT2');
+  });
+
+  it('DT3 (ĐGNL + học bạ, không THPT) expose comparisonContext.applicantTypeId đúng', () => {
+    const profile: ApplicantProfile = {
+      exams: { vact: { total: 900 } },
+      transcript: {
+        grade10: { math: 8, physics: 7, chemistry: 8 },
+        grade11: { math: 8, physics: 7, chemistry: 8 },
+        grade12: { math: 8, physics: 7, chemistry: 8 },
+      },
+    };
+    const evaluation = evaluateUsshAdmission(profile, { subjectContext: { combinationId: 'A00', subjects: ['math', 'physics', 'chemistry'] } });
+    expect(evaluation.confidence).toBe('exact-verified');
+    expect(evaluation.comparisonContext?.applicantTypeId).toBe('DT3');
+  });
+
+  it('thay đổi wording label không làm mất/sai applicantTypeId — evaluation text có thể không chứa "DT1/DT2/DT3" mà business behavior vẫn đúng', () => {
+    const profile: ApplicantProfile = {
+      exams: { vact: { total: 900 } },
+      thpt: { scores: { math: 8, physics: 7, chemistry: 8 } },
+      transcript: {
+        grade10: { math: 8, physics: 7, chemistry: 8 },
+        grade11: { math: 8, physics: 7, chemistry: 8 },
+        grade12: { math: 8, physics: 7, chemistry: 8 },
+      },
+    };
+    const evaluation = evaluateUsshAdmission(profile, { subjectContext: { combinationId: 'A00', subjects: ['math', 'physics', 'chemistry'] } });
+    const finalLabel = evaluation.explanation.find((s) => s.id === 'ussh-final')?.label ?? '';
+    // Label hiện tại KHÔNG chứa raw token "DT1" nữa (đã đổi wording sang "Đối tượng 1") — chứng
+    // minh business identity không còn phụ thuộc chuỗi hiển thị này.
+    expect(finalLabel).not.toMatch(/\bDT1\b/);
+    expect(evaluation.comparisonContext?.applicantTypeId).toBe('DT1');
   });
 
   it('có thành tích cộng điểm (hasBonusAchievement=true) -> vẫn partial, KHÔNG set score', () => {

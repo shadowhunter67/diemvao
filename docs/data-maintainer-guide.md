@@ -52,7 +52,7 @@ npm run build
 `npm run audit:data` is deterministic and offline. Exit code policy:
 
 - `error` -> exit 1: duplicate current cutoff conflict, current final cutoff missing source, current exact method using superseded/non-current evidence, exact method still claiming unresolved score-affecting gaps.
-- `warning` -> exit 0: known official-but-unparsed rule such as UEL Appendix 2, or maintainer-visible metadata concerns that do not corrupt current exact comparison.
+- `warning` -> exit 0: known official-but-unparsed rule such as UIT's percentile-conversion table, or maintainer-visible metadata concerns that do not corrupt current exact comparison.
 - `info` -> exit 0: known incomplete product gaps for non-exact methods.
 
 ## Batch 15 — source-first rule provenance
@@ -76,7 +76,16 @@ Synthetic superseded example:
 }
 ```
 
-UEL official-but-unparsed example: keep the source registry entry for the official PDF, link the `KnowledgeGap` with `sourceId: 'uel-admission-pdf-2026-unparsed'`, and keep `exactCalculator: false` until the Appendix 2 table is parsed into deterministic rules.
+Official-but-unparsed example (UIT, current as of 2026-08-17 — see `schools/uit/knowledgeGaps.ts`):
+keep the source registry entry for the official percentile/conversion pages, link each `KnowledgeGap`
+with its `sourceId`, and keep `exactCalculator: false` until every score-affecting table is parsed
+into deterministic rules. (Historical note: UEL had a similar Google-Drive-PDF-unparsed gap for its
+certificate bonus table — `sourceId: 'uel-admission-pdf-2026-unparsed'` is still `verification:
+'incomplete'` in `schools/uel/sources.ts` — but the SAME bonus data became independently readable
+from a public HTML page on the school's site, `uel-certificate-bonus-html-2026`, which resolved the
+gap without needing the PDF. UEL's `exactCalculator` has been `true` since the 2026-08-15 re-audit —
+a gap tied to one unparsed artifact doesn't block the exact gate if another verified source proves
+the same rule.)
 
 For table-based exact rules, use this workflow:
 

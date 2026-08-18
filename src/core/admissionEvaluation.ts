@@ -46,4 +46,22 @@ export interface AdmissionEvaluation {
   missingRequirements?: MissingRequirement[];
   explanation: CalculationStep[];
   evidence: RuleEvidence[];
+  /**
+   * Metadata GENERIC cần thiết để so sánh/lọc cutoff đúng ngữ cảnh — KHÔNG phải kết quả business,
+   * chỉ carry identity mà downstream (`compare/`) cần để chọn đúng `ComparableCutoffRecord`.
+   * `applicantTypeId` dùng chung type (`string`) với `ComparableCutoffRecord.applicantTypeId`/
+   * `findCutoffComparison({ selection: { applicantTypeId } })` (`core/cutoffComparison.ts`) — cùng
+   * 1 khái niệm "đối tượng xét tuyển" mà 1 số trường (hiện tại: USSH) phân loại ứng viên theo, nên
+   * đặt ở đây thay vì field USSH-specific narrow-typed (`'DT1'|'DT2'|'DT3'`) để core KHÔNG phải
+   * import type riêng của `schools/ussh`. Trường nào không phân loại theo đối tượng thì bỏ trống —
+   * KHÔNG bắt buộc evaluator nào phải set field này.
+   *
+   * Thêm ở batch loại bỏ "classify bằng parse human-readable text": trước đây
+   * `schools/ussh/comparison.ts` suy `applicantTypeId` bằng regex trên
+   * `explanation[].label` (`/\((DT[123])\)/`) — đổi wording UI vô tình sẽ làm gãy cutoff matching.
+   * Giờ evaluator (nơi đã biết rule) set field này trực tiếp, label chỉ còn là presentation.
+   */
+  comparisonContext?: {
+    applicantTypeId?: string;
+  };
 }

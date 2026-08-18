@@ -9,7 +9,7 @@ Uniscore**VN** — web tĩnh 100% client-side (Vite + React 19 + TypeScript), t�
 - Production: https://uniscorevn.vercel.app
 - Repo: https://github.com/shadowhunter67/uniscore (chưa đổi tên theo brand mới)
 - Kiến trúc multi-school: `src/core/` generic (round2, rangeValidation, `SchoolModule`/`ApplicantProfile`/`AdmissionMethodDescriptor` contract), `src/schools/<id>/` chứa business logic riêng từng trường — **không** ép universal formula engine.
-- Trạng thái trường: HCMUT = exact calculator đầy đủ; UEH/UEL = explorer + V-ACT conversion thật (`status: 'partial'`); UIT = info/eligibility, chưa exact; các trường khác mới ở mức research/định danh.
+- Trạng thái trường (kiểm chứng lại qua `AdmissionMethodDescriptor.capabilities.exactCalculator` trước khi giả định danh sách này còn đúng — xem `docs/architecture.md` mục golden/domain conformance, hoặc README.md mục "Trường đang hỗ trợ" cho danh sách đầy đủ 15 trường hiện tại): HCMUT/UEH/UEL/HCMUS/USSH/IU/TDTU/HUFLIT/HUTECH/UFM = exact calculator (USSH/IU/TDTU/HUFLIT/HUTECH/UFM chỉ trong phạm vi verified — xem `docs/release-checklist.md`); UIT = info/eligibility, chưa exact; AGU/UHS/HCMUE/HCMUTE mới ở mức eligibility/research.
 
 ## Lệnh hay dùng
 

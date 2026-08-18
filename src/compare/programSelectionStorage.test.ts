@@ -1,7 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { parseStoredProgramId } from './programSelectionStorage';
+import { parseStoredProgramId, loadStoredProgramSelections } from './programSelectionStorage';
+import { schoolComparisonAdapters } from './comparisonRegistry';
 
 describe('programSelectionStorage', () => {
+  /**
+   * Trước refactor, `programIdsBySchool` là 1 map khai tay chỉ có 7/10 trường — thiếu `agu`/
+   * `hcmue` khiến MỌI `programId` hợp lệ đã lưu cho 2 trường này bị coi là invalid (rơi mất âm
+   * thầm). Giờ validity tra thẳng `programCatalog.ts` (dùng chung với `universityCatalog.ts`),
+   * tự động theo mọi trường có adapter — không cần sửa file khi thêm trường mới.
+   */
+  it('accepts real AGU and HCMUE program ids (previously silently dropped)', () => {
+    expect(parseStoredProgramId('agu', JSON.stringify({ selectedProgramId: '7480201' }))).toBe('7480201');
+    expect(parseStoredProgramId('hcmue', JSON.stringify({ selectedProgramId: 'hcmue-7140201' }))).toBe('hcmue-7140201');
+  });
+
+  it('loadStoredProgramSelections covers every school with a comparison adapter', () => {
+    expect(Object.keys(loadStoredProgramSelections()).sort()).toEqual(schoolComparisonAdapters.map((adapter) => adapter.schoolId).sort());
+  });
+
   it('parses HCMUT existing selectedProgramId shape safely', () => {
     expect(parseStoredProgramId('hcmut', JSON.stringify({ selectedProgramId: 'khoa-hoc-may-tinh' }))).toBe('khoa-hoc-may-tinh');
   });
