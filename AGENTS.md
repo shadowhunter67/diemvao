@@ -7,9 +7,10 @@ Hướng dẫn đầy đủ cho AI agent làm việc trong project này nằm �
 Uniscore**VN** — web tĩnh 100% client-side (Vite + React 19 + TypeScript), tính & mô phỏng điểm xét tuyển đại học Việt Nam. Không backend/database/auth.
 
 - Production: https://uniscorevn.vercel.app
-- Repo: https://github.com/shadowhunter67/uniscore (chưa đổi tên theo brand mới)
+- Repo: https://github.com/shadowhunter67/uniscorevn (đổi tên từ `uniscore` 2026-08-18)
 - Kiến trúc multi-school: `src/core/` generic (round2, rangeValidation, `SchoolModule`/`ApplicantProfile`/`AdmissionMethodDescriptor` contract), `src/schools/<id>/` chứa business logic riêng từng trường — **không** ép universal formula engine.
 - Trạng thái trường (kiểm chứng lại qua `AdmissionMethodDescriptor.capabilities.exactCalculator` trước khi giả định danh sách này còn đúng — xem `docs/architecture.md` mục golden/domain conformance, hoặc README.md mục "Trường đang hỗ trợ" cho danh sách đầy đủ 15 trường hiện tại): HCMUT/UEH/UEL/HCMUS/USSH/IU/TDTU/HUFLIT/HUTECH/UFM = exact calculator (USSH/IU/TDTU/HUFLIT/HUTECH/UFM chỉ trong phạm vi verified — xem `docs/release-checklist.md`); UIT = info/eligibility, chưa exact; AGU/UHS/HCMUE/HCMUTE mới ở mức eligibility/research.
+- **Quy tắc vận hành đầy đủ** (kiến trúc/invariant, research workflow, release cadence + checkpoint, process cleanup, evidence-first, git safety) nằm ở [CLAUDE.md](CLAUDE.md) mục "Quy tắc vận hành bắt buộc" — đọc trước khi research trường mới hoặc làm release checkpoint, không cần user nhắc lại từng lần.
 
 ## Lệnh hay dùng
 

@@ -216,7 +216,7 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
         <p className="mt-4 text-center text-xs leading-relaxed text-muted">
           Xem chi tiết research công thức từng trường tại{' '}
           <a
-            href="https://github.com/shadowhunter67/uniscore/blob/main/docs/admission-research-2026.md"
+            href="https://github.com/shadowhunter67/uniscorevn/blob/main/docs/admission-research-2026.md"
             target="_blank"
             rel="noopener noreferrer"
             className="underline underline-offset-2"

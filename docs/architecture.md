@@ -1,5 +1,52 @@
 # Kiến trúc UniscoreVN (batch 2, 2026-08-12)
 
+## Quy tắc kiến trúc bắt buộc (đọc trước khi thêm trường/refactor — không đổi theo batch)
+
+Đây là invariant thường trực, khác các mục "Batch N" bên dưới (là lịch sử quyết định tại một thời
+điểm). Nếu một batch mới có vẻ mâu thuẫn với mục này, batch đó sai — không phải mục này lỗi thời.
+
+- **Không universal formula engine.** Mỗi trường có công thức/thang điểm/input schema riêng, sống
+  trong `schools/<id>/`. `src/core/` chỉ chứa phần thật sự generic (round2, validation, contract
+  type). Trường mới KHÔNG được ép vào 1 schema tính điểm chung.
+- **Compare qua `SchoolComparisonAdapter`, không qua if-chain.** Mọi trường tham gia `/compare` khai
+  báo đúng 1 adapter (`schools/<id>/comparison.ts`) đăng ký vào `compare/comparisonRegistry.ts` —
+  đây là nguồn sự thật DUY NHẤT cho roster/thứ tự `/compare` (lý do: xem Batch 16, bug HCMUE từng có
+  module nhưng quên nối vào 1 trong 2 chỗ gọi tay).
+- **`ApplicantProfile` chỉ chứa factual reusable data** (điểm thi THPT thô, học bạ thô, ĐGNL thô,
+  chứng chỉ, mã ưu tiên khu vực/đối tượng) — KHÔNG BAO GIỜ điểm đã quy đổi/điểm xét tuyển cuối của
+  riêng 1 trường. Nếu 1 phương thức cần độ chi tiết mà profile chưa có (vd điểm theo học kỳ thay vì
+  theo năm — xem HUTECH/UFM học bạ), đó là **data-model gap thật**, không được xấp xỉ bằng dữ liệu
+  sẵn có để "cho ra" exact.
+- **LocalStorage/URL là untrusted input.** Mọi state đọc từ `localStorage`/query param phải chạy
+  qua validate+sanitize bảo thủ trước khi vào `ApplicantProfile` runtime (ví dụ
+  `core/applicantProfileStorage.ts`: drop field sai type/range, KHÔNG throw, KHÔNG trust TypeScript
+  cast để coi dữ liệu ngoài là an toàn). Malformed state phải bị lọc âm thầm, không được phép tạo ra
+  điểm số sai.
+- **Presentation text không phải nguồn sự thật cho business logic.** Không parse label/error
+  message/giải thích tiếng Việt để suy ra applicant type, missing requirement, method, hay cutoff
+  context — dùng structured field/metadata (xem Batch 17, fix HCMUT Result-type + USSH
+  `comparisonContext.applicantTypeId`). Đổi wording UI không được phép làm gãy business logic.
+- **Mọi `exactCalculator: true` phải có golden/domain-conformance coverage** source-anchored (Tier
+  A/B/C, `core/goldenAdmissionCase.ts`), verify bởi `compare/exactMethodGoldenCoverage.test.ts` —
+  xem Batch 18 cho quy trình đầy đủ. Thêm 1 method exact mới mà quên fixture = test đỏ ngay, không
+  bypass bằng comment.
+- **Ngưỡng đảm bảo chất lượng (threshold) ≠ điểm chuẩn trúng tuyển (cutoff).** Hai khái niệm khác
+  nhau về mặt domain, không được dùng lẫn cho nhau: threshold quyết định eligibility (đủ điều kiện
+  nộp hồ sơ), cutoff là kết quả trúng tuyển thật của 1 kỳ tuyển sinh cụ thể (thường cao hơn
+  threshold, công bố sau). Dùng nhầm loại vẫn qua được TypeScript vì cả hai đều là `number` — chỉ
+  domain review mới bắt được, nên khi thêm nguồn mới PHẢI tự hỏi "đây là ngưỡng nhận hồ sơ hay điểm
+  đã trúng tuyển thật" trước khi gán vào `eligibility.ts` hay `cutoffs.ts`. `findCutoffComparison`
+  chỉ hợp lệ khi cutoff record khớp đúng year/method/program/applicant-type/scale VÀ có provenance.
+- **`exactCalculator: true` không phải KPI.** Chỉ bật khi mọi score-affecting rule trong phạm vi đã
+  claim có evidence thật. Conditional-exact (vd "không có thành tích cộng điểm", "1 applicant type
+  cụ thể") hợp lệ nếu phạm vi rõ ràng và semantics đã có tiền lệ trong repo (USSH/IU/TDTU/HUFLIT/
+  HUTECH/UFM). `partial`/`eligibility-only`/`unavailable` là kết quả HỢP LỆ, không phải thất bại —
+  một module eligibility-only đúng còn tốt hơn 1 exact calculator suy diễn.
+
+Quy trình research + implement 1 trường mới, quy tắc bảng lớn, và ưu tiên mở rộng (ROI) nằm ở
+[docs/data-maintainer-guide.md](data-maintainer-guide.md). Quy trình release checkpoint nằm ở
+[docs/release-checklist.md](release-checklist.md).
+
 ## Release Candidate note (2026-08-13)
 
 Core architecture is considered stable for release. Future schools should plug into the existing

@@ -3,8 +3,8 @@
 Tính & mô phỏng điểm xét tuyển đại học
 
 - **Live**: https://uniscorevn.vercel.app _(canonical, Batch 7 — domain cũ `https://diemvao.vercel.app` từ Phase 13 hiện redirect 307 sang domain này, chỉ còn giá trị legacy reference)_
-- **GitHub**: https://github.com/shadowhunter67/uniscore _(tên repo chưa đổi theo brand mới — external action ngoài phạm vi code, xem CLAUDE.md Batch 7)_
-- **Issues**: https://github.com/shadowhunter67/uniscore/issues
+- **GitHub**: https://github.com/shadowhunter67/uniscorevn _(đổi tên từ `uniscore` 2026-08-18, đồng bộ brand — xem CLAUDE.md Batch 7 cho lý do trước đó chưa đổi)_
+- **Issues**: https://github.com/shadowhunter67/uniscorevn/issues
 
 UniScoreVN separates official/current data, historical references, and rules that are still awaiting verification. A source can be official but superseded; a previous-year cutoff can still be a valid historical reference; a missing current-year cutoff remains `unknown` unless there is explicit `not-published` evidence.
 

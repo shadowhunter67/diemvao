@@ -22,7 +22,7 @@ describe('siteConfig (Batch 7 rebrand)', () => {
   });
 
   it('githubUrl/issuesUrl vẫn trỏ repo GitHub thật hiện có (chưa đổi tên repo, out of scope batch này)', () => {
-    expect(siteConfig.githubUrl).toBe('https://github.com/shadowhunter67/uniscore');
-    expect(siteConfig.issuesUrl).toBe('https://github.com/shadowhunter67/uniscore/issues');
+    expect(siteConfig.githubUrl).toBe('https://github.com/shadowhunter67/uniscorevn');
+    expect(siteConfig.issuesUrl).toBe('https://github.com/shadowhunter67/uniscorevn/issues');
   });
 });

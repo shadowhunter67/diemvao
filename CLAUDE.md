@@ -22,6 +22,39 @@ Web tĩnh tính & mô phỏng điểm xét tuyển đại học, 100% client-sid
 
 Toàn bộ lịch sử phát triển chi tiết (Phase 1–16, Batch 6–7 — quyết định, lý do, file bị đụng, QA đã chạy) nằm ở **[docs/CHANGELOG.md](docs/CHANGELOG.md)**. Đọc file đó trước khi giả định một kiến trúc/quyết định đã có sẵn hay chưa, hoặc khi cần biết vì sao code hiện tại trông như vậy.
 
+## Quy tắc vận hành bắt buộc (mọi session, không riêng batch nào)
+
+Chi tiết đầy đủ + rationale nằm ở 3 file dưới — mục này chỉ là phần Claude PHẢI biết trước khi bắt
+đầu, không lặp lại nội dung đã có ở đó:
+
+- **Kiến trúc/invariant** (school expansion pattern, `ApplicantProfile` factual-only, runtime input
+  validation, threshold≠cutoff, golden coverage, exactness không phải KPI) →
+  [docs/architecture.md](docs/architecture.md) mục "Quy tắc kiến trúc bắt buộc" (đầu file).
+- **Research/data workflow cho trường mới** (12-step inventory, freshness/stale-source audit,
+  nhập bảng lớn, ưu tiên ROI mở rộng) → [docs/data-maintainer-guide.md](docs/data-maintainer-guide.md).
+- **Release cadence + quy trình checkpoint** (mỗi +5 trường → 1 deployment checkpoint; trạng thái
+  checkpoint hiện tại) → [docs/release-checklist.md](docs/release-checklist.md) mục "Release cadence".
+
+Evidence-first là rule tuyệt đối cho mọi score-affecting rule: `runtime implementation → RuleEvidence
+→ AdmissionSource`. Không suy diễn công thức chỉ để tăng coverage; không nâng `cross-checked` thành
+`verified` nếu trường không trực tiếp công bố rule đó.
+
+**Process cleanup — bắt buộc mỗi lần khởi chạy process persistent** (dev server, Vite, preview,
+browser automation/chrome-devtools, Playwright, watch mode, local HTTP server): tự dừng trước khi
+báo cáo xong; cleanup kể cả khi command fail; không kill process không do chính mình tạo; cuối task
+xác nhận không còn background process của task. Nếu không start process nào, nói rõ mọi command đều
+one-shot.
+
+**Git/release safety**: không commit/push nếu user chưa yêu cầu checkpoint/release. Khi release,
+theo đúng quy trình 10 bước ở `docs/release-checklist.md` — không `git add -A` mù không xem lại
+scope, không force push, verify GitHub CI + deployment sau push, không coi local pass là đủ nếu CI
+đỏ.
+
+**Documentation rule**: current-state docs (README "Trường đang hỗ trợ", CLAUDE.md/AGENTS.md tóm
+tắt, `docs/release-checklist.md`) phải khớp runtime hiện tại — sửa ngay khi thêm/đổi trường. Batch
+notes/changelog lịch sử (`docs/architecture.md` mục "Batch N", `docs/CHANGELOG.md`) giữ nguyên nếu
+đúng ở thời điểm ghi — không sửa lịch sử chỉ để nó giống hiện tại.
+
 ## Lưu ý kỹ thuật khi test qua chrome-devtools
 
 - Dùng tool `click` (không dùng `evaluate_script` với async function) để tránh crash "Target closed" từng gặp trong môi trường này; nếu cần verify state sau khi click, atomic hoá bằng một `evaluate_script` vừa click vừa đọc kết quả trong cùng script thay vì tách 2 lượt gọi (từng đo state "kẹt" giả do timing round-trip giữa các tool call riêng lẻ, không phải bug thật).
