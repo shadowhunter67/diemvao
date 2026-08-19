@@ -5,6 +5,7 @@ import type { SchoolCapabilities, SchoolStatus } from '../core/schoolModule';
 import { useApplicantProfile } from '../core/applicantProfileContextCore';
 import { summarizeApplicantProfile } from '../core/applicantProfileSummary';
 import { deriveSchoolCtaLabel } from '../core/schoolCta';
+import { SharedProfileEditor } from './SharedProfileEditor';
 
 interface LandingPageProps {
   onSelectSchool: (schoolId: string) => void;
@@ -46,7 +47,7 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
   // Batch 6, workstream O/P — cho user thấy rõ họ đang có "hồ sơ điểm dùng chung" (đã nhập ở 1
   // trường, có thể dùng lại ở trường khác) + cách xóa nếu muốn. Không build dashboard lớn — chỉ 1
   // dòng summary cực ngắn, im lặng hoàn toàn nếu profile rỗng (không hint giả).
-  const { profile, clearProfile } = useApplicantProfile();
+  const { profile, updateProfile, updateVactTotal, clearProfile } = useApplicantProfile();
   const profileSummary = summarizeApplicantProfile(profile);
 
   function handleClearProfile() {
@@ -101,30 +102,9 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
               .filter(Boolean)
               .join(' · ')}
           </p>
-          <details className="mt-2 rounded-md border border-accent/15 bg-surface/70 px-3 py-2">
-            <summary className="cursor-pointer text-xs font-medium text-ink">Xem hồ sơ đã lưu</summary>
-            <dl className="mt-2 grid gap-2 text-xs text-muted sm:grid-cols-3">
-              <div>
-                <dt className="font-medium text-ink">ĐGNL</dt>
-                <dd>{profileSummary.vactTotal !== undefined ? profileSummary.vactTotal : 'Chưa có'}</dd>
-              </div>
-              <div>
-                <dt className="font-medium text-ink">THPT</dt>
-                <dd>
-                  {profileSummary.thptSubjects.length > 0
-                    ? profileSummary.thptSubjects.map((subject) => `${subject.label}: ${subject.score}`).join(' · ')
-                    : 'Chưa có'}
-                </dd>
-              </div>
-              <div>
-                <dt className="font-medium text-ink">Học bạ</dt>
-                <dd>
-                  {profileSummary.transcriptSubjects.length > 0
-                    ? profileSummary.transcriptSubjects.map((subject) => subject.label).join(' · ')
-                    : 'Chưa có'}
-                </dd>
-              </div>
-            </dl>
+          <details open className="mt-2 rounded-md border border-accent/15 bg-surface/70 px-3 py-2">
+            <summary className="cursor-pointer text-xs font-medium text-ink">Chỉnh sửa hồ sơ đã lưu</summary>
+            <SharedProfileEditor profile={profile} updateProfile={updateProfile} updateVactTotal={updateVactTotal} />
           </details>
           <button
             type="button"

@@ -5,6 +5,7 @@ interface ScoreInputProps {
   value: string;
   error: string | null;
   onChange: (value: string) => void;
+  onBlur?: () => void;
   compact?: boolean;
   hideLabel?: boolean;
 }
@@ -16,6 +17,7 @@ export function ScoreInput({
   value,
   error,
   onChange,
+  onBlur,
   compact = false,
   hideLabel = false,
 }: ScoreInputProps) {
@@ -36,6 +38,7 @@ export function ScoreInput({
         step="any"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
         aria-invalid={error !== null}
         aria-describedby={error ? errorId : undefined}
         className={`mt-1 w-full rounded-lg border bg-surface text-ink shadow-sm outline-none transition focus:ring-2 focus:ring-offset-0 ${
