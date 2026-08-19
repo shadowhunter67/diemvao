@@ -8,6 +8,7 @@ import { UHS_PROGRAMS } from '../schools/uhs/programs';
 import { iuPrograms } from '../schools/iu/data/programs';
 import { AGU_PROGRAM_THRESHOLDS_2026 } from '../schools/agu/data/thresholds';
 import { hcmueProgramThresholds } from '../schools/hcmue/data/programs';
+import { tdtuPrograms } from '../schools/tdtu/data/programs';
 
 export interface ProgramCatalogEntry {
   programId: string;
@@ -45,6 +46,7 @@ export const programCatalogBySchool: Record<string, ProgramCatalogEntry[]> = {
     campus: program.campus,
     track: program.group,
   })),
+  tdtu: tdtuPrograms.map((program) => ({ programId: program.id, code: program.code, name: program.name, track: program.group })),
 };
 
 export function getProgramCatalogEntry(schoolId: string, programId: string | undefined): ProgramCatalogEntry | undefined {

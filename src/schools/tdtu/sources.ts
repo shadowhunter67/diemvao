@@ -19,8 +19,10 @@ export interface TdtuSource {
  * là HTML text thật (không phải ảnh/PDF quét) chứa ĐẦY ĐỦ công thức PT1/PT2 dạng số cụ thể — Tier A
  * primary source, đọc trực tiếp qua browser. Phụ lục 5/6/7 (PDF, text layer đọc được) bổ sung bảng
  * số điểm ưu tiên/điểm thưởng/điểm xét thưởng. Phụ lục 2 (PDF, 24 trang, text layer đọc được, 119
- * dòng ngành/tổ hợp/ngưỡng) CHỈ dùng để xác nhận ngưỡng chung 15/30 áp dụng đa số ngành — UniscoreVN
- * CHƯA import toàn bộ danh mục 119 ngành/tổ hợp trong batch này (xem `knowledgeGaps.ts`).
+ * dòng ngành/tổ hợp/ngưỡng) — batch 2026-08-19 đã import đủ 119/119 tên/mã ngành vào
+ * `data/programs.ts` (đọc qua pdftotext, đối chiếu thủ công); tổ hợp xét tuyển + ngưỡng đầu vào
+ * riêng theo ngành vẫn CHƯA import do rủi ro xáo trộn dữ liệu ở 2 cụm trang bị ngắt giữa ô
+ * (xem `knowledgeGaps.ts`).
  */
 export const tdtuSources: TdtuSource[] = [
   {
@@ -69,7 +71,7 @@ export const tdtuSources: TdtuSource[] = [
     id: 'tdtu-pl2-programs-pt1-2026',
     publisher: 'Trường Đại học Tôn Đức Thắng',
     title:
-      'Phụ lục 2 — Danh mục ngành, tổ hợp, điều kiện xét tuyển Phương thức 1 năm 2026 (119 dòng ngành/chương trình, 24 trang) — dùng để xác nhận ngưỡng chung 15/30 áp dụng đa số ngành; UniscoreVN chưa import đầy đủ danh mục',
+      'Phụ lục 2 — Danh mục ngành, tổ hợp, điều kiện xét tuyển Phương thức 1 năm 2026 (119 dòng ngành/chương trình, 24 trang) — tên/mã ngành đã import đủ 119/119 (`data/programs.ts`); tổ hợp xét tuyển và ngưỡng đầu vào riêng theo ngành UniscoreVN chưa import',
     url: 'https://admission.tdtu.edu.vn/sites/admission/files/Tuyen-sinh/2026/PATS2026-T03/PL2.Danh-muc-nganh-tuyen-sinh-PT1-2026.pdf',
     accessedAt: '2026-08-18',
     sourceType: 'official-school',

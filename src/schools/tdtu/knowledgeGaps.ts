@@ -13,12 +13,12 @@ export const tdtuKnowledgeGaps: KnowledgeGap[] = [
   {
     id: 'tdtu-program-catalog-not-imported',
     label:
-      'Danh mục 119 ngành/chương trình + tổ hợp xét tuyển cụ thể (Phụ lục 2, 24 trang) chưa import vào UniscoreVN — evaluator hiện nhận tổ hợp môn trực tiếp từ caller (giống HCMUT/HCMUTE), không tra được ngành nào dùng tổ hợp nào, cũng không tra được "môn điều kiện" riêng ngành (vd Tiếng Anh ≥ 6.0) hay ngưỡng đầu vào riêng ngành do TDTU công bố (chỉ có ngưỡng chung 15/30 theo Bộ GDĐT).',
+      'Batch 2026-08-19: danh mục TÊN/MÃ ngành (119/119, `data/programs.ts`) đã import đủ từ Phụ lục 2 (đọc qua `pdftotext -layout -enc UTF-8`, đối chiếu thủ công từng dòng). PHẦN CÒN THIẾU: tổ hợp xét tuyển cụ thể theo từng ngành, "môn điều kiện" riêng ngành (vd Tiếng Anh ≥ 6.0) và ngưỡng đầu vào riêng ngành do TDTU công bố (chỉ có ngưỡng chung 15/30 theo Bộ GDĐT) — bảng gốc có nhiều dòng/ô multi-combo bị ngắt trang giữa ô (rõ nhất ở cụm STT 15-19 Tài chính-Ngân hàng/Công nghệ tài chính/Kế toán và cụm STT 47-52 Bảo hộ lao động..Khoa học dữ liệu), khiến text-extraction xáo trộn tổ hợp giữa các dòng liền kề — không đủ tin cậy để gán tự động cho đúng ngành mà không rủi ro sai lệch. evaluator hiện vẫn nhận tổ hợp môn trực tiếp từ caller (giống HCMUT/HCMUTE).',
     status: 'official-but-unparsed',
     sourceId: 'tdtu-pl2-programs-pt1-2026',
     scoreAffecting: false,
     implemented: false,
-    whyNotInferred: 'Import an toàn 119 dòng × nhiều tổ hợp/dòng cần structured parser + validation (trùng mã ngành, thiếu field, ngưỡng sai định dạng) — không làm thủ công trong batch expansion ưu tiên mở trường mới.',
+    whyNotInferred: 'Tổ hợp/ngưỡng riêng ngành cần đối chiếu lại trực tiếp PDF gốc theo từng trang (thủ công, không dùng text-extraction tự động do đã xác nhận bị xáo trộn ở 2 cụm trên) — không làm trong batch này để tránh gán sai tổ hợp cho ngành.',
     impact: 'eligibility-only-gap',
   },
   {
