@@ -35,4 +35,29 @@ export const hcmueSources: HcmueSource[] = [
     sourceType: 'official-school',
     verification: 'verified',
   },
+  {
+    id: 'hcmue-cutoffs-2026',
+    publisher: 'Trường Đại học Sư phạm TP.HCM',
+    title:
+      'Thông báo kết quả xét tuyển các ngành đào tạo trình độ đại học, ngành Giáo dục Mầm non trình độ cao đẳng hệ chính quy năm 2026',
+    url: 'http://tuyensinh.hcmue.edu.vn/index.php?option=com_content&view=article&id=27828&catid=4069&Itemid=9677&lang=vi&site=183',
+    accessedAt: '2026-08-19',
+    publishedAt: '2026-08-11',
+    sourceType: 'official-school',
+    verification: 'verified',
+  },
 ];
+
+/**
+ * File điểm chuẩn 2026 đính kèm bài thông báo `hcmue-cutoffs-2026` (Google Drive, không phải
+ * text/HTML machine-readable). Đã thử tải cả hai file (`fetch`/`curl` qua link download trực
+ * tiếp `drive.usercontent.google.com/download?id=...`) ngày 2026-08-19 — Google Drive trả lỗi
+ * "Sorry, the owner hasn't given you permission to download this file." cho cả hai, nên UniscoreVN
+ * KHÔNG đọc được bảng điểm theo ngành. Giữ 2 link này để người dùng tự mở (cần đăng nhập Google
+ * hoặc trường mở quyền tải sau).
+ */
+export const hcmueCutoffFileLinks2026 = {
+  priorityAdmission: 'https://drive.google.com/open?id=1ylqhRWfKWs11yxAG7PM4EV4cmj9BuvpY&usp=drive_fs',
+  otherMethods: 'https://drive.google.com/open?id=1lANt8eWxrU94gXvWcs32j8Jyqy4k40xc&usp=drive_fs',
+  lookupPortal: 'https://xettuyen.hcmue.edu.vn/tra-cuu-ket-qua',
+};
