@@ -9,11 +9,12 @@ interface ComparisonOverviewProps {
     unavailable: number;
   };
   profileSummary: ReturnType<typeof summarizeApplicantProfile>;
+  onEditProfile: () => void;
 }
 
 function ProfileFactSummary({ profileSummary }: { profileSummary: ReturnType<typeof summarizeApplicantProfile> }) {
   const facts = [
-    profileSummary.vactTotal !== undefined ? { label: 'DGNL', done: true, value: String(profileSummary.vactTotal) } : { label: 'DGNL', done: false },
+    profileSummary.vactTotal !== undefined ? { label: 'ĐGNL', done: true, value: String(profileSummary.vactTotal) } : { label: 'ĐGNL', done: false },
     profileSummary.thptSubjectCount > 0 ? { label: 'THPT', done: true, value: `${profileSummary.thptSubjectCount} môn` } : { label: 'THPT', done: false },
     profileSummary.transcriptSubjectCount > 0 ? { label: 'Học bạ', done: true, value: `${profileSummary.transcriptSubjectCount} môn` } : { label: 'Học bạ', done: false },
   ];
@@ -30,7 +31,7 @@ function ProfileFactSummary({ profileSummary }: { profileSummary: ReturnType<typ
   );
 }
 
-export function ComparisonOverview({ selectionCount, uniqueSchoolCount, statusCounts, profileSummary }: ComparisonOverviewProps) {
+export function ComparisonOverview({ selectionCount, uniqueSchoolCount, statusCounts, profileSummary, onEditProfile }: ComparisonOverviewProps) {
   return (
     <>
       <header className="mt-4">
@@ -55,9 +56,9 @@ export function ComparisonOverview({ selectionCount, uniqueSchoolCount, statusCo
             <p className="font-medium text-ink">Dữ liệu hồ sơ</p>
             <ProfileFactSummary profileSummary={profileSummary} />
           </div>
-          <a href="#/" className="text-xs font-medium text-accent underline-offset-2 hover:underline">
+          <button type="button" onClick={onEditProfile} className="text-xs font-medium text-accent underline-offset-2 hover:underline">
             Chỉnh sửa hồ sơ
-          </a>
+          </button>
         </div>
       </section>
     </>

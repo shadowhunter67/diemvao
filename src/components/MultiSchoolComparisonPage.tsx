@@ -388,7 +388,13 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
         Về trang chủ
       </button>
 
-      <ComparisonOverview selectionCount={selections.length} uniqueSchoolCount={uniqueSchoolCount} statusCounts={statusCounts} profileSummary={profileSummary} />
+      <ComparisonOverview
+        selectionCount={selections.length}
+        uniqueSchoolCount={uniqueSchoolCount}
+        statusCounts={statusCounts}
+        profileSummary={profileSummary}
+        onEditProfile={onBackHome}
+      />
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
