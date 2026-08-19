@@ -41,41 +41,54 @@ describe('evaluateUfmThptAdmission', () => {
     expect(result.eligibility?.status).toBe('ineligible'); // total passes but math floor fails
   });
 
-  it('stays partial when the applicant has a bonus achievement (bonus table not found)', () => {
-    const profile: ApplicantProfile = { thpt: { scores: { math: 8, physics: 7, english: 6 } } };
-    const result = evaluateUfmThptAdmission(profile, { subjectContext: combo, hasBonusAchievement: true });
-    expect(result.confidence).toBe('partial');
-    expect(result.score).toBeUndefined();
-    expect(result.missingRequirements?.some((r) => r.code === 'ufm-bonus-table-not-found')).toBe(true);
+  it('adds the bonus (b1/b2/b3) to the final score and stays exact-verified', () => {
+    const profile: ApplicantProfile = { thpt: { scores: { math: 8, physics: 7, english: 6 } } }; // raw30 = 21
+    const result = evaluateUfmThptAdmission(profile, {
+      subjectContext: combo,
+      bonus: { nationalAchievementLevel: 'third', giftedSchoolStudent: true, englishCertificateTier: 0.5 }, // 1.5 + 0.75 + 0.5 = 2.75
+    });
+    expect(result.confidence).toBe('exact-verified');
+    expect(result.score?.value).toBe(23.75); // 21 + 0 (priority) + 2.75 (bonus)
+    const bonusStep = result.explanation.find((s) => s.id === 'ufm-bonus');
+    expect(bonusStep?.output).toBe(2.75);
+  });
+
+  it('caps the bonus at 3,0 (10% of thang 30) even when b1+b2+b3 would exceed it', () => {
+    const profile: ApplicantProfile = { thpt: { scores: { math: 8, physics: 7, english: 6 } } }; // raw30 = 21
+    const result = evaluateUfmThptAdmission(profile, {
+      subjectContext: combo,
+      bonus: { nationalAchievementLevel: 'first', nationalEncouragementAward: true, englishCertificateTier: 1.5 },
+    });
+    expect(result.score?.value).toBe(24); // 21 + 0 (priority) + 3 (bonus capped)
+  });
+
+  it('clamps the final score at 30 even when raw + priority + bonus would exceed it', () => {
+    const profile: ApplicantProfile = { thpt: { scores: { math: 10, physics: 10, english: 9 } }, priority: { region: 'KV1', category: 'UT1' } }; // raw30 = 29
+    const result = evaluateUfmThptAdmission(profile, { subjectContext: combo, bonus: { nationalAchievementLevel: 'first' } });
+    expect(result.score?.value).toBe(30);
   });
 });
 
-describe('evaluateUfmDgnlAdmission', () => {
+describe('evaluateUfmDgnlAdmission — eligibility-only (final-score conversion table unparsed)', () => {
   it('asks for ĐGNL score when absent', () => {
     const result = evaluateUfmDgnlAdmission({});
     expect(result.confidence).toBe('partial');
     expect(result.missingRequirements?.some((r) => r.code === 'ufm-dgnl-total')).toBe(true);
   });
 
-  it('computes an exact-verified score with no bonus achievement', () => {
-    const profile: ApplicantProfile = { exams: { vact: { total: 700 } }, priority: { region: 'KV1', category: 'UT1' } };
+  it('checks the threshold but never returns a score (needs the percentile conversion table)', () => {
+    const profile: ApplicantProfile = { exams: { vact: { total: 700 } } };
     const result = evaluateUfmDgnlAdmission(profile);
-    expect(result.confidence).toBe('exact-verified');
-    expect(result.score?.scale).toBe(1200);
+    expect(result.confidence).toBe('partial');
+    expect(result.score).toBeUndefined();
     expect(result.eligibility?.status).toBe('eligible'); // standard group, 700 >= 657
+    expect(result.missingRequirements?.some((r) => r.code === 'ufm-final-score-conversion-unparsed')).toBe(true);
   });
 
   it('applies the law-economics 720/1200 threshold', () => {
     const profile: ApplicantProfile = { exams: { vact: { total: 700 } } };
     const result = evaluateUfmDgnlAdmission(profile, { thresholdGroup: 'law-economics' });
     expect(result.eligibility?.status).toBe('ineligible');
-  });
-
-  it('stays partial when the applicant has a bonus achievement', () => {
-    const profile: ApplicantProfile = { exams: { vact: { total: 700 } } };
-    const result = evaluateUfmDgnlAdmission(profile, { hasBonusAchievement: true });
-    expect(result.confidence).toBe('partial');
-    expect(result.score).toBeUndefined();
   });
 });
 
@@ -102,12 +115,12 @@ describe('evaluateUfmVsatAdmission — eligibility-only', () => {
   });
 });
 
-describe('evaluateUfmHocbaAdmission — always unavailable (semester-granularity + formula ambiguity gap)', () => {
-  it('never returns a score and reports the data-model gap', () => {
+describe('evaluateUfmHocbaAdmission — always unavailable (percentile conversion table unparsed)', () => {
+  it('never returns a score and reports the conversion-table gap', () => {
     const result = evaluateUfmHocbaAdmission();
     expect(result.confidence).toBe('unavailable');
     expect(result.score).toBeUndefined();
     expect(result.eligibility?.status).toBe('unknown');
-    expect(result.missingRequirements?.some((r) => r.code === 'ufm-hocba-semester-granularity-gap')).toBe(true);
+    expect(result.missingRequirements?.some((r) => r.code === 'ufm-final-score-conversion-unparsed')).toBe(true);
   });
 });

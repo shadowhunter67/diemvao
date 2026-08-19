@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { assertGoldenCaseProvenance } from '../../core/goldenAdmissionCase';
-import { calculateUfmThptRawScore, calculateUfmThptFinalScore, calculateUfmDgnlFinalScore } from './calculator';
+import { calculateUfmThptRawScore, calculateUfmThptFinalScore } from './calculator';
 import { checkUfmThptThreshold, checkUfmDgnlThreshold } from './eligibility';
-import { lookupUfmStandardPriority30, calculateUfmPriority30, calculateUfmPriority1200 } from './priority';
+import { lookupUfmStandardPriority30, calculateUfmPriority30 } from './priority';
 import { ufmThptGoldenCases, ufmDgnlGoldenCases } from './__fixtures__/officialExamples2026';
 
 /**
@@ -48,18 +48,20 @@ describe('UFM 2026 golden conformance — xét THPT (Tier C — sourceId ufm-qua
   });
 });
 
-describe('UFM 2026 golden conformance — xét ĐGNL (Tier C)', () => {
+/**
+ * ĐGNL 2026 — CHỈ test ngưỡng đầu vào (threshold), KHÔNG test "Điểm xét tuyển" cuối cùng.
+ * `ufm-dgnl-2026` đã hạ `exactCalculator: false` (2026-08-19): văn bản gốc xác nhận "Điểm xét
+ * tuyển" chính thức của ĐGNL phải quy đổi qua bảng bách phân vị Bộ GD-ĐT sang thang 30 trước khi
+ * cộng ưu tiên/điểm cộng — KHÔNG phải cộng thẳng điểm ĐGNL thang 1200 + ưu tiên như finalScore trong
+ * fixture (giữ nguyên fixture cho lịch sử/tài liệu, nhưng KHÔNG assert finalScore ở đây nữa vì module
+ * không còn claim tính được). Xem `knowledgeGaps.ts:ufm-final-score-conversion-unparsed`.
+ */
+describe('UFM 2026 golden conformance — xét ĐGNL (Tier C, threshold-only — final score blocked, xem comment trên)', () => {
   assertGoldenCaseProvenance(ufmDgnlGoldenCases);
 
-  it.each(ufmDgnlGoldenCases)('$id', (goldenCase) => {
+  it.each(ufmDgnlGoldenCases)('$id — threshold only', (goldenCase) => {
     const threshold = checkUfmDgnlThreshold(goldenCase.input.dgnlScore1200, goldenCase.input.group);
     expect(threshold.pass).toBe(goldenCase.expected.eligible);
-
-    const standardPriority30 = lookupUfmStandardPriority30(goldenCase.input.priorityRegion, goldenCase.input.priorityCategory);
-    const priority = calculateUfmPriority1200({ dgnlScore1200: goldenCase.input.dgnlScore1200, standardPriority30 });
-    const finalScore = calculateUfmDgnlFinalScore({ dgnlScore1200: goldenCase.input.dgnlScore1200, priority1200: priority.effectivePriority1200 });
-
-    expect(finalScore).toBe(goldenCase.expected.finalScore);
   });
 
   it('priority reduction only triggers at/above 900/1200', () => {

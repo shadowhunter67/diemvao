@@ -16,13 +16,9 @@ export function calculateUfmThptRawScore(input: UfmThreeSubjectInput): number {
   return round2(input.subject1Score + input.subject2Score + input.subject3Score);
 }
 
-/** Điểm xét tuyển cuối (xét THPT, thang 30) = Điểm học lực (raw) + Điểm ưu tiên — kẹp 30. Không có
- * thành phần điểm cộng trong phạm vi exact đã claim (ĐC=0, xem `methods.ts`/`evaluate.ts`). */
-export function calculateUfmThptFinalScore(input: { raw30: number; priority30: number }): number {
-  return round2(Math.min(30, input.raw30 + input.priority30));
-}
-
-/** Điểm xét tuyển cuối (xét ĐGNL, thang 1200) = Tổng điểm ĐGNL + Điểm ưu tiên. */
-export function calculateUfmDgnlFinalScore(input: { dgnlScore1200: number; priority1200: number }): number {
-  return round2(input.dgnlScore1200 + input.priority1200);
+/** Điểm xét tuyển cuối (xét THPT, thang 30) = Điểm học lực (raw) + Điểm ưu tiên (nếu có) + Điểm cộng
+ * (nếu có) — kẹp 30 ("Điểm xét tuyển được tính trên thang điểm 30, và không vượt quá mức điểm tối đa
+ * là 30", verified 2026-08-19). */
+export function calculateUfmThptFinalScore(input: { raw30: number; priority30: number; bonus30?: number }): number {
+  return round2(Math.min(30, input.raw30 + input.priority30 + (input.bonus30 ?? 0)));
 }

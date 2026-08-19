@@ -20,7 +20,7 @@ import { hcmusGoldenCase, hcmusVactConversionGoldenCases } from '../schools/hcmu
 import { usshGoldenCases } from '../schools/ussh/__fixtures__/officialExamples2026';
 import { iuGoldenCases } from '../schools/iu/__fixtures__/officialExamples2026';
 import { hutechThptGoldenCases, hutechDgnlGoldenCases } from '../schools/hutech/__fixtures__/officialExamples2026';
-import { ufmThptGoldenCases, ufmDgnlGoldenCases } from '../schools/ufm/__fixtures__/officialExamples2026';
+import { ufmThptGoldenCases } from '../schools/ufm/__fixtures__/officialExamples2026';
 
 /**
  * Invariant CI bắt buộc: MỌI method có `capabilities.exactCalculator === true` phải có ÍT NHẤT 1
@@ -77,7 +77,6 @@ const allGoldenCases = [
   ...hutechThptGoldenCases,
   ...hutechDgnlGoldenCases,
   ...ufmThptGoldenCases,
-  ...ufmDgnlGoldenCases,
 ];
 
 const coveredMethods = new Set(allGoldenCases.map((goldenCase) => methodKey(goldenCase.schoolId, goldenCase.methodId)));
@@ -119,7 +118,6 @@ describe('exact method golden coverage invariant', () => {
         'hutech:hutech-thpt-2026',
         'hutech:hutech-dgnl-2026',
         'ufm:ufm-thpt-2026',
-        'ufm:ufm-dgnl-2026',
       ].sort()
     );
   });

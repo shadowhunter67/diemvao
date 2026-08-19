@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateUfmThptRawScore, calculateUfmThptFinalScore, calculateUfmDgnlFinalScore } from './calculator';
+import { calculateUfmThptRawScore, calculateUfmThptFinalScore } from './calculator';
 
 describe('calculateUfmThptRawScore', () => {
   it('sums 3 subjects with no coefficient', () => {
@@ -16,10 +16,9 @@ describe('calculateUfmThptFinalScore', () => {
     expect(calculateUfmThptFinalScore({ raw30: 21, priority30: 0.25 })).toBe(21.25);
     expect(calculateUfmThptFinalScore({ raw30: 29.9, priority30: 2 })).toBe(30);
   });
-});
 
-describe('calculateUfmDgnlFinalScore', () => {
-  it('adds priority to raw ĐGNL score', () => {
-    expect(calculateUfmDgnlFinalScore({ dgnlScore1200: 700, priority1200: 10 })).toBe(710);
+  it('adds bonus on top of priority, still clamped at 30', () => {
+    expect(calculateUfmThptFinalScore({ raw30: 21, priority30: 0.25, bonus30: 2 })).toBe(23.25);
+    expect(calculateUfmThptFinalScore({ raw30: 29, priority30: 0.5, bonus30: 3 })).toBe(30);
   });
 });

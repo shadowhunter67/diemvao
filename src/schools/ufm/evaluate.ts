@@ -5,9 +5,10 @@ import type { SubjectId } from '../../core/subjects';
 import { SUBJECT_LABELS } from '../../core/subjects';
 import { ufmAdmissionMethods } from './methods';
 import { checkUfmThptThreshold, checkUfmDgnlThreshold, checkUfmVsatThreshold, type UfmThresholdGroup } from './eligibility';
-import { calculateUfmThptRawScore, calculateUfmThptFinalScore, calculateUfmDgnlFinalScore } from './calculator';
-import { calculateUfmPriority30, calculateUfmPriority1200, lookupUfmStandardPriority30 } from './priority';
-import { ufmFormulaEvidence, ufmThresholdEvidence, ufmPriorityEvidence } from './evidence';
+import { calculateUfmThptRawScore, calculateUfmThptFinalScore } from './calculator';
+import { calculateUfmPriority30, lookupUfmStandardPriority30 } from './priority';
+import { ufmFormulaEvidence, ufmThresholdEvidence, ufmPriorityEvidence, ufmBonusEvidence } from './evidence';
+import { calculateUfmBonus30, type UfmBonusInput } from './bonus';
 
 export interface UfmSubjectContext {
   combinationId?: string;
@@ -32,15 +33,15 @@ function partial(methodId: string, year: number, input: { missingInputs: string[
 export interface UfmThptEvaluationContext {
   subjectContext?: UfmSubjectContext;
   thresholdGroup?: UfmThresholdGroup;
-  /** `false`/bỏ trống = không có thành tích cộng điểm (ĐC=0, tính exact được). `true` = có thành
-   * tích nhưng mức cộng cụ thể chưa công bố (`knowledgeGaps.ts`) — kết quả vẫn `partial`. */
-  hasBonusAchievement?: boolean;
+  /** b1/b2/b3 — bảng điểm cộng verified 2026-08-19 (`evidence.ts:ufmBonusEvidence`). Bỏ trống = không
+   * có thành tích cộng điểm (ĐC=0). */
+  bonus?: UfmBonusInput;
 }
 
-/** Xét THPT (chương trình Chuẩn) — thang 30. Điểm học lực = tổng thô 3 môn (không nhân hệ số).
- * Exact khi `hasBonusAchievement` không phải `true` (cùng semantics USSH/HUFLIT/HUTECH
- * `hasBonusAchievement`). Với `thresholdGroup: 'law-economics'`, cần thêm điểm Toán ≥6 và không môn
- * nào <1 — nếu thiếu 1 trong 2 raw score đó, ngưỡng coi là CHƯA xác nhận (fail an toàn). */
+/** Xét THPT (chương trình Chuẩn) — thang 30. Điểm học lực = tổng thô 3 môn (không nhân hệ số — hệ số
+ * Toán×2 CHỈ áp dụng chương trình Tiếng Anh toàn phần, verified 2026-08-19, ngoài phạm vi module này
+ * vốn chỉ phục vụ chương trình Chuẩn). Với `thresholdGroup: 'law-economics'`, cần thêm điểm Toán ≥6
+ * và không môn nào <1 — nếu thiếu 1 trong 2 raw score đó, ngưỡng coi là CHƯA xác nhận (fail an toàn). */
 export function evaluateUfmThptAdmission(profile: ApplicantProfile, context: UfmThptEvaluationContext = {}): AdmissionEvaluation {
   const explanation: CalculationStep[] = [];
   const missingRequirements: MissingRequirement[] = [];
@@ -72,22 +73,6 @@ export function evaluateUfmThptAdmission(profile: ApplicantProfile, context: Ufm
   explanation.push({ id: 'ufm-eligibility-threshold', label: 'Ngưỡng đầu vào (xét THPT)', output: raw30, scale: 30, formula: threshold.requiredText, evidence: ufmThresholdEvidence.evidence });
   explanation.push({ id: 'ufm-academic-score', label: 'Điểm học lực (tổng thô 3 môn)', output: raw30, scale: 30, formula: 'MT1 + MT2 + MT3', evidence: ufmFormulaEvidence.evidence });
 
-  if (context.hasBonusAchievement === true) {
-    missingRequirements.push({ kind: 'official-rule', code: 'ufm-bonus-table-not-found', label: 'Có thành tích cộng điểm nhưng bảng điểm cộng/xét thưởng cụ thể chưa tìm được nguồn chính thức.' });
-    return {
-      schoolId: 'ufm',
-      year,
-      methodId,
-      confidence: 'partial',
-      eligibility: { status: threshold.pass ? 'eligible' : 'ineligible', reasons: [threshold.requiredText] },
-      missingInputs: ['Mức điểm cộng/xét thưởng cụ thể chưa có nguồn — không tính được Điểm cộng.'],
-      missingRules: ['Bảng điểm cộng/xét thưởng UFM chưa tìm được nguồn chính thức.'],
-      missingRequirements,
-      explanation,
-      evidence: [...ufmFormulaEvidence.evidence, ...ufmThresholdEvidence.evidence],
-    };
-  }
-
   const standardPriority30 = lookupUfmStandardPriority30(profile.priority?.region, profile.priority?.category);
   const priority = calculateUfmPriority30({ academicScore30: raw30, standardPriority30 });
   explanation.push({
@@ -99,7 +84,17 @@ export function evaluateUfmThptAdmission(profile: ApplicantProfile, context: Ufm
     evidence: ufmPriorityEvidence.evidence,
   });
 
-  const finalScore = calculateUfmThptFinalScore({ raw30, priority30: priority.effectivePriority30 });
+  const bonus = calculateUfmBonus30(context.bonus ?? {});
+  explanation.push({
+    id: 'ufm-bonus',
+    label: 'Điểm cộng (b1 thành tích + b2 xét thưởng + b3 chứng chỉ Tiếng Anh)',
+    output: bonus.total30,
+    scale: 30,
+    formula: 'min(3,0; b1 + min(1,5; b2) + min(1,5; b3))',
+    evidence: ufmBonusEvidence.evidence,
+  });
+
+  const finalScore = calculateUfmThptFinalScore({ raw30, priority30: priority.effectivePriority30, bonus30: bonus.total30 });
   explanation.push({ id: 'ufm-final', label: 'Điểm xét tuyển (xét THPT) cuối cùng', output: finalScore, scale: 30 });
 
   return {
@@ -113,14 +108,14 @@ export function evaluateUfmThptAdmission(profile: ApplicantProfile, context: Ufm
     missingRules: [],
     missingRequirements,
     explanation,
-    evidence: [...ufmFormulaEvidence.evidence, ...ufmThresholdEvidence.evidence, ...ufmPriorityEvidence.evidence],
+    evidence: [...ufmFormulaEvidence.evidence, ...ufmThresholdEvidence.evidence, ...ufmPriorityEvidence.evidence, ...ufmBonusEvidence.evidence],
   };
 }
 
-/** Xét học bạ THPT — LUÔN `unavailable`. Công thức chính thức cần điểm tính từ lớp 10 đến HK1 lớp
- * 12 (5 học kỳ, theo nguồn thứ cấp), nhưng `ApplicantProfile.transcript` dùng chung chỉ lưu TB CẢ
- * NĂM, và bản thân công thức tổng/chia cũng đọc được mơ hồ giữa các nguồn (xem
- * `knowledgeGaps.ts:ufm-hocba-semester-granularity-gap`). */
+/** Xét học bạ THPT — LUÔN `unavailable`. Công thức tính học lực (verified 2026-08-19: ĐTB TB 3 năm
+ * lớp 10/11/12 mỗi môn) KHỚP với `ApplicantProfile.transcript` — KHÔNG còn granularity gap. Blocker
+ * thật là "Điểm xét tuyển" chính thức phải quy đổi ĐTB đó qua bảng bách phân vị Bộ GD-ĐT sang thang
+ * 30, bảng đó CHƯA parse hết (`knowledgeGaps.ts:ufm-final-score-conversion-unparsed`). */
 export function evaluateUfmHocbaAdmission(): AdmissionEvaluation {
   const methodId = ufmAdmissionMethods[1].id;
   const year = ufmAdmissionMethods[1].year;
@@ -129,10 +124,10 @@ export function evaluateUfmHocbaAdmission(): AdmissionEvaluation {
     year,
     methodId,
     confidence: 'unavailable',
-    eligibility: { status: 'unknown', reasons: ['Công thức cần điểm theo học kỳ (đến HK1 lớp 12), hồ sơ dùng chung chỉ lưu TB cả năm — không đủ dữ liệu để tính đúng công thức, và bản thân công thức đọc được mơ hồ giữa các nguồn thứ cấp.'] },
-    missingInputs: ['Điểm trung bình từng học kỳ (đến HK1 lớp 12) — hồ sơ dùng chung hiện chỉ lưu TB cả năm.'],
-    missingRules: ['Chưa xác nhận công thức tổng/chia chính xác từ nguồn chính thức UFM.'],
-    missingRequirements: [{ kind: 'unsupported', code: 'ufm-hocba-semester-granularity-gap', label: 'Phương thức học bạ UFM cần dữ liệu theo học kỳ, chưa được hồ sơ dùng chung hỗ trợ.' }],
+    eligibility: { status: 'unknown', reasons: ['Bảng quy đổi bách phân vị (học bạ↔thi TN THPT) dùng để ra "Điểm xét tuyển" chính thức thang 30 chưa parse hết từ nguồn chính thức.'] },
+    missingInputs: ['Bảng quy đổi bách phân vị học bạ↔thi TN THPT (Bộ GD-ĐT) — hiện chỉ đọc được vài dòng đầu của bảng chính thức.'],
+    missingRules: ['Bảng quy đổi tương đương điểm (mục 3.1 Thông báo 2639/TB-ĐHTCM) chưa transcribe đầy đủ.'],
+    missingRequirements: [{ kind: 'unsupported', code: 'ufm-final-score-conversion-unparsed', label: 'Phương thức học bạ UFM cần bảng quy đổi bách phân vị chính thức, chưa parse hết.' }],
     explanation: [],
     evidence: [],
   };
@@ -140,11 +135,13 @@ export function evaluateUfmHocbaAdmission(): AdmissionEvaluation {
 
 export interface UfmDgnlEvaluationContext {
   thresholdGroup?: UfmThresholdGroup;
-  hasBonusAchievement?: boolean;
 }
 
-/** Xét ĐGNL ĐHQG TP.HCM 2026, thang 1200. Đọc từ hồ sơ điểm dùng chung `profile.exams.vact.total`.
- * Exact khi `hasBonusAchievement` không phải `true`. */
+/** Xét ĐGNL ĐHQG TP.HCM 2026 — eligibility-only. Đọc điểm thô (thang 1200) từ hồ sơ dùng chung
+ * `profile.exams.vact.total` CHỈ để so ngưỡng đầu vào. "Điểm xét tuyển" chính thức (dùng xếp hạng
+ * trúng tuyển) theo văn bản gốc phải quy đổi điểm ĐGNL sang thang 30 qua bảng bách phân vị Bộ GD-ĐT
+ * trước khi cộng ưu tiên/điểm cộng — bảng đó CHƯA parse hết
+ * (`knowledgeGaps.ts:ufm-final-score-conversion-unparsed`), nên module này KHÔNG trả `score`. */
 export function evaluateUfmDgnlAdmission(profile: ApplicantProfile, context: UfmDgnlEvaluationContext = {}): AdmissionEvaluation {
   const explanation: CalculationStep[] = [];
   const missingRequirements: MissingRequirement[] = [];
@@ -155,54 +152,24 @@ export function evaluateUfmDgnlAdmission(profile: ApplicantProfile, context: Ufm
   const dgnlScore1200 = profile.exams?.vact?.total;
   if (dgnlScore1200 === undefined) {
     missingRequirements.push({ kind: 'profile-input', code: 'ufm-dgnl-total', label: 'Tổng điểm ĐGNL ĐHQG-HCM (thang 1200).' });
-    return partial(methodId, year, { missingInputs: ['Điểm ĐGNL ĐHQG-HCM (thang 1200).'], missingRequirements, explanation, eligibilityReason: 'Cần điểm ĐGNL để tính điểm xét tuyển.' });
+    return partial(methodId, year, { missingInputs: ['Điểm ĐGNL ĐHQG-HCM (thang 1200).'], missingRequirements, explanation, eligibilityReason: 'Cần điểm ĐGNL để kiểm tra ngưỡng.' });
   }
 
   const threshold = checkUfmDgnlThreshold(dgnlScore1200, group);
   explanation.push({ id: 'ufm-dgnl-eligibility-threshold', label: 'Ngưỡng đầu vào (xét ĐGNL)', output: dgnlScore1200, scale: 1200, formula: threshold.requiredText, evidence: ufmThresholdEvidence.evidence });
-
-  if (context.hasBonusAchievement === true) {
-    missingRequirements.push({ kind: 'official-rule', code: 'ufm-bonus-table-not-found', label: 'Có thành tích cộng điểm nhưng bảng điểm cộng/xét thưởng cụ thể chưa tìm được nguồn chính thức.' });
-    return {
-      schoolId: 'ufm',
-      year,
-      methodId,
-      confidence: 'partial',
-      eligibility: { status: threshold.pass ? 'eligible' : 'ineligible', reasons: [threshold.requiredText] },
-      missingInputs: ['Mức điểm cộng/xét thưởng cụ thể chưa có nguồn — không tính được Điểm cộng.'],
-      missingRules: ['Bảng điểm cộng/xét thưởng UFM chưa tìm được nguồn chính thức.'],
-      missingRequirements,
-      explanation,
-      evidence: [...ufmThresholdEvidence.evidence],
-    };
-  }
-
-  const standardPriority30 = lookupUfmStandardPriority30(profile.priority?.region, profile.priority?.category);
-  const priority = calculateUfmPriority1200({ dgnlScore1200, standardPriority30 });
-  explanation.push({
-    id: 'ufm-dgnl-priority',
-    label: priority.reduced ? 'Điểm ưu tiên đã giảm' : 'Điểm ưu tiên',
-    output: priority.effectivePriority1200,
-    scale: 1200,
-    formula: priority.reduced ? '[(1200 – Tổng điểm ĐGNL)/300] × Mức ưu tiên' : 'Mức điểm ưu tiên quy đổi',
-    evidence: ufmPriorityEvidence.evidence,
-  });
-
-  const finalScore = calculateUfmDgnlFinalScore({ dgnlScore1200, priority1200: priority.effectivePriority1200 });
-  explanation.push({ id: 'ufm-dgnl-final', label: 'Điểm xét tuyển (xét ĐGNL) cuối cùng', output: finalScore, scale: 1200 });
+  missingRequirements.push({ kind: 'official-rule', code: 'ufm-final-score-conversion-unparsed', label: 'Bảng quy đổi bách phân vị ĐGNL↔thi TN THPT (dùng để tính "Điểm xét tuyển" chính thức thang 30) chưa parse hết từ nguồn chính thức.' });
 
   return {
     schoolId: 'ufm',
     year,
     methodId,
-    confidence: 'exact-verified',
+    confidence: 'partial',
     eligibility: { status: threshold.pass ? 'eligible' : 'ineligible', reasons: [threshold.requiredText] },
-    score: { value: finalScore, scale: 1200 },
-    missingInputs: [],
-    missingRules: [],
+    missingInputs: ['Bảng quy đổi bách phân vị ĐGNL↔thi TN THPT (Bộ GD-ĐT) chưa parse — chỉ kiểm tra được ngưỡng đầu vào, chưa tính được "Điểm xét tuyển" chính thức thang 30.'],
+    missingRules: ['Bảng quy đổi tương đương điểm (mục 3 Thông báo 2639/TB-ĐHTCM) chưa transcribe đầy đủ.'],
     missingRequirements,
     explanation,
-    evidence: [...ufmThresholdEvidence.evidence, ...ufmPriorityEvidence.evidence],
+    evidence: [...ufmThresholdEvidence.evidence],
   };
 }
 
@@ -211,8 +178,11 @@ export interface UfmVsatEvaluationContext {
   thresholdGroup?: UfmThresholdGroup;
 }
 
-/** Xét V-SAT 2026 — eligibility-only, cùng lý do HUTECH (thang điểm/công thức quy đổi chưa xác
- * định). Nhận điểm thô trực tiếp qua context, KHÔNG persist vào `ApplicantProfile` dùng chung. */
+/** Xét V-SAT 2026 — eligibility-only. Thang điểm tối đa NAY ĐÃ XÁC ĐỊNH (450 tổng 3 môn, verified
+ * 2026-08-19) nhưng "Điểm xét tuyển" chính thức vẫn cần quy đổi qua bảng bách phân vị V-SAT↔thi TN
+ * THPT (Bộ GD-ĐT) sang thang 30, bảng đó CHƯA parse hết
+ * (`knowledgeGaps.ts:ufm-final-score-conversion-unparsed`). Nhận điểm thô trực tiếp qua context,
+ * KHÔNG persist vào `ApplicantProfile` dùng chung. */
 export function evaluateUfmVsatAdmission(context: UfmVsatEvaluationContext = {}): AdmissionEvaluation {
   const explanation: CalculationStep[] = [];
   const missingRequirements: MissingRequirement[] = [];
@@ -226,7 +196,8 @@ export function evaluateUfmVsatAdmission(context: UfmVsatEvaluationContext = {})
   }
 
   const threshold = checkUfmVsatThreshold(context.vsatScore, group);
-  explanation.push({ id: 'ufm-vsat-eligibility-threshold', label: 'Ngưỡng đầu vào (xét V-SAT)', output: context.vsatScore, formula: threshold.requiredText, evidence: ufmThresholdEvidence.evidence });
+  explanation.push({ id: 'ufm-vsat-eligibility-threshold', label: 'Ngưỡng đầu vào (xét V-SAT)', output: context.vsatScore, scale: 450, formula: threshold.requiredText, evidence: ufmThresholdEvidence.evidence });
+  missingRequirements.push({ kind: 'official-rule', code: 'ufm-final-score-conversion-unparsed', label: 'Bảng quy đổi bách phân vị V-SAT↔thi TN THPT (dùng để tính "Điểm xét tuyển" chính thức thang 30) chưa parse hết từ nguồn chính thức.' });
 
   return {
     schoolId: 'ufm',
@@ -234,8 +205,8 @@ export function evaluateUfmVsatAdmission(context: UfmVsatEvaluationContext = {})
     methodId,
     confidence: 'partial',
     eligibility: { status: threshold.pass ? 'eligible' : 'ineligible', reasons: [threshold.requiredText] },
-    missingInputs: ['Công thức quy đổi điểm xét tuyển cuối từ V-SAT chưa xác định rõ ràng từ nguồn — chỉ kiểm tra được ngưỡng đầu vào.'],
-    missingRules: ['Thang điểm tối đa/công thức quy đổi V-SAT UFM chưa xác định.'],
+    missingInputs: ['Bảng quy đổi bách phân vị V-SAT↔thi TN THPT (Bộ GD-ĐT) chưa parse — chỉ kiểm tra được ngưỡng đầu vào (thang tối đa 450 đã xác định), chưa tính được "Điểm xét tuyển" chính thức thang 30.'],
+    missingRules: ['Bảng quy đổi tương đương điểm (mục 3 Thông báo 2639/TB-ĐHTCM) chưa transcribe đầy đủ.'],
     missingRequirements,
     explanation,
     evidence: [...ufmThresholdEvidence.evidence],
