@@ -7,4 +7,10 @@ describe('HCMUE eligibility', () => {
     expect(checkHcmueThptThreshold(24, 'hcmue-7140209').pass).toBe(true);
     expect(checkHcmueThptThreshold(23.99, 'hcmue-7140209').pass).toBe(false);
   });
+
+  it('reports no published threshold for branch-campus programs instead of guessing', () => {
+    const result = checkHcmueThptThreshold(29, 'hcmue-7140209-longan');
+    expect(result.pass).toBe(false);
+    expect(result.requiredText).toContain('chưa công bố');
+  });
 });

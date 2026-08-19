@@ -40,8 +40,12 @@ export function HcmuePage({ onChangeSchool }: { onChangeSchool: () => void }) {
               <p className="font-semibold text-ink">
                 {program.code} - {program.name}
               </p>
-              <p className="mt-1 text-muted">THPT: {program.thptThreshold30.toFixed(2)} / 30</p>
-              <p className="text-muted">Học bạ + DGNLCB: {program.dgnlcbThreshold30.toFixed(2)} / 30</p>
+              <p className="mt-1 text-muted">
+                THPT: {program.thptThreshold30 !== undefined ? `${program.thptThreshold30.toFixed(2)} / 30` : 'Chưa công bố'}
+              </p>
+              <p className="text-muted">
+                Học bạ + DGNLCB: {program.dgnlcbThreshold30 !== undefined ? `${program.dgnlcbThreshold30.toFixed(2)} / 30` : 'Chưa công bố'}
+              </p>
             </div>
           ))}
         </div>

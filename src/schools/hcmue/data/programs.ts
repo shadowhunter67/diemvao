@@ -2,10 +2,12 @@ export interface HcmueProgramThreshold {
   id: string;
   code: string;
   name: string;
-  campus: 'hcmc';
+  campus: 'hcmc' | 'long-an' | 'gia-lai';
   group: 'teacher-training' | 'other';
-  thptThreshold30: number;
-  dgnlcbThreshold30: number;
+  /** Ngưỡng đầu vào PT xét KQ thi TN THPT (thang 30). Chưa công bố riêng cho phân hiệu -> undefined, KHÔNG suy đoán bằng số trụ sở chính. */
+  thptThreshold30?: number;
+  /** Ngưỡng đầu vào PT xét học bạ THPT kết hợp ĐGNLCB (thang 30). Chưa công bố riêng cho phân hiệu -> undefined. */
+  dgnlcbThreshold30?: number;
 }
 
 export const hcmueProgramThresholds: HcmueProgramThreshold[] = [
@@ -56,4 +58,23 @@ export const hcmueProgramThresholds: HcmueProgramThreshold[] = [
   { id: 'hcmue-7810101', code: '7810101', name: 'Du lich', campus: 'hcmc', group: 'other', thptThreshold30: 20, dgnlcbThreshold30: 18 },
   { id: 'hcmue-7310201', code: '7310201', name: 'Chinh tri hoc', campus: 'hcmc', group: 'other', thptThreshold30: 19, dgnlcbThreshold30: 17 },
   { id: 'hcmue-7760103', code: '7760103', name: 'Ho tro Giao duc nguoi khuyet tat', campus: 'hcmc', group: 'other', thptThreshold30: 19, dgnlcbThreshold30: 17 },
+
+  // Phan hieu Long An (ma tuyen sinh SPT) - chua co nguong dau vao rieng cong bo, chi co diem trung tuyen (xem data/cutoffs.ts).
+  { id: 'hcmue-51140201-longan', code: '51140201', name: 'Giao duc Mam non (trinh do cao dang, Long An)', campus: 'long-an', group: 'teacher-training' },
+  { id: 'hcmue-7140201-longan', code: '7140201', name: 'Giao duc Mam non (trinh do dai hoc, Long An)', campus: 'long-an', group: 'teacher-training' },
+  { id: 'hcmue-7140202-longan', code: '7140202', name: 'Giao duc Tieu hoc (Long An)', campus: 'long-an', group: 'teacher-training' },
+  { id: 'hcmue-7140206-longan', code: '7140206', name: 'Giao duc The chat (Long An)', campus: 'long-an', group: 'teacher-training' },
+  { id: 'hcmue-7140208-longan', code: '7140208', name: 'Giao duc Quoc phong - An ninh (Long An)', campus: 'long-an', group: 'teacher-training' },
+  { id: 'hcmue-7140209-longan', code: '7140209', name: 'Su pham Toan hoc (Long An)', campus: 'long-an', group: 'teacher-training' },
+  { id: 'hcmue-7140217-longan', code: '7140217', name: 'Su pham Ngu van (Long An)', campus: 'long-an', group: 'teacher-training' },
+  { id: 'hcmue-7140231-longan', code: '7140231', name: 'Su pham Tieng Anh (Long An)', campus: 'long-an', group: 'teacher-training' },
+  { id: 'hcmue-7140249-longan', code: '7140249', name: 'Su pham Lich su - Dia ly (Long An)', campus: 'long-an', group: 'teacher-training' },
+  { id: 'hcmue-7220210-longan', code: '7220210', name: 'Ngon ngu Han Quoc (Long An)', campus: 'long-an', group: 'other' },
+
+  // Phan hieu Gia Lai (ma tuyen sinh SPG) - chua co nguong dau vao rieng cong bo, chi co diem trung tuyen (xem data/cutoffs.ts).
+  { id: 'hcmue-51140201-gialai', code: '51140201', name: 'Giao duc Mam non (trinh do cao dang, Gia Lai)', campus: 'gia-lai', group: 'teacher-training' },
+  { id: 'hcmue-7140201-gialai', code: '7140201', name: 'Giao duc Mam non (trinh do dai hoc, Gia Lai)', campus: 'gia-lai', group: 'teacher-training' },
+  { id: 'hcmue-7140202-gialai', code: '7140202', name: 'Giao duc Tieu hoc (Gia Lai)', campus: 'gia-lai', group: 'teacher-training' },
+  { id: 'hcmue-7140247-gialai', code: '7140247', name: 'Su pham Khoa hoc tu nhien (Gia Lai)', campus: 'gia-lai', group: 'teacher-training' },
+  { id: 'hcmue-7810101-gialai', code: '7810101', name: 'Du lich (Gia Lai)', campus: 'gia-lai', group: 'other' },
 ];

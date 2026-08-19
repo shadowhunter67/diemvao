@@ -10,7 +10,7 @@ export const hcmueModule: SchoolModule = {
   year: 2026,
   status: 'researching',
   summary:
-    'Đã xác minh phương thức và ngưỡng đầu vào 47 ngành tại trụ sở chính TP.HCM năm 2026. Runtime chỉ kiểm tra eligibility/ngưỡng, không tính điểm trúng tuyển.',
+    'Đã xác minh phương thức và ngưỡng đầu vào 47 ngành tại trụ sở chính TP.HCM năm 2026, cộng điểm trúng tuyển tham khảo cho 47 ngành trụ sở chính + 15 ngành 2 phân hiệu Long An/Gia Lai. Runtime chỉ kiểm tra eligibility/ngưỡng, không tính điểm trúng tuyển.',
   capabilities: {
     admissionInfo: true,
     programs: true,

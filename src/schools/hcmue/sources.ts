@@ -53,8 +53,10 @@ export const hcmueSources: HcmueSource[] = [
  * text/HTML machine-readable). Đã thử tải cả hai file (`fetch`/`curl` qua link download trực
  * tiếp `drive.usercontent.google.com/download?id=...`) ngày 2026-08-19 — Google Drive trả lỗi
  * "Sorry, the owner hasn't given you permission to download this file." cho cả hai, nên UniscoreVN
- * KHÔNG đọc được bảng điểm theo ngành. Giữ 2 link này để người dùng tự mở (cần đăng nhập Google
- * hoặc trường mở quyền tải sau).
+ * không đọc được bảng điểm theo ngành qua Drive. Người dùng đã tự chụp ảnh bảng công bố gốc và
+ * cung cấp trực tiếp cùng ngày 2026-08-19 — số liệu trong `src/schools/hcmue/data/cutoffs.ts`
+ * (47 ngành trụ sở chính + 15 ngành 2 phân hiệu) lấy từ ảnh đó, không phải từ 2 link Drive dưới.
+ * Giữ 2 link này để tham chiếu/đối chiếu sau nếu trường mở quyền tải.
  */
 export const hcmueCutoffFileLinks2026 = {
   priorityAdmission: 'https://drive.google.com/open?id=1ylqhRWfKWs11yxAG7PM4EV4cmj9BuvpY&usp=drive_fs',
