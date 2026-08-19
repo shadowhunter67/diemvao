@@ -12,7 +12,7 @@ export const uhsKnowledgeGaps: KnowledgeGap[] = [
   {
     id: 'uhs-cutoffs-2026',
     label:
-      'UHS đã công bố kết quả trúng tuyển 2026 chính thức (10/8/2026) nhưng bảng chi tiết theo từng ngành chỉ tồn tại dưới dạng ảnh PNG trên Google Drive — link bị hạn chế quyền xem/tải ("owner hasn\'t given you permission to download"), không đọc được nội dung. Báo chí (Tuổi Trẻ, Thanh Niên, VTC News...) chỉ đăng lại 5 con số nhóm ngành lớn thang 100 (Y khoa 82.60, Răng-Hàm-Mặt 81.80, Dược học 73.00, Y học cổ truyền 72.41, Điều dưỡng 67.00), không đủ để khớp chắc chắn với 6 programId UniscoreVN đang hỗ trợ — không rõ "Y khoa (đặt hàng)" (uhs-7720101DH) dùng chung điểm với Y khoa thường hay có cutoff riêng biệt. Vì vậy CHƯA nhập record cutoff nào vào runtime; không dùng dữ liệu 2024/2025 làm cutoff 2026.',
+      'Điểm trúng tuyển 2026 (Phương thức 2, Mã phương thức: 500) đã nhập vào `data/cutoffs.ts` cho 5/6 programId — bảng gốc do người dùng cung cấp trực tiếp (link Drive trên trang chính thức vẫn bị hạn chế quyền tải). "Y khoa (đặt hàng)" (uhs-7720101DH, quota riêng 120) KHÔNG có trong bảng — bảng gốc chỉ ghi 1 dòng "Y khoa" chung, không tách đặt hàng, nên uhs-7720101DH vẫn chưa có cutoff riêng. Cutoff KHÔNG hiện trong `/compare` vì UHS chưa tính được điểm xét tuyển cuối cùng (w1/w2 dạng khoảng, xem `uhs-method2-weights-range`) — dữ liệu này hiện chỉ mang tính tham khảo.',
     status: 'official-but-unparsed',
     sourceId: 'uhs-cutoffs-2026',
     scoreAffecting: false,
@@ -24,6 +24,6 @@ export const uhsKnowledgeGaps: KnowledgeGap[] = [
       'https://drive.google.com/file/d/16DnPzc4avv3NJvif551lLstBxDqKLk0p/view?usp=sharing',
     ],
     whyNotInferred:
-      '5 số báo chí là mức nhóm ngành lớn, không đủ để khẳng định khớp đúng ngành nào trong 6 programId UHS, đặc biệt chưa rõ cutoff riêng của "Y khoa (đặt hàng)"; ảnh PNG chi tiết trên Drive bị chặn quyền tải/xem nên không đọc được text/bảng thật.',
+      'uhs-7720101DH (Y khoa đặt hàng) không có dòng riêng trong bảng gốc, không suy đoán dùng chung điểm với Y khoa thường.',
   },
 ];

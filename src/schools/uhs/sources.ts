@@ -41,11 +41,11 @@ export const uhsSources: UhsSource[] = [
     id: 'uhs-cutoffs-2026',
     publisher: 'Trường Đại học Khoa học Sức khỏe - ĐHQG TP.HCM',
     title:
-      'Điểm chuẩn / Kết quả tuyển sinh đại học chính quy 2026 — trang liệt kê chỉ dẫn tới ảnh PNG chi tiết trên Google Drive; ảnh bị hạn chế quyền xem/tải nên chưa đọc được bảng số liệu theo từng ngành.',
+      'Điểm trúng tuyển năm 2026 theo phương thức xét tuyển tổng hợp (Mã phương thức: 500), 5 ngành, thang 100 — ảnh bảng gốc do người dùng cung cấp trực tiếp sau khi link Drive trên trang bị hạn chế quyền tải.',
     url: 'https://tuyensinh.uhsvnu.edu.vn/category.php?slug=diem-chuan',
     accessedAt: '2026-08-19',
     publishedAt: '2026-08-10',
     sourceType: 'official-school',
-    verification: 'incomplete',
+    verification: 'verified',
   },
 ];
