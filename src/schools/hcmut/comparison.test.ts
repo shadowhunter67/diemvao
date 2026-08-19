@@ -120,4 +120,19 @@ describe('hcmutComparisonAdapter — structured missing-requirement classificati
     expect(evaluation.confidence).toBe('unavailable');
     expect(evaluation.missingRequirements).toContainEqual(expect.objectContaining({ kind: 'school-context', code: 'hcmut-context' }));
   });
+
+  it('7. exams.vact.total present but components absent => still evaluates exact-verified via weighted-raw path', () => {
+    const totalOnlyProfile: ApplicantProfile = { ...validProfile, exams: { vact: { total: 950, totalSource: 'user-total-input' } } };
+    const { evaluation } = evaluateWith(totalOnlyProfile, fullMethodContext);
+    expect(evaluation.confidence).toBe('exact-verified');
+    expect(evaluation.score).toBeDefined();
+    expect(evaluation.missingRequirements?.some((r) => r.code === 'hcmut-dgnl')).toBe(false);
+  });
+
+  it('7b. neither components nor total => still "hcmut-dgnl" missing (no regression)', () => {
+    const noVactValueProfile: ApplicantProfile = { ...validProfile, exams: { vact: {} } };
+    const { evaluation } = evaluateWith(noVactValueProfile, fullMethodContext);
+    expect(evaluation.confidence).toBe('unavailable');
+    expect(evaluation.missingRequirements).toContainEqual(expect.objectContaining({ kind: 'profile-input', code: 'hcmut-dgnl' }));
+  });
 });

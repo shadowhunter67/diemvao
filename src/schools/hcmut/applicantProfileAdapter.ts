@@ -117,6 +117,53 @@ function buildAdmissionInputOrThrow(profile: ApplicantProfile, context: HcmutMet
   };
 }
 
+export type BuildHcmutOtherInputsResult = { ok: true; otherInputs: Omit<AdmissionInput, 'dgnl'> } | { ok: false; requirement: MissingRequirement };
+
+/**
+ * Build phần input KHÔNG phụ thuộc ĐGNL (thpt/transcript/bonus/priority) — tách riêng khỏi
+ * `buildAdmissionInputOrThrow` để `schools/hcmut/comparison.ts` có thể tái dùng khi rơi vào nhánh
+ * "chỉ có `exams.vact.total`, không có 4 thành phần" (chế độ "Nhập tổng điểm" ở HCMUT page — xem
+ * `evaluateHcmutAdmissionFromWeightedDgnlRaw`, `confidence: 'exact-verified'`, KHÔNG phải ước
+ * lượng: "tổng điểm sau hệ số" là số chính thức trên phiếu kết quả ĐGNL ĐHQG-HCM, không cần biết
+ * từng phần mới tính đúng được — khác `buildAdmissionInputOrThrow` vốn LUÔN đòi components vì nó
+ * dựng full `AdmissionInput.dgnl` theo 4 phần thô).
+ */
+export function buildHcmutOtherInputsResult(profile: ApplicantProfile, context: HcmutMethodContext): BuildHcmutOtherInputsResult {
+  const [mathId, subject2Id, subject3Id] = context.combination.subjects;
+  if (mathId !== 'math' || !subject2Id || !subject3Id) {
+    return {
+      ok: false,
+      requirement: {
+        kind: 'school-context',
+        code: 'hcmut-invalid-combination',
+        label: 'HcmutMethodContext.combination phải có dạng [math, mônA, mônB] — HCMUT luôn có Toán trong tổ hợp.',
+      },
+    };
+  }
+  try {
+    return {
+      ok: true,
+      otherInputs: {
+        thpt: {
+          math: requireSubjectScore(profile.thpt?.scores, mathId, 'THPT', 'hcmut-thpt'),
+          subject2: requireSubjectScore(profile.thpt?.scores, subject2Id, 'THPT', 'hcmut-thpt'),
+          subject3: requireSubjectScore(profile.thpt?.scores, subject3Id, 'THPT', 'hcmut-thpt'),
+        },
+        transcript: {
+          grade10: buildTranscriptYear(profile.transcript?.grade10, mathId, subject2Id, subject3Id, 'học bạ lớp 10'),
+          grade11: buildTranscriptYear(profile.transcript?.grade11, mathId, subject2Id, subject3Id, 'học bạ lớp 11'),
+          grade12: buildTranscriptYear(profile.transcript?.grade12, mathId, subject2Id, subject3Id, 'học bạ lớp 12'),
+        },
+        bonus: context.bonus,
+        priorityRaw30Scale: context.priorityRaw30Scale,
+      },
+    };
+  } catch (error) {
+    if (error instanceof HcmutInputRequirementError) return { ok: false, requirement: error.requirement };
+    throw error;
+  }
+}
+
 /**
  * Result-based entrypoint — dùng bởi `schools/hcmut/comparison.ts` (expected "user chưa nhập đủ
  * dữ liệu" KHÔNG nên là exception; kind Result diễn tả tốt hơn cho use case comparison batch nhiều

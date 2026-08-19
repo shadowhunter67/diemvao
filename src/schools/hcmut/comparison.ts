@@ -3,8 +3,8 @@ import { findCutoffComparison } from '../../core/cutoffComparison';
 import type { SchoolComparisonAdapter, SchoolComparisonResult } from '../../compare/schoolComparisonAdapter';
 import { getSubjectContext, withProgramCutoffComparison } from '../../compare/schoolComparisonAdapter';
 import type { ComparisonSelection } from '../../compare/comparisonSelection';
-import { buildHcmutAdmissionInputResult, type HcmutMethodContext } from './applicantProfileAdapter';
-import { evaluateHcmutAdmission } from './evaluate';
+import { buildHcmutAdmissionInputResult, buildHcmutOtherInputsResult, type HcmutMethodContext } from './applicantProfileAdapter';
+import { evaluateHcmutAdmission, evaluateHcmutAdmissionFromWeightedDgnlRaw } from './evaluate';
 import { hcmutAdmissionMethods } from './methods';
 import { hcmutCutoffs } from './data/cutoffs';
 
@@ -65,9 +65,19 @@ export const hcmutComparisonAdapter: SchoolComparisonAdapter<HcmutComparisonCont
     } else {
       try {
         const result = buildHcmutAdmissionInputResult(profile, context.methodContext);
-        evaluation = result.ok
-          ? evaluateHcmutAdmission(result.input)
-          : unavailableEvaluation({ missingInputs: [result.requirement.label], missingRequirements: [result.requirement] });
+        if (result.ok) {
+          evaluation = evaluateHcmutAdmission(result.input);
+        } else if (result.requirement.code === 'hcmut-dgnl' && profile.exams?.vact?.total !== undefined) {
+          // Không có 4 thành phần ĐGNL nhưng CÓ tổng điểm sau hệ số ("Nhập tổng điểm" ở HCMUT
+          // page dùng đúng giá trị này, `confidence: 'exact-verified'`) — dùng lại thay vì bắt
+          // user luôn phải nhập chi tiết dù đã có đủ dữ liệu để tính chính xác.
+          const otherResult = buildHcmutOtherInputsResult(profile, context.methodContext);
+          evaluation = otherResult.ok
+            ? evaluateHcmutAdmissionFromWeightedDgnlRaw(profile.exams.vact.total, otherResult.otherInputs)
+            : unavailableEvaluation({ missingInputs: [otherResult.requirement.label], missingRequirements: [otherResult.requirement] });
+        } else {
+          evaluation = unavailableEvaluation({ missingInputs: [result.requirement.label], missingRequirements: [result.requirement] });
+        }
       } catch (error) {
         /** `buildHcmutAdmissionInputResult` chỉ re-throw lỗi THẬT SỰ ngoài dự kiến (mọi trường
          * hợp "user chưa nhập đủ dữ liệu" đã biết đều trả `{ ok: false, requirement }`, không
