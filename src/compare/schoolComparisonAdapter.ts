@@ -11,7 +11,8 @@ import type { ComparisonSelection } from './comparisonSelection';
  */
 export interface SchoolComparisonResult {
   evaluation: AdmissionEvaluation;
-  cutoffComparison?: CutoffComparison;
+  /** Tối đa 2 năm gần nhất (mới nhất trước) — xem `findRecentCutoffComparisons`. */
+  cutoffComparisons?: CutoffComparison[];
 }
 
 /**
@@ -63,9 +64,9 @@ export function withProgramCutoffComparison(params: {
   evaluation: AdmissionEvaluation;
   selectedProgramId: string | undefined;
   missingProgramLabel: string;
-  getCutoffComparison: () => CutoffComparison | undefined;
+  getCutoffComparisons: () => CutoffComparison[] | undefined;
 }): SchoolComparisonResult {
-  const { evaluation, selectedProgramId, missingProgramLabel, getCutoffComparison } = params;
+  const { evaluation, selectedProgramId, missingProgramLabel, getCutoffComparisons } = params;
   if (!canCompareEvaluationToCutoff(evaluation)) return { evaluation };
 
   if (!selectedProgramId) {
@@ -75,5 +76,5 @@ export function withProgramCutoffComparison(params: {
 
   if (!evaluation.score) return { evaluation };
 
-  return { evaluation, cutoffComparison: getCutoffComparison() };
+  return { evaluation, cutoffComparisons: getCutoffComparisons() };
 }

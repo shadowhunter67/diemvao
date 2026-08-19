@@ -1,4 +1,4 @@
-import { findCutoffComparison } from '../../core/cutoffComparison';
+import { findRecentCutoffComparisons } from '../../core/cutoffComparison';
 import type { SchoolComparisonAdapter, SchoolComparisonResult } from '../../compare/schoolComparisonAdapter';
 import { withProgramCutoffComparison } from '../../compare/schoolComparisonAdapter';
 import type { ComparisonSelection } from '../../compare/comparisonSelection';
@@ -34,10 +34,10 @@ export const uehComparisonAdapter: SchoolComparisonAdapter<UehComparisonContext>
       evaluation,
       selectedProgramId: context.selectedProgramId,
       missingProgramLabel: 'Chọn ngành UEH để so với đúng mốc điểm chuẩn.',
-      getCutoffComparison: () => {
+      getCutoffComparisons: () => {
         if (!evaluation.score || !context.selectedProgramId) return undefined;
         const records = uehCutoffs.filter((cutoff) => cutoff.programId === context.selectedProgramId);
-        return findCutoffComparison({
+        return findRecentCutoffComparisons({
           records,
           targetYear: method.year,
           applicantScore: evaluation.score.value,

@@ -44,7 +44,7 @@ describe('usshComparisonAdapter — structured applicant type (no label parsing)
     const result = usshComparisonAdapter.evaluate(dt1Profile, context);
     expect(result.evaluation.confidence).toBe('exact-verified');
     expect(result.evaluation.comparisonContext?.applicantTypeId).toBe('DT1');
-    expect(result.cutoffComparison?.difference).toBeDefined();
+    expect(result.cutoffComparisons?.[0]?.difference).toBeDefined();
   });
 
   it('DT2: exact-verified with cutoff comparison resolved from a real program', () => {
@@ -52,7 +52,7 @@ describe('usshComparisonAdapter — structured applicant type (no label parsing)
     const result = usshComparisonAdapter.evaluate(dt2Profile, context);
     expect(result.evaluation.confidence).toBe('exact-verified');
     expect(result.evaluation.comparisonContext?.applicantTypeId).toBe('DT2');
-    expect(result.cutoffComparison?.difference).toBeDefined();
+    expect(result.cutoffComparisons?.[0]?.difference).toBeDefined();
   });
 
   it('DT3: exact-verified with cutoff comparison resolved from a real program', () => {
@@ -60,14 +60,14 @@ describe('usshComparisonAdapter — structured applicant type (no label parsing)
     const result = usshComparisonAdapter.evaluate(dt3Profile, context);
     expect(result.evaluation.confidence).toBe('exact-verified');
     expect(result.evaluation.comparisonContext?.applicantTypeId).toBe('DT3');
-    expect(result.cutoffComparison?.difference).toBeDefined();
+    expect(result.cutoffComparisons?.[0]?.difference).toBeDefined();
   });
 
   it('cutoff comparison never appears without a resolvable applicant type (no score/context => no comparisonContext)', () => {
     const context = usshComparisonAdapter.buildContext({ schoolId: 'ussh', programId: 'ussh-7310401' });
     const result = usshComparisonAdapter.evaluate({}, context);
     expect(result.evaluation.comparisonContext?.applicantTypeId).toBeUndefined();
-    expect(result.cutoffComparison).toBeUndefined();
+    expect(result.cutoffComparisons).toBeUndefined();
   });
 
   it('mutating/removing the "(DTx)" token from explanation labels does not change which cutoff record is matched', () => {
@@ -77,7 +77,7 @@ describe('usshComparisonAdapter — structured applicant type (no label parsing)
 
     // Label thật không còn chứa "DT1" thô (đã đổi wording) — cutoff comparison vẫn đúng DT1.
     expect(finalLabel).not.toMatch(/\(DT1\)/);
-    expect(result.cutoffComparison?.comparable).toBe(true);
+    expect(result.cutoffComparisons?.[0]?.comparable).toBe(true);
 
     // Giả lập "đổi wording UI mạnh hơn nữa" (xóa sạch mọi thông tin DT khỏi label) — vẫn không có
     // đường nào trong adapter đọc lại label để quyết định cutoff, nên kết quả không đổi.

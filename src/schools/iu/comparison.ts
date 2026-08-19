@@ -1,4 +1,4 @@
-import { findCutoffComparison } from '../../core/cutoffComparison';
+import { findRecentCutoffComparisons } from '../../core/cutoffComparison';
 import type { SchoolComparisonAdapter, SchoolComparisonResult } from '../../compare/schoolComparisonAdapter';
 import { getSubjectContext, withProgramCutoffComparison } from '../../compare/schoolComparisonAdapter';
 import type { ComparisonSelection } from '../../compare/comparisonSelection';
@@ -23,10 +23,10 @@ export const iuComparisonAdapter: SchoolComparisonAdapter<IuEvaluationContext> =
       evaluation,
       selectedProgramId: context.programId,
       missingProgramLabel: 'Chọn ngành IU để so với đúng mốc điểm chuẩn.',
-      getCutoffComparison: () => {
+      getCutoffComparisons: () => {
         if (!evaluation.score || !context.programId) return undefined;
         const records = iuCutoffs2026.filter((cutoff) => cutoff.programId === context.programId);
-        return findCutoffComparison({
+        return findRecentCutoffComparisons({
           records,
           targetYear: method.year,
           applicantScore: evaluation.score.value,

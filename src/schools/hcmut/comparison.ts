@@ -1,5 +1,5 @@
 import type { AdmissionEvaluation, MissingRequirement } from '../../core/admissionEvaluation';
-import { findCutoffComparison } from '../../core/cutoffComparison';
+import { findRecentCutoffComparisons } from '../../core/cutoffComparison';
 import type { SchoolComparisonAdapter, SchoolComparisonResult } from '../../compare/schoolComparisonAdapter';
 import { getSubjectContext, withProgramCutoffComparison } from '../../compare/schoolComparisonAdapter';
 import type { ComparisonSelection } from '../../compare/comparisonSelection';
@@ -96,12 +96,12 @@ export const hcmutComparisonAdapter: SchoolComparisonAdapter<HcmutComparisonCont
       evaluation,
       selectedProgramId: context.selectedProgramId,
       missingProgramLabel: 'Chọn ngành HCMUT để so với đúng mốc điểm chuẩn.',
-      getCutoffComparison: () => {
+      getCutoffComparisons: () => {
         if (!evaluation.score || !context.selectedProgramId) return undefined;
         const records = hcmutCutoffs
           .filter((cutoff) => cutoff.programId === context.selectedProgramId && cutoff.method === 'combined')
           .map((cutoff) => ({ ...cutoff, scoreScale: 100 }));
-        return findCutoffComparison({
+        return findRecentCutoffComparisons({
           records,
           targetYear: method.year,
           applicantScore: evaluation.score.value,

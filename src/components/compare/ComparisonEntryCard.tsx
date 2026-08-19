@@ -89,24 +89,28 @@ export function ComparisonEntryCard({
           <p className="text-muted">Chưa có điểm xét tuyển cuối cùng để so sánh.</p>
         )}
 
-        {summary.cutoffComparison && (
+        {summary.cutoffComparisons && summary.cutoffComparisons.length > 0 && (
           <div className="rounded-md bg-surface-soft p-3 text-xs">
-            {summary.cutoffComparison.referenceType === 'none' ? (
-              <p className="text-muted">{summary.cutoffComparison.reasonNotComparable}</p>
+            {summary.cutoffComparisons[0].referenceType === 'none' ? (
+              <p className="text-muted">{summary.cutoffComparisons[0].reasonNotComparable}</p>
             ) : (
-              <>
-                <p className="font-medium text-ink">
-                  Điểm chuẩn {summary.cutoffComparison.year}: {summary.cutoffComparison.cutoff.toFixed(2)}
-                  {summary.cutoffComparison.cutoffScale ? ` / ${summary.cutoffComparison.cutoffScale}` : ''}
-                </p>
-                {summary.cutoffComparison.comparable && summary.cutoffComparison.difference !== undefined ? (
-                  <p className="mt-1 text-muted">
-                    Chênh lệch: <span className="font-medium text-ink">{formatDifference(summary.cutoffComparison.difference)}</span>
-                  </p>
-                ) : (
-                  <p className="mt-1 text-muted">{summary.cutoffComparison.reasonNotComparable}</p>
-                )}
-              </>
+              <div className="space-y-2">
+                {summary.cutoffComparisons.map((cutoffComparison) => (
+                  <div key={cutoffComparison.year} className={cutoffComparison !== summary.cutoffComparisons![0] ? 'border-t border-ink/10 pt-2' : undefined}>
+                    <p className="font-medium text-ink">
+                      {cutoffComparison.referenceType === 'historical' ? 'Mốc tham khảo' : 'Điểm chuẩn'} {cutoffComparison.year}: {cutoffComparison.cutoff.toFixed(2)}
+                      {cutoffComparison.cutoffScale ? ` / ${cutoffComparison.cutoffScale}` : ''}
+                    </p>
+                    {cutoffComparison.comparable && cutoffComparison.difference !== undefined ? (
+                      <p className="mt-1 text-muted">
+                        Chênh lệch: <span className="font-medium text-ink">{formatDifference(cutoffComparison.difference)}</span>
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-muted">{cutoffComparison.reasonNotComparable}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         )}

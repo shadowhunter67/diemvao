@@ -1,4 +1,4 @@
-import { findCutoffComparison } from '../../core/cutoffComparison';
+import { findRecentCutoffComparisons } from '../../core/cutoffComparison';
 import type { SchoolComparisonAdapter, SchoolComparisonResult } from '../../compare/schoolComparisonAdapter';
 import { getSubjectContext, withProgramCutoffComparison } from '../../compare/schoolComparisonAdapter';
 import type { ComparisonSelection } from '../../compare/comparisonSelection';
@@ -33,10 +33,10 @@ export const usshComparisonAdapter: SchoolComparisonAdapter<UsshComparisonContex
       evaluation,
       selectedProgramId: context.selectedProgramId,
       missingProgramLabel: 'Chọn ngành USSH để so với đúng mức điểm chuẩn.',
-      getCutoffComparison: () => {
+      getCutoffComparisons: () => {
         if (!evaluation.score || !context.selectedProgramId || !applicantTypeId) return undefined;
         const records = usshCutoffs.filter((cutoff) => cutoff.programId === context.selectedProgramId);
-        return findCutoffComparison({
+        return findRecentCutoffComparisons({
           records,
           targetYear: method.year,
           applicantScore: evaluation.score.value,

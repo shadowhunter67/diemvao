@@ -24,7 +24,8 @@ export interface SchoolEvaluationSummary {
   methodId: string;
   methodName: string;
   evaluation: AdmissionEvaluation;
-  cutoffComparison?: CutoffComparison;
+  /** Tối đa 2 năm gần nhất (mới nhất trước) — xem `findRecentCutoffComparisons`. */
+  cutoffComparisons?: CutoffComparison[];
 }
 
 export { COMPARE_SCHOOL_ORDER };
@@ -58,7 +59,7 @@ function summarize(adapter: SchoolComparisonAdapter, result: SchoolComparisonRes
     methodId: adapter.methodId,
     methodName: adapter.methodName,
     evaluation: result.evaluation,
-    cutoffComparison: result.cutoffComparison,
+    cutoffComparisons: result.cutoffComparisons,
   };
 }
 

@@ -1,4 +1,4 @@
-import { findCutoffComparison } from '../../core/cutoffComparison';
+import { findRecentCutoffComparisons } from '../../core/cutoffComparison';
 import type { SchoolComparisonAdapter, SchoolComparisonResult } from '../../compare/schoolComparisonAdapter';
 import { getSubjectContext, withProgramCutoffComparison } from '../../compare/schoolComparisonAdapter';
 import type { ComparisonSelection } from '../../compare/comparisonSelection';
@@ -25,10 +25,10 @@ export const uelComparisonAdapter: SchoolComparisonAdapter<UelComparisonContext>
       evaluation,
       selectedProgramId: context.selectedProgramId,
       missingProgramLabel: 'Chọn ngành UEL để so với đúng mức điểm chuẩn.',
-      getCutoffComparison: () => {
+      getCutoffComparisons: () => {
         if (!evaluation.score || !context.selectedProgramId) return undefined;
         const records = uelCutoffs.filter((cutoff) => cutoff.programId === context.selectedProgramId);
-        return findCutoffComparison({
+        return findRecentCutoffComparisons({
           records,
           targetYear: method.year,
           applicantScore: evaluation.score.value,

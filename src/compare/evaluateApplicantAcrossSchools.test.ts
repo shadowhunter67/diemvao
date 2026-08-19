@@ -70,10 +70,10 @@ describe('evaluateApplicantAcrossSchools', () => {
       { id: 'ussh-partial', schoolId: 'ussh', programId: 'ussh-7310401', context: { combinationId: 'A01', hasUsshBonusAchievement: true } },
     ]);
     expect(exact.evaluation.confidence).toBe('exact-verified');
-    expect(exact.cutoffComparison?.difference).toBeDefined();
+    expect(exact.cutoffComparisons?.[0]?.difference).toBeDefined();
     expect(partial.evaluation.confidence).toBe('partial');
     expect(partial.evaluation.score).toBeUndefined();
-    expect(partial.cutoffComparison).toBeUndefined();
+    expect(partial.cutoffComparisons).toBeUndefined();
   });
 
   it('selected comparison orchestration supports new HCMUE eligibility-only entries', () => {
@@ -84,7 +84,7 @@ describe('evaluateApplicantAcrossSchools', () => {
     expect(hcmue.schoolId).toBe('hcmue');
     expect(hcmue.evaluation.confidence).toBe('partial');
     expect(hcmue.evaluation.score).toBeUndefined();
-    expect(hcmue.cutoffComparison).toBeUndefined();
+    expect(hcmue.cutoffComparisons).toBeUndefined();
   });
 
   /**
@@ -169,12 +169,12 @@ describe('evaluateApplicantAcrossSchools', () => {
 
   it('exact schools expose cutoff gaps only when selected program and scale are compatible', () => {
     const bySchool = Object.fromEntries(evaluateApplicantAcrossSchools(profile, completeContexts()).map((summary) => [summary.schoolId, summary]));
-    expect(bySchool.hcmut.cutoffComparison?.difference).toBeDefined();
-    expect(bySchool.ueh.cutoffComparison?.difference).toBeDefined();
-    expect(bySchool.iu.cutoffComparison?.difference).toBeDefined();
-    expect(bySchool.uel.cutoffComparison?.difference).toBeDefined();
-    expect(bySchool.ussh.cutoffComparison?.difference).toBeDefined();
-    expect(bySchool.hcmus.cutoffComparison).toBeUndefined();
+    expect(bySchool.hcmut.cutoffComparisons?.[0]?.difference).toBeDefined();
+    expect(bySchool.ueh.cutoffComparisons?.[0]?.difference).toBeDefined();
+    expect(bySchool.iu.cutoffComparisons?.[0]?.difference).toBeDefined();
+    expect(bySchool.uel.cutoffComparisons?.[0]?.difference).toBeDefined();
+    expect(bySchool.ussh.cutoffComparisons?.[0]?.difference).toBeDefined();
+    expect(bySchool.hcmus.cutoffComparisons).toBeUndefined();
   });
 
   it('does not expose USSH cutoff comparison outside the no-bonus exact supported scope', () => {
@@ -183,7 +183,7 @@ describe('evaluateApplicantAcrossSchools', () => {
     const ussh = evaluateApplicantAcrossSchools(profile, contexts).find((summary) => summary.schoolId === 'ussh')!;
     expect(getEvaluationDisplayStatus(ussh.evaluation.confidence)).toBe('partial');
     expect(ussh.evaluation.score).toBeUndefined();
-    expect(ussh.cutoffComparison).toBeUndefined();
+    expect(ussh.cutoffComparisons).toBeUndefined();
   });
 
   it('does not expose USSH cutoff comparison when selected program has no compatible cutoff record', () => {
@@ -191,7 +191,7 @@ describe('evaluateApplicantAcrossSchools', () => {
     contexts.ussh.selectedProgramId = 'not-a-real-ussh-program';
     const ussh = evaluateApplicantAcrossSchools(profile, contexts).find((summary) => summary.schoolId === 'ussh')!;
     expect(ussh.evaluation.confidence).toBe('exact-verified');
-    expect(ussh.cutoffComparison?.referenceType).toBe('none');
+    expect(ussh.cutoffComparisons?.[0]?.referenceType).toBe('none');
   });
 
   it('does not expose UEL cutoff comparison when selected program has no compatible cutoff record', () => {
@@ -199,13 +199,13 @@ describe('evaluateApplicantAcrossSchools', () => {
     contexts.uel.selectedProgramId = 'not-a-real-uel-program';
     const uel = evaluateApplicantAcrossSchools(profile, contexts).find((summary) => summary.schoolId === 'uel')!;
     expect(uel.evaluation.confidence).toBe('exact-verified');
-    expect(uel.cutoffComparison?.referenceType).toBe('none');
+    expect(uel.cutoffComparisons?.[0]?.referenceType).toBe('none');
   });
 
   it('partial schools never expose unsafe cutoff gaps even when programs are selected', () => {
     const bySchool = Object.fromEntries(evaluateApplicantAcrossSchools(profile, completeContexts()).map((summary) => [summary.schoolId, summary]));
     for (const schoolId of ['uit', 'uhs', 'agu', 'hcmue', 'hcmute']) {
-      expect(bySchool[schoolId].cutoffComparison).toBeUndefined();
+      expect(bySchool[schoolId].cutoffComparisons).toBeUndefined();
       expect(bySchool[schoolId].evaluation.score).toBeUndefined();
     }
     expect(bySchool.hcmus.evaluation.explanation).toContainEqual(expect.objectContaining({ id: 'hcmus-program-threshold', output: 24 }));

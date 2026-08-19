@@ -195,15 +195,20 @@ function CutoffComparisonBlock({
   hasSelectedProgram: boolean;
 }) {
   const score = summary.evaluation.score;
-  const comparison = summary.cutoffComparison;
+  const comparisons = summary.cutoffComparisons;
 
-  if (comparison) {
+  if (comparisons && comparisons.length > 0) {
+    if (comparisons[0].referenceType === 'none') {
+      return (
+        <div className="rounded-md bg-surface-soft p-3 text-xs">
+          <p className="text-muted">{comparisons[0].reasonNotComparable}</p>
+        </div>
+      );
+    }
     return (
-      <div className="rounded-md bg-surface-soft p-3 text-xs">
-        {comparison.referenceType === 'none' ? (
-          <p className="text-muted">{comparison.reasonNotComparable}</p>
-        ) : (
-          <>
+      <div className="space-y-2 rounded-md bg-surface-soft p-3 text-xs">
+        {comparisons.map((comparison, index) => (
+          <div key={comparison.year} className={index > 0 ? 'border-t border-ink/10 pt-2' : undefined}>
             <p className="font-medium text-ink">
               {comparison.referenceType === 'historical' ? 'Mốc tham khảo' : 'Mốc điểm chuẩn'} {comparison.year}: {comparison.cutoff.toFixed(2)}
               {comparison.cutoffScale !== undefined ? ` / ${comparison.cutoffScale}` : ''}
@@ -225,8 +230,8 @@ function CutoffComparisonBlock({
             ) : (
               <p className="mt-1 text-muted">{comparison.reasonNotComparable}</p>
             )}
-          </>
-        )}
+          </div>
+        ))}
       </div>
     );
   }

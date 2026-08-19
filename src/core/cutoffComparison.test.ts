@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findCutoffComparison } from './cutoffComparison';
+import { findCutoffComparison, findRecentCutoffComparisons } from './cutoffComparison';
 
 describe('findCutoffComparison', () => {
   function deepFreeze<T>(value: T): T {
@@ -217,5 +217,74 @@ describe('findCutoffComparison', () => {
     expect(comparison.availability).toBe('superseded');
     expect(comparison.referenceType).toBe('none');
     expect(comparison.difference).toBeUndefined();
+  });
+});
+
+describe('findRecentCutoffComparisons', () => {
+  it('returns the 2 most recent distinct final years, newest first', () => {
+    const comparisons = findRecentCutoffComparisons({
+      records: [
+        { year: 2024, programId: 'cs', score: 78, scoreScale: 100 },
+        { year: 2025, programId: 'cs', score: 79, scoreScale: 100 },
+        { year: 2026, programId: 'cs', score: 80, scoreScale: 100 },
+      ],
+      targetYear: 2026,
+      applicantScore: 82.5,
+      applicantScale: 100,
+      selection: { programId: 'cs' },
+    });
+
+    expect(comparisons.map((c) => c.year)).toEqual([2026, 2025]);
+    expect(comparisons[0].referenceType).toBe('current');
+    expect(comparisons[0].difference).toBe(2.5);
+    expect(comparisons[1].referenceType).toBe('historical');
+    expect(comparisons[1].difference).toBeCloseTo(3.5);
+  });
+
+  it('falls back to the 2 most recent PAST years when the target year is not published yet', () => {
+    const comparisons = findRecentCutoffComparisons({
+      records: [
+        { year: 2023, programId: 'cs', score: 77, scoreScale: 100 },
+        { year: 2024, programId: 'cs', score: 78, scoreScale: 100 },
+        { year: 2025, programId: 'cs', score: 79, scoreScale: 100 },
+      ],
+      targetYear: 2026,
+      applicantScore: 82.5,
+      applicantScale: 100,
+      selection: { programId: 'cs' },
+    });
+
+    expect(comparisons.map((c) => c.year)).toEqual([2025, 2024]);
+    expect(comparisons.every((c) => c.referenceType === 'historical')).toBe(true);
+  });
+
+  it('deduplicates a year with both superseded and final records, keeping only final', () => {
+    const comparisons = findRecentCutoffComparisons({
+      records: [
+        { year: 2026, programId: 'cs', score: 80, scoreScale: 100, status: 'superseded' },
+        { year: 2026, programId: 'cs', score: 81, scoreScale: 100, status: 'final' },
+        { year: 2025, programId: 'cs', score: 79, scoreScale: 100 },
+      ],
+      targetYear: 2026,
+      applicantScore: 82.5,
+      applicantScale: 100,
+      selection: { programId: 'cs' },
+    });
+
+    expect(comparisons).toHaveLength(2);
+    expect(comparisons[0].cutoff).toBe(81);
+  });
+
+  it('returns a single "none" entry when no year is published at all', () => {
+    const comparisons = findRecentCutoffComparisons({
+      records: [],
+      targetYear: 2026,
+      applicantScore: 82.5,
+      applicantScale: 100,
+      selection: { programId: 'cs' },
+    });
+
+    expect(comparisons).toHaveLength(1);
+    expect(comparisons[0].referenceType).toBe('none');
   });
 });
