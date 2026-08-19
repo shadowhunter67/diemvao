@@ -21,7 +21,7 @@ export function evaluateAguAdmission(profile: ApplicantProfile, context: AguEval
   const missingRequirements: MissingRequirement[] = [];
 
   if (!context.selectedProgramCode) {
-    missingRequirements.push({ kind: 'school-context', code: 'program', label: 'Chon nganh AGU de doi chieu nguong dang ky xet tuyen 2026.' });
+    missingRequirements.push({ kind: 'school-context', code: 'program', label: 'Chọn ngành AGU để đối chiếu ngưỡng đăng ký xét tuyển 2026.' });
   }
 
   let thptTotal30: number | undefined;
@@ -35,17 +35,17 @@ export function evaluateAguAdmission(profile: ApplicantProfile, context: AguEval
     }
     if (missingSubjects.length === 0) thptTotal30 = Math.round(total * 100) / 100;
     else {
-      missingInputs.push('Chua du 3 mon THPT trong to hop AGU da chon.');
+      missingInputs.push('Chưa đủ 3 môn THPT trong tổ hợp AGU đã chọn.');
       missingRequirements.push(
         ...missingSubjects.map((subjectId) => ({
           kind: 'profile-input' as const,
           code: `agu-thpt-${subjectId}`,
-          label: `Diem THPT mon ${SUBJECT_LABELS[subjectId]} cho to hop AGU.`,
+          label: `Điểm THPT môn ${SUBJECT_LABELS[subjectId]} cho tổ hợp AGU.`,
         }))
       );
     }
   } else {
-    missingRequirements.push({ kind: 'school-context', code: 'agu-subject-combination', label: 'Chon to hop THPT AGU.' });
+    missingRequirements.push({ kind: 'school-context', code: 'agu-subject-combination', label: 'Chọn tổ hợp THPT AGU.' });
   }
 
   const reasons: string[] = [];
@@ -54,12 +54,12 @@ export function evaluateAguAdmission(profile: ApplicantProfile, context: AguEval
     const thpt = checkAguThptThreshold(thptTotal30, context.selectedProgramCode);
     status = thpt.pass ? 'eligible' : 'ineligible';
     reasons.push(thpt.requiredText);
-    explanation.push({ id: 'agu-thpt-threshold', label: 'Nguong THPT AGU 2026', output: thptTotal30, scale: 30, formula: thpt.requiredText });
+    explanation.push({ id: 'agu-thpt-threshold', label: 'Ngưỡng THPT AGU 2026', output: thptTotal30, scale: 30, formula: thpt.requiredText });
   }
   if (context.selectedProgramCode && profile.exams?.vact?.total !== undefined) {
     const dgnl = checkAguDgnlThreshold(profile.exams.vact.total, context.selectedProgramCode);
     reasons.push(dgnl.requiredText);
-    explanation.push({ id: 'agu-dgnl-threshold', label: 'Nguong DGNL AGU 2026', output: profile.exams.vact.total, scale: 1200, formula: dgnl.requiredText });
+    explanation.push({ id: 'agu-dgnl-threshold', label: 'Ngưỡng ĐGNL AGU 2026', output: profile.exams.vact.total, scale: 1200, formula: dgnl.requiredText });
     if (status === 'unknown') status = dgnl.pass ? 'eligible' : 'ineligible';
   }
 
@@ -68,7 +68,7 @@ export function evaluateAguAdmission(profile: ApplicantProfile, context: AguEval
     year: aguAdmissionMethods[0].year,
     methodId: aguAdmissionMethods[0].id,
     confidence: 'partial',
-    eligibility: { status, reasons: reasons.length > 0 ? reasons : ['Can chon nganh va nhap diem de kiem tra nguong AGU.'] },
+    eligibility: { status, reasons: reasons.length > 0 ? reasons : ['Cần chọn ngành và nhập điểm để kiểm tra ngưỡng AGU.'] },
     missingInputs,
     missingRules: aguKnowledgeGaps.map((gap) => gap.label),
     missingRequirements: [

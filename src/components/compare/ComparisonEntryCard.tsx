@@ -64,16 +64,16 @@ export function ComparisonEntryCard({
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           <ComparisonStatusBadge confidence={summary.evaluation.confidence} />
-          <button type="button" onClick={onEdit} title="Doi nganh/truong" className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-ink">
+          <button type="button" onClick={onEdit} title="Đổi ngành/trường" className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-ink">
             <Pencil size={14} aria-hidden="true" />
           </button>
-          <button type="button" onClick={onMoveUp} disabled={!canMoveUp} title="Len tren" className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-ink disabled:opacity-40">
+          <button type="button" onClick={onMoveUp} disabled={!canMoveUp} title="Lên trên" className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-ink disabled:opacity-40">
             <ArrowUp size={14} aria-hidden="true" />
           </button>
-          <button type="button" onClick={onMoveDown} disabled={!canMoveDown} title="Xuong duoi" className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-ink disabled:opacity-40">
+          <button type="button" onClick={onMoveDown} disabled={!canMoveDown} title="Xuống dưới" className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-ink disabled:opacity-40">
             <ArrowDown size={14} aria-hidden="true" />
           </button>
-          <button type="button" onClick={onRemove} title="Xoa khoi so sanh" className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-danger">
+          <button type="button" onClick={onRemove} title="Xóa khỏi so sánh" className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-danger">
             <Trash2 size={14} aria-hidden="true" />
           </button>
         </div>
@@ -82,11 +82,11 @@ export function ComparisonEntryCard({
       <div className="mt-4 space-y-3 text-sm">
         {score ? (
           <p className="text-ink">
-            Diem xet tuyen: <strong className="text-primary">{score.value.toFixed(2)}</strong>
+            Điểm xét tuyển: <strong className="text-primary">{score.value.toFixed(2)}</strong>
             <span className="text-muted"> / {score.scale}</span>
           </p>
         ) : (
-          <p className="text-muted">Chua co diem xet tuyen cuoi cung de so sanh.</p>
+          <p className="text-muted">Chưa có điểm xét tuyển cuối cùng để so sánh.</p>
         )}
 
         {summary.cutoffComparison && (
@@ -96,12 +96,12 @@ export function ComparisonEntryCard({
             ) : (
               <>
                 <p className="font-medium text-ink">
-                  Diem chuan {summary.cutoffComparison.year}: {summary.cutoffComparison.cutoff.toFixed(2)}
+                  Điểm chuẩn {summary.cutoffComparison.year}: {summary.cutoffComparison.cutoff.toFixed(2)}
                   {summary.cutoffComparison.cutoffScale ? ` / ${summary.cutoffComparison.cutoffScale}` : ''}
                 </p>
                 {summary.cutoffComparison.comparable && summary.cutoffComparison.difference !== undefined ? (
                   <p className="mt-1 text-muted">
-                    Chenh lech: <span className="font-medium text-ink">{formatDifference(summary.cutoffComparison.difference)}</span>
+                    Chênh lệch: <span className="font-medium text-ink">{formatDifference(summary.cutoffComparison.difference)}</span>
                   </p>
                 ) : (
                   <p className="mt-1 text-muted">{summary.cutoffComparison.reasonNotComparable}</p>
@@ -113,7 +113,7 @@ export function ComparisonEntryCard({
 
         {summary.evaluation.explanation.length > 0 && (
           <div>
-            <p className="text-xs font-medium text-ink">Da tinh duoc</p>
+            <p className="text-xs font-medium text-ink">Đã tính được</p>
             <ul className="mt-1 space-y-1 text-xs text-muted">
               {summary.evaluation.explanation.slice(0, 4).map((step) => (
                 <li key={step.id}>
@@ -132,7 +132,7 @@ export function ComparisonEntryCard({
 
         {requirements.length > 0 && (
           <div className="rounded-md bg-surface-soft p-3 text-xs">
-            <p className="font-medium text-ink">Con thieu</p>
+            <p className="font-medium text-ink">Còn thiếu</p>
             <ul className="mt-1 space-y-1 text-muted">
               {requirements.slice(0, 5).map((requirement) => (
                 <li key={requirement.code}>
@@ -150,7 +150,7 @@ export function ComparisonEntryCard({
         )}
 
         <details className="rounded-md border border-ink/10 bg-surface-soft px-3 py-2">
-          <summary className="cursor-pointer text-xs font-medium text-ink">Xem cach tinh va nguon</summary>
+          <summary className="cursor-pointer text-xs font-medium text-ink">Xem cách tính và nguồn</summary>
           <ol className="mt-2 space-y-2 text-xs text-muted">
             {summary.evaluation.explanation.map((step, index) => (
               <li key={step.id}>
@@ -176,3 +176,4 @@ export function ComparisonEntryCard({
     </article>
   );
 }
+

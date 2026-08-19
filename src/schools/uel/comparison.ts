@@ -24,7 +24,7 @@ export const uelComparisonAdapter: SchoolComparisonAdapter<UelComparisonContext>
     return withProgramCutoffComparison({
       evaluation,
       selectedProgramId: context.selectedProgramId,
-      missingProgramLabel: 'Chon nganh UEL de so voi dung muc diem chuan.',
+      missingProgramLabel: 'Chọn ngành UEL để so với đúng mức điểm chuẩn.',
       getCutoffComparison: () => {
         if (!evaluation.score || !context.selectedProgramId) return undefined;
         const records = uelCutoffs.filter((cutoff) => cutoff.programId === context.selectedProgramId);

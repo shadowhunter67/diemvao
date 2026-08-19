@@ -6,7 +6,7 @@ export const hcmueProgramThresholdEvidence = {
   evidence: [
     {
       sourceId: 'hcmue-thresholds-2026',
-      location: 'Bang nguong dau vao 47 nganh tai tru so chinh TP.HCM, ma tuyen sinh SPS',
+      location: 'Bảng ngưỡng đầu vào 47 ngành tại trụ sở chính TP.HCM, mã tuyển sinh SPS',
       verification: 'verified' as const,
       effectiveYear: 2026,
       verifiedAt: '2026-08-15',
@@ -19,7 +19,7 @@ export const hcmueThptFormulaEvidence = {
   evidence: [
     {
       sourceId: 'hcmue-methods-2026',
-      location: 'Muc 2: Xet tuyen su dung ket qua ky thi tot nghiep THPT nam 2026',
+      location: 'Mục 2: Xét tuyển sử dụng kết quả kỳ thi tốt nghiệp THPT năm 2026',
       verification: 'verified' as const,
       effectiveYear: 2026,
       verifiedAt: '2026-08-15',

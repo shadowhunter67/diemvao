@@ -39,28 +39,28 @@ export function evaluateUhsAdmission(profile: ApplicantProfile, context: UhsEval
   const missingRequirements: MissingRequirement[] = [];
 
   if (!program) {
-    missingInputs.push('Chua chon nganh UHS.');
-    missingRequirements.push({ kind: 'school-context', code: 'program', label: 'Chon nganh UHS.' });
+    missingInputs.push('Chưa chọn ngành UHS.');
+    missingRequirements.push({ kind: 'school-context', code: 'program', label: 'Chọn ngành UHS.' });
   }
 
   if (!context.subjectContext) {
-    missingInputs.push('Chua chon to hop de tinh thanh phan THPT/HB.');
-    missingRequirements.push({ kind: 'school-context', code: 'uhs-subject-combination', label: 'Chon to hop xet tuyen UHS.' });
+    missingInputs.push('Chưa chọn tổ hợp để tính thành phần THPT/HB.');
+    missingRequirements.push({ kind: 'school-context', code: 'uhs-subject-combination', label: 'Chọn tổ hợp xét tuyển UHS.' });
   } else if (input.combinationTotal30 === undefined) {
     const missingSubjects = context.subjectContext.subjects.filter((subjectId) => profile.thpt?.scores?.[subjectId] === undefined);
-    missingInputs.push('Chua du diem THPT cac mon trong to hop da chon.');
+    missingInputs.push('Chưa đủ điểm THPT các môn trong tổ hợp đã chọn.');
     missingRequirements.push(
       ...missingSubjects.map((subjectId) => ({
         kind: 'profile-input' as const,
         code: `uhs-thpt-${subjectId}`,
-        label: `Diem THPT mon ${SUBJECT_LABELS[subjectId]}.`,
+        label: `Điểm THPT môn ${SUBJECT_LABELS[subjectId]}.`,
       }))
     );
   }
 
   let eligibility: AdmissionEvaluation['eligibility'] = {
     status: 'unknown',
-    reasons: ['Can chon nganh va khai bao hoc luc lop 12/de diem duong vao de kiem tra dieu kien UHS.'],
+    reasons: ['Cần chọn ngành và khai báo học lực lớp 12/điểm đường vào để kiểm tra điều kiện UHS.'],
   };
 
   if (program) {
@@ -73,7 +73,7 @@ export function evaluateUhsAdmission(profile: ApplicantProfile, context: UhsEval
     eligibility = { status: entry.pass ? 'eligible' : 'ineligible', reasons: [entry.requiredText] };
     explanation.push({
       id: 'uhs-entry-threshold',
-      label: 'Dieu kien dau vao',
+      label: 'Điều kiện đầu vào',
       inputs: numericInputs({
         combinationTotal30: input.combinationTotal30,
         graduationScore10: context.graduationScore10,
@@ -82,18 +82,18 @@ export function evaluateUhsAdmission(profile: ApplicantProfile, context: UhsEval
       evidence: uhsThresholdEvidence.evidence,
     });
     if (!context.grade12Performance) {
-      missingRequirements.push({ kind: 'profile-input', code: 'uhs-grade12-performance', label: 'Hoc luc lop 12 theo dieu kien UHS.' });
+      missingRequirements.push({ kind: 'profile-input', code: 'uhs-grade12-performance', label: 'Học lực lớp 12 theo điều kiện UHS.' });
     }
   }
 
   if (components.thpt100 !== undefined) {
     explanation.push({
       id: 'uhs-thpt-component',
-      label: components.inferredThptFromDgnl ? 'THPT quy doi tu DGNL' : 'THPT thang 100',
+      label: components.inferredThptFromDgnl ? 'THPT quy đổi từ ĐGNL' : 'THPT thang 100',
       inputs: numericInputs({ combinationTotal30: input.combinationTotal30, dgnlRaw1200: input.dgnlRaw1200 }),
       output: components.thpt100,
       scale: 100,
-      formula: components.inferredThptFromDgnl ? 'THPT = DGNL x 1.15' : 'THPT = tong 3 mon x 100 / 30',
+      formula: components.inferredThptFromDgnl ? 'THPT = ĐGNL x 1.15' : 'THPT = tổng 3 môn x 100 / 30',
       evidence: uhsIntegratedFormulaEvidence.evidence,
     });
   }
@@ -101,42 +101,42 @@ export function evaluateUhsAdmission(profile: ApplicantProfile, context: UhsEval
   if (components.dgnl100 !== undefined) {
     explanation.push({
       id: 'uhs-dgnl-component',
-      label: components.inferredDgnlFromThpt ? 'DGNL quy doi tu THPT' : 'DGNL thang 100',
+      label: components.inferredDgnlFromThpt ? 'ĐGNL quy đổi từ THPT' : 'ĐGNL thang 100',
       inputs: numericInputs({ combinationTotal30: input.combinationTotal30, dgnlRaw1200: input.dgnlRaw1200 }),
       output: components.dgnl100,
       scale: 100,
-      formula: components.inferredDgnlFromThpt ? 'DGNL = THPT x 0.87' : 'DGNL = diem DGNL x 100 / 1200',
+      formula: components.inferredDgnlFromThpt ? 'ĐGNL = THPT x 0.87' : 'ĐGNL = điểm ĐGNL x 100 / 1200',
       evidence: uhsIntegratedFormulaEvidence.evidence,
     });
   } else {
-    missingRequirements.push({ kind: 'profile-input', code: 'uhs-dgnl-or-conversion', label: 'Diem DGNL hoac dieu kien quy doi thanh phan DGNL.' });
+    missingRequirements.push({ kind: 'profile-input', code: 'uhs-dgnl-or-conversion', label: 'Điểm ĐGNL hoặc điều kiện quy đổi thành phần ĐGNL.' });
   }
 
   if (components.transcript100 !== undefined) {
     explanation.push({
       id: 'uhs-transcript-component',
-      label: 'Hoc ba thang 100',
+      label: 'Học bạ thang 100',
       inputs: numericInputs({ transcriptTotal30: input.transcriptTotal30 }),
       output: components.transcript100,
       scale: 100,
-      formula: 'HB = tong diem TB 3 mon x 100 / 30',
+      formula: 'HB = tổng điểm TB 3 môn x 100 / 30',
       evidence: uhsIntegratedFormulaEvidence.evidence,
     });
   } else if (context.subjectContext) {
-    missingRequirements.push({ kind: 'profile-input', code: 'uhs-transcript', label: 'Diem hoc ba 3 nam cho cac mon trong to hop UHS.' });
+    missingRequirements.push({ kind: 'profile-input', code: 'uhs-transcript', label: 'Điểm học bạ 3 năm cho các môn trong tổ hợp UHS.' });
   }
 
   if (context.bonus) {
     const bonus = calculateUhsBonus(context.bonus);
     explanation.push({
       id: 'uhs-bonus',
-      label: 'Diem cong UHS',
+      label: 'Điểm cộng UHS',
       inputs: numericInputs({
         satScore: context.bonus.satScore,
         preferredAverage: context.bonus.preferredSchool?.averageAcademicScore10,
       }),
       output: bonus.totalBonus,
-      formula: 'Diem cong chung chi/SAT dung he so 5 va cap nhom chung chi/SAT 5 diem.',
+      formula: 'Điểm cộng chứng chỉ/SAT dùng hệ số 5 và cấp nhóm chứng chỉ/SAT 5 điểm.',
       description: bonus.notes.join(' '),
       evidence: uhsBonusEvidence.evidence,
     });
@@ -145,7 +145,7 @@ export function evaluateUhsAdmission(profile: ApplicantProfile, context: UhsEval
   if (context.priority100 !== undefined) {
     explanation.push({
       id: 'uhs-priority-input',
-      label: 'Diem uu tien thang 100',
+      label: 'Điểm ưu tiên thang 100',
       inputs: { priority100: context.priority100 },
       output: context.priority100,
       scale: 100,

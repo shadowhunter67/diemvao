@@ -23,14 +23,14 @@ export function evaluateHcmueAdmission(profile: ApplicantProfile, context: Hcmue
   const program = getHcmueProgramThreshold(context.selectedProgramId);
 
   if (!context.selectedProgramId) {
-    missingRequirements.push({ kind: 'school-context', code: 'program', label: 'Chon nganh HCMUE de kiem tra nguong dau vao.' });
+    missingRequirements.push({ kind: 'school-context', code: 'program', label: 'Chọn ngành HCMUE để kiểm tra ngưỡng đầu vào.' });
   } else if (!program) {
-    missingRequirements.push({ kind: 'school-context', code: 'program', label: 'Nganh HCMUE da chon khong co trong bang nguong 2026 da xac minh.' });
+    missingRequirements.push({ kind: 'school-context', code: 'program', label: 'Ngành HCMUE đã chọn không có trong bảng ngưỡng 2026 đã xác minh.' });
   }
 
   let thptTotal30: number | undefined;
   if (!context.subjectContext) {
-    missingRequirements.push({ kind: 'school-context', code: 'hcmue-subject-combination', label: 'Chon to hop THPT HCMUE.' });
+    missingRequirements.push({ kind: 'school-context', code: 'hcmue-subject-combination', label: 'Chọn tổ hợp THPT HCMUE.' });
   } else {
     const missingSubjects: SubjectId[] = [];
     const total = context.subjectContext.subjects.reduce((sum, subjectId) => {
@@ -39,12 +39,12 @@ export function evaluateHcmueAdmission(profile: ApplicantProfile, context: Hcmue
       return sum + (score ?? 0);
     }, 0);
     if (missingSubjects.length > 0) {
-      missingInputs.push('Chua du 3 mon THPT trong to hop HCMUE da chon.');
+      missingInputs.push('Chưa đủ 3 môn THPT trong tổ hợp HCMUE đã chọn.');
       missingRequirements.push(
         ...missingSubjects.map((subjectId) => ({
           kind: 'profile-input' as const,
           code: `hcmue-thpt-${subjectId}`,
-          label: `Diem THPT mon ${SUBJECT_LABELS[subjectId]} cho to hop HCMUE.`,
+          label: `Điểm THPT môn ${SUBJECT_LABELS[subjectId]} cho tổ hợp HCMUE.`,
         }))
       );
     } else {
@@ -60,7 +60,7 @@ export function evaluateHcmueAdmission(profile: ApplicantProfile, context: Hcmue
     reasons.push(threshold.requiredText);
     explanation.push({
       id: 'hcmue-thpt-threshold',
-      label: 'Nguong dau vao THPT HCMUE 2026',
+      label: 'Ngưỡng đầu vào THPT HCMUE 2026',
       output: thptTotal30,
       scale: 30,
       formula: threshold.requiredText,
@@ -72,7 +72,7 @@ export function evaluateHcmueAdmission(profile: ApplicantProfile, context: Hcmue
     year: hcmueAdmissionMethods[0].year,
     methodId: hcmueAdmissionMethods[0].id,
     confidence: 'partial',
-    eligibility: { status, reasons: reasons.length > 0 ? reasons : ['Can chon nganh, to hop va nhap diem THPT de kiem tra nguong HCMUE.'] },
+    eligibility: { status, reasons: reasons.length > 0 ? reasons : ['Cần chọn ngành, tổ hợp và nhập điểm THPT để kiểm tra ngưỡng HCMUE.'] },
     missingInputs,
     missingRules: hcmueKnowledgeGaps.map((gap) => gap.label),
     missingRequirements: [

@@ -71,14 +71,14 @@ export function evaluateUelAdmission(profile: ApplicantProfile, context: UelEval
   if (context.subjectContext && input.transcriptTotal30 !== undefined) {
     explanation.push({
       id: 'uel-transcript-scale-100',
-      label: `Hoc ba ${context.subjectContext.combinationId ?? 'theo to hop'} quy doi thang 100`,
+      label: `Học bạ ${context.subjectContext.combinationId ?? 'theo tổ hợp'} quy đổi thang 100`,
       inputs: { transcriptTotal30: input.transcriptTotal30 },
       output: (input.transcriptTotal30 * 100) / 30,
       scale: 100,
-      formula: 'Tong diem trung binh 6 hoc ky cua 3 mon to hop x 100/30',
+      formula: 'Tổng điểm trung bình 6 học kỳ của 3 môn tổ hợp x 100/30',
     });
   } else if (context.subjectContext) {
-    const label = 'Chua du hoc ba 3 nam cho 3 mon trong to hop da chon.';
+    const label = 'Chưa đủ học bạ 3 năm cho 3 môn trong tổ hợp đã chọn.';
     missingInputs.push(label);
     missingRequirements.push({ kind: 'profile-input', code: 'uel-transcript', label });
   }
@@ -97,10 +97,10 @@ export function evaluateUelAdmission(profile: ApplicantProfile, context: UelEval
   if (!hasNeededRouteInput) {
     const label =
       applicantType === 'dt2'
-        ? 'Can diem THPT cho Doi tuong 2 UEL.'
+        ? 'Cần điểm THPT cho Đối tượng 2 UEL.'
         : applicantType === 'dt3'
-          ? 'Can diem DGNL cho Doi tuong 3 UEL.'
-          : 'Can ca diem DGNL va THPT cho Doi tuong 1 UEL.';
+          ? 'Cần điểm ĐGNL cho Đối tượng 3 UEL.'
+          : 'Cần cả điểm ĐGNL và THPT cho Đối tượng 1 UEL.';
     if (!missingInputs.includes(label)) missingInputs.push(label);
     missingRequirements.push({ kind: 'profile-input', code: `uel-${applicantType}-route-input`, label });
   }
@@ -123,7 +123,7 @@ export function evaluateUelAdmission(profile: ApplicantProfile, context: UelEval
     explanation.push(
       {
         id: 'uel-academic-score',
-        label: `Diem hoc luc UEL ${applicantType.toUpperCase()}`,
+        label: `Điểm học lực UEL ${applicantType.toUpperCase()}`,
         output: result.academicScore,
         scale: 100,
         formula:
@@ -135,17 +135,17 @@ export function evaluateUelAdmission(profile: ApplicantProfile, context: UelEval
       },
       {
         id: 'uel-bonus',
-        label: 'Diem cong UEL',
+        label: 'Điểm cộng UEL',
         output: result.bonus,
         scale: 100,
-        formula: 'Chung chi tieng Anh + 149 truong, tong diem cong toi da 10/100',
+        formula: 'Chứng chỉ tiếng Anh + 149 trường, tổng điểm cộng tối đa 10/100',
       },
       {
         id: 'uel-priority',
-        label: result.priority.reduced ? 'Diem uu tien UEL da giam' : 'Diem uu tien UEL',
+        label: result.priority.reduced ? 'Điểm ưu tiên UEL đã giảm' : 'Điểm ưu tiên UEL',
         output: result.priority.effectivePriority,
         scale: 100,
-        formula: result.priority.reduced ? '(100 - Diem hoc luc - Diem cong) / 25 x Diem uu tien quy doi' : 'Diem uu tien quy doi',
+        formula: result.priority.reduced ? '(100 - Điểm học lực - Điểm cộng) / 25 x Điểm ưu tiên quy đổi' : 'Điểm ưu tiên quy đổi',
         // Batch provenance-hygiene (2026-08-17): source rieng cua cong thuc giam (khac source cong
         // thuc tong hop) chi duoc cite khi nhanh giam THAT SU kich hoat — trung thuc voi rule nao
         // thuc su duoc dung, khong cite mot source "cho co".
@@ -153,7 +153,7 @@ export function evaluateUelAdmission(profile: ApplicantProfile, context: UelEval
           ? [
               {
                 sourceId: 'uel-priority-reduction-2026',
-                location: '(100 – Diem hoc luc – Diem cong) / 25 x Diem uu tien quy doi, ap dung khi tong >= 75/100',
+                location: '(100 – Điểm học lực – Điểm cộng) / 25 x Điểm ưu tiên quy đổi, áp dụng khi tổng >= 75/100',
                 verification: 'verified',
                 effectiveYear: 2026,
                 verifiedAt: '2026-08-13',
@@ -161,7 +161,7 @@ export function evaluateUelAdmission(profile: ApplicantProfile, context: UelEval
             ]
           : undefined,
       },
-      { id: 'uel-final', label: 'Diem xet tuyen cuoi cung UEL', output: result.finalScore, scale: 100 }
+      { id: 'uel-final', label: 'Điểm xét tuyển cuối cùng UEL', output: result.finalScore, scale: 100 }
     );
 
     return {
@@ -173,19 +173,19 @@ export function evaluateUelAdmission(profile: ApplicantProfile, context: UelEval
       eligibility:
         input.thptRawTotal30 !== undefined
           ? { status: checkThptThreshold(input.thptRawTotal30).pass ? 'eligible' : 'ineligible', reasons: [checkThptThreshold(input.thptRawTotal30).requiredText] }
-          : { status: 'unknown', reasons: ['Doi tuong nay khong co diem THPT de kiem tra nguong THPT.'] },
+          : { status: 'unknown', reasons: ['Đối tượng này không có điểm THPT để kiểm tra ngưỡng THPT.'] },
       missingInputs: [],
       missingRules: [],
       missingRequirements: [],
       explanation,
       evidence: [
-        { sourceId: 'uel-formula-2026', location: 'Cong thuc tong hop UEL 2026', verification: 'verified', effectiveYear: 2026, verifiedAt: '2026-08-15' },
-        { sourceId: 'uel-certificate-bonus-html-2026', location: 'Bang diem cong chung chi tieng Anh HTML', verification: 'verified', effectiveYear: 2026, verifiedAt: '2026-08-15' },
+        { sourceId: 'uel-formula-2026', location: 'Công thức tổng hợp UEL 2026', verification: 'verified', effectiveYear: 2026, verifiedAt: '2026-08-15' },
+        { sourceId: 'uel-certificate-bonus-html-2026', location: 'Bảng điểm cộng chứng chỉ tiếng Anh HTML', verification: 'verified', effectiveYear: 2026, verifiedAt: '2026-08-15' },
         ...(result.priority.reduced
           ? [
               {
                 sourceId: 'uel-priority-reduction-2026',
-                location: 'Quy tac giam diem uu tien khi tong diem >= 75/100',
+                location: 'Quy tắc giảm điểm ưu tiên khi tổng điểm >= 75/100',
                 verification: 'verified' as const,
                 effectiveYear: 2026,
                 verifiedAt: '2026-08-13',

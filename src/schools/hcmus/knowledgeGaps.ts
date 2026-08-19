@@ -9,7 +9,7 @@ export const hcmusKnowledgeGaps: KnowledgeGap[] = [
   {
     id: 'hcmus-semiconductor-percentile',
     label:
-      'Dieu kien nganh Thiet ke vi mach/Cong nghe ban dan can nguong Toan top 20% va to hop top 25% toan quoc theo du lieu Bo GD&DT; UniscoreVN chua co bang bach phan vi quoc gia de tra.',
+      'Điều kiện ngành Thiết kế vi mạch/Công nghệ bán dẫn cần ngưỡng Toán top 20% và tổ hợp top 25% toàn quốc theo dữ liệu Bộ GD&ĐT; UniscoreVN chưa có bảng bách phân vị quốc gia để tra.',
     status: 'incomplete',
     scoreAffecting: false,
     impact: 'eligibility-warning',

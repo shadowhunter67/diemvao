@@ -54,8 +54,8 @@ export const uelSources: UelSource[] = [
   },
   {
     id: 'uel-certificate-bonus-html-2026',
-    publisher: 'Truong Dai hoc Kinh te - Luat - DHQG TP.HCM',
-    title: 'Bang diem cong chung chi tieng Anh ap dung tuyen sinh dai hoc chinh quy 2026 trong trang To hop tuyen sinh',
+    publisher: 'Trường Đại học Kinh tế - Luật - ĐHQG TP.HCM',
+    title: 'Bảng điểm cộng chứng chỉ tiếng Anh áp dụng tuyển sinh đại học chính quy 2026 trong trang Tổ hợp tuyển sinh',
     url: 'https://tuyensinh.uel.edu.vn/to-hop-tuyen-sinh/',
     accessedAt: '2026-08-15',
     sourceType: 'official-school',

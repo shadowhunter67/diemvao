@@ -5,12 +5,12 @@ import { HcmuePage } from './HcmuePage';
 
 export const hcmueModule: SchoolModule = {
   id: 'hcmue',
-  name: 'Truong Dai hoc Su pham Thanh pho Ho Chi Minh (HCMUE, TPHCM)',
+  name: 'Trường Đại học Sư phạm Thành phố Hồ Chí Minh (HCMUE, TPHCM)',
   shortName: 'HCMUE',
   year: 2026,
   status: 'researching',
   summary:
-    'Da xac minh phuong thuc va nguong dau vao 47 nganh tai tru so chinh TP.HCM nam 2026. Runtime chi kiem tra eligibility/nguong, khong tinh diem trung tuyen.',
+    'Đã xác minh phương thức và ngưỡng đầu vào 47 ngành tại trụ sở chính TP.HCM năm 2026. Runtime chỉ kiểm tra eligibility/ngưỡng, không tính điểm trúng tuyển.',
   capabilities: {
     admissionInfo: true,
     programs: true,

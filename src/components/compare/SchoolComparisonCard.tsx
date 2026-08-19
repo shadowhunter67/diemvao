@@ -112,13 +112,13 @@ function ProgramSelector({
 function MissingRequirementsList({ requirements }: { requirements: readonly MissingRequirement[] }) {
   const displayLabel = (requirement: MissingRequirement) => {
     if (requirement.kind !== 'official-rule') return requirement.label;
-    if (requirement.code === 'ussh-alpha2-by-program-combination') return 'he so alpha2 theo nganh/to hop';
-    if (requirement.code === 'ussh-bonus-table') return 'bang diem cong';
-    if (requirement.code === 'ussh-priority-standard-table') return 'muc uu tien goc';
-    if (requirement.code === 'ussh-alpha1-application-role') return 'vai tro ap dung cua alpha1';
-    if (requirement.code === 'uhs-method2-weights-range') return 'he so w1/w2 co dinh cho diem xet tuyen cuoi';
-    if (requirement.code.startsWith('uit-')) return requirement.label.includes('SAT') ? 'bang quy doi SAT/ACT, IB/A-Level' : 'bang quy doi THPT - DGNL day du';
-    if (requirement.code.startsWith('agu-')) return 'cong thuc quy doi thanh phan, diem cong va uu tien chinh thuc';
+    if (requirement.code === 'ussh-alpha2-by-program-combination') return 'hệ số alpha2 theo ngành/tổ hợp';
+    if (requirement.code === 'ussh-bonus-table') return 'bảng điểm cộng';
+    if (requirement.code === 'ussh-priority-standard-table') return 'mức ưu tiên gốc';
+    if (requirement.code === 'ussh-alpha1-application-role') return 'vai trò áp dụng của alpha1';
+    if (requirement.code === 'uhs-method2-weights-range') return 'hệ số w1/w2 cố định cho điểm xét tuyển cuối';
+    if (requirement.code.startsWith('uit-')) return requirement.label.includes('SAT') ? 'bảng quy đổi SAT/ACT, IB/A-Level' : 'bảng quy đổi THPT - DGNL đầy đủ';
+    if (requirement.code.startsWith('agu-')) return 'công thức quy đổi thành phần, điểm cộng và ưu tiên chính thức';
     return requirement.label;
   };
 

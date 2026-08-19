@@ -32,7 +32,7 @@ export const usshComparisonAdapter: SchoolComparisonAdapter<UsshComparisonContex
     return withProgramCutoffComparison({
       evaluation,
       selectedProgramId: context.selectedProgramId,
-      missingProgramLabel: 'Chon nganh USSH de so voi dung muc diem chuan.',
+      missingProgramLabel: 'Chọn ngành USSH để so với đúng mức điểm chuẩn.',
       getCutoffComparison: () => {
         if (!evaluation.score || !context.selectedProgramId || !applicantTypeId) return undefined;
         const records = usshCutoffs.filter((cutoff) => cutoff.programId === context.selectedProgramId);

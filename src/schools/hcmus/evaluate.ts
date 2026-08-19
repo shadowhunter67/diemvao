@@ -100,24 +100,24 @@ export function evaluateHcmusAdmission(profile: ApplicantProfile, context: Hcmus
     explanation.push(
       {
         id: 'hcmus-bonus',
-        label: 'Diem cong HCMUS',
+        label: 'Điểm cộng HCMUS',
         inputs: { basePoints30: bonus.basePoints30 },
         output: bonus.awardedPoints30,
         scale: 30,
-        formula: bonus.reduced ? '[(30 - Tong diem dat duoc) / 1.5] x Diem cong co so' : 'Diem cong co so, chi lay 1 muc cao nhat',
+        formula: bonus.reduced ? '[(30 - Tổng điểm đạt được) / 1.5] x Điểm cộng cơ sở' : 'Điểm cộng cơ sở, chỉ lấy 1 mức cao nhất',
         evidence: hcmusBonusEvidence.evidence,
       },
       {
         id: 'hcmus-priority',
-        label: priority.reduced ? 'Diem uu tien HCMUS da giam' : 'Diem uu tien HCMUS',
+        label: priority.reduced ? 'Điểm ưu tiên HCMUS đã giảm' : 'Điểm ưu tiên HCMUS',
         output: priority.effectivePriority30,
         scale: 30,
-        formula: priority.reduced ? '[(30 - Tong diem dat duoc) / 7.5] x Muc diem uu tien KV/DT' : 'Muc diem uu tien KV/DT',
+        formula: priority.reduced ? '[(30 - Tổng điểm đạt được) / 7.5] x Mức điểm ưu tiên KV/ĐT' : 'Mức điểm ưu tiên KV/ĐT',
         evidence: hcmusPriorityEvidence.evidence,
       },
       {
         id: 'hcmus-final',
-        label: 'Diem xet tuyen cuoi cung HCMUS',
+        label: 'Điểm xét tuyển cuối cùng HCMUS',
         output: finalScore30,
         scale: 30,
       }
@@ -184,7 +184,7 @@ export function evaluateHcmusAdmission(profile: ApplicantProfile, context: Hcmus
               status: checkHcmusThptThreshold(input.thptRawTotal30).pass ? 'eligible' : 'ineligible',
               reasons: [checkHcmusThptThreshold(input.thptRawTotal30).requiredText],
             }
-          : { status: 'unknown', reasons: ['Can du tong 3 mon THPT theo to hop de kiem tra nguong dau vao.'] },
+          : { status: 'unknown', reasons: ['Cần đủ tổng 3 môn THPT theo tổ hợp để kiểm tra ngưỡng đầu vào.'] },
       score: { value: finalStep.output, scale: 30 },
       missingInputs,
       missingRules: [],

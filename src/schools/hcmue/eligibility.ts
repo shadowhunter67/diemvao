@@ -6,9 +6,9 @@ export function getHcmueProgramThreshold(programId: string | undefined) {
 
 export function checkHcmueThptThreshold(total30: number, programId: string) {
   const program = getHcmueProgramThreshold(programId);
-  if (!program) return { pass: false, requiredText: 'Chua co nguong HCMUE cho nganh da chon.' };
+  if (!program) return { pass: false, requiredText: 'Chưa có ngưỡng HCMUE cho ngành đã chọn.' };
   return {
     pass: total30 >= program.thptThreshold30,
-    requiredText: `Nguong THPT HCMUE 2026: ${program.thptThreshold30.toFixed(2)}/30 (${program.code} - ${program.name}).`,
+    requiredText: `Ngưỡng THPT HCMUE 2026: ${program.thptThreshold30.toFixed(2)}/30 (${program.code} - ${program.name}).`,
   };
 }
