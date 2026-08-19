@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ApplicantProfile } from '../core/applicantProfile';
 import type { ApplicantProfileContextValue } from '../core/applicantProfileContextCore';
 import type { SubjectId } from '../core/subjects';
-import { SUBJECT_LABELS } from '../core/subjects';
+import { COMMON_SUBJECT_COMBINATIONS, SUBJECT_LABELS } from '../core/subjects';
 import { ScoreInput } from './ScoreInput';
 
 interface SharedProfileEditorProps {
@@ -111,6 +111,10 @@ export function SharedProfileEditor({ profile, updateProfile, updateVactTotal }:
     }));
   }
 
+  function commitPreferredCombination(combinationId: string) {
+    updateProfile((current) => ({ ...current, preferredCombinationId: combinationId || undefined }));
+  }
+
   function commitPriorityRegion(region: string) {
     updateProfile((current) => ({ ...current, priority: { ...current.priority, region: region || undefined } }));
   }
@@ -154,6 +158,28 @@ export function SharedProfileEditor({ profile, updateProfile, updateVactTotal }:
             4 điểm thành phần ĐGNL (nếu đã nhập ở HCMUT) đã bị xóa vì không còn khớp tổng mới — nhập lại ở trang HCMUT nếu cần.
           </p>
         )}
+      </div>
+
+      <div>
+        <p className="text-xs font-medium text-ink">Tổ hợp môn</p>
+        <select
+          id="shared-profile-preferred-combination"
+          value={profile.preferredCombinationId ?? ''}
+          onChange={(e) => commitPreferredCombination(e.target.value)}
+          className="mt-1.5 block h-10 rounded-lg border border-ink/10 bg-surface px-2.5 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+        >
+          <option value="">Không chọn</option>
+          {COMMON_SUBJECT_COMBINATIONS.map((combination) => (
+            <option key={combination.id} value={combination.id}>
+              {combination.id} ({combination.subjects.map((subjectId) => SUBJECT_LABELS[subjectId]).join(' - ')})
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-muted">
+          Chỉ để tham khảo nhanh — không tự áp dụng cho trường nào. Nếu một trường tính điểm không khớp tổ hợp bạn chọn ở
+          đây, vào trang chi tiết của trường đó (bấm "Xem hồ sơ ở tất cả trường" bên dưới rồi mở từng trường) để chọn/sửa
+          lại tổ hợp riêng cho trường đó.
+        </p>
       </div>
 
       {thptEntries.length > 0 && (
@@ -254,11 +280,7 @@ export function SharedProfileEditor({ profile, updateProfile, updateVactTotal }:
         </div>
       </div>
 
-      <p className="text-xs text-muted">
-        Sửa xong bấm ra ngoài ô là tự lưu. Tổ hợp môn chọn riêng theo từng nguyện vọng ở trang "So sánh" hoặc trang từng
-        trường (mỗi trường xét tổ hợp khác nhau) — không đặt chung ở đây. Thêm môn THPT/học bạ mới lần đầu cũng nhập ở
-        trang trường tương ứng.
-      </p>
+      <p className="text-xs text-muted">Sửa xong bấm ra ngoài ô là tự lưu. Thêm môn THPT/học bạ mới lần đầu thì nhập ở trang trường tương ứng.</p>
     </div>
   );
 }

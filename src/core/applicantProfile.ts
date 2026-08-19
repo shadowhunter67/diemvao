@@ -44,4 +44,11 @@ export interface ApplicantProfile {
     region?: string;
     category?: string;
   };
+
+  /** ID tổ hợp môn ưu tiên (vd 'A01', theo `COMMON_SUBJECT_COMBINATIONS`) — CHỈ để gợi ý nhanh
+   * ở hồ sơ dùng chung, KHÔNG phải input trực tiếp cho bất kỳ school adapter nào (mỗi trường tự
+   * có danh mục tổ hợp và ngữ cảnh riêng, chọn ở trang trường/Compare — xem
+   * `schools/hcmut/applicantProfileAdapter.ts` comment ở đầu file). Không có consumer runtime nào
+   * đọc field này để tính điểm; đổi giá trị này KHÔNG tự đổi kết quả tính ở bất kỳ trường nào. */
+  preferredCombinationId?: string;
 }
