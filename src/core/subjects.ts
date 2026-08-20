@@ -32,7 +32,11 @@ export const COMMON_SUBJECT_COMBINATIONS: readonly SubjectCombination[] = [
   { id: 'A01', subjects: ['math', 'physics', 'english'] },
   { id: 'A02', subjects: ['math', 'physics', 'biology'] },
   { id: 'B00', subjects: ['math', 'chemistry', 'biology'] },
+  /** B08 — thêm khi implement UMP 2026 (health-science school combo Toán/Sinh/Anh). */
+  { id: 'B08', subjects: ['math', 'biology', 'english'] },
   { id: 'D01', subjects: ['math', 'literature', 'english'] },
+  /** D07 — thêm khi implement UMP 2026 (health-science school combo Toán/Hóa/Anh). */
+  { id: 'D07', subjects: ['math', 'chemistry', 'english'] },
 ];
 
 /** Nhãn tiếng Việt — dùng ở bất kỳ trường nào cần hiển thị tên môn cho người dùng chọn. */

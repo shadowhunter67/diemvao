@@ -48,7 +48,27 @@ describe('schoolRegistry', () => {
 
   it('có đủ các trường đã research (ĐHQG-HCM + UEH ngoài hệ thống)', () => {
     const ids = Object.keys(schoolRegistry).sort();
-    expect(ids).toEqual(['agu', 'hcmue', 'hcmus', 'hcmut', 'hcmute', 'huflit', 'hutech', 'iu', 'tdtu', 'ueh', 'uel', 'ufm', 'uhs', 'uit', 'ussh']);
+    expect(ids).toEqual([
+      'agu',
+      'hcmue',
+      'hcmulaw',
+      'hcmus',
+      'hcmut',
+      'hcmute',
+      'huflit',
+      'hutech',
+      'iu',
+      'iuh',
+      'tdtu',
+      'ueh',
+      'uel',
+      'ufm',
+      'uhs',
+      'uit',
+      'ump',
+      'ussh',
+      'vlu',
+    ]);
   });
 
   it('README.md mục "Trường đang hỗ trợ" nhắc tên mọi trường trong registry (phát hiện drift)', () => {

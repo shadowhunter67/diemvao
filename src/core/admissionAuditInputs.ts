@@ -35,6 +35,14 @@ import { hutechAdmissionMethods } from '../schools/hutech/methods';
 import { hutechFormulaEvidence, hutechThresholdEvidence, hutechPriorityEvidence } from '../schools/hutech/evidence';
 import { ufmAdmissionMethods } from '../schools/ufm/methods';
 import { ufmFormulaEvidence, ufmThresholdEvidence, ufmPriorityEvidence } from '../schools/ufm/evidence';
+import { hcmulawAdmissionMethods } from '../schools/hcmulaw/methods';
+import { hcmulawFormulaEvidence, hcmulawThresholdEvidence, hcmulawPriorityEvidence } from '../schools/hcmulaw/evidence';
+import { iuhAdmissionMethods } from '../schools/iuh/methods';
+import { iuhFormulaEvidence, iuhThresholdEvidence, iuhPriorityEvidence, iuhBonusEvidence } from '../schools/iuh/evidence';
+import { vluAdmissionMethods } from '../schools/vlu/methods';
+import { vluThptExamThresholdEvidence, vluTranscriptExtraRequirementEvidence } from '../schools/vlu/evidence';
+import { umpAdmissionMethods } from '../schools/ump/methods';
+import { umpFormulaEvidence, umpPriorityEvidence, umpBonusEvidence, umpThresholdEvidence } from '../schools/ump/evidence';
 
 /**
  * Pure data-assembly cho `npm run audit:data` (CLI script) VÀ test provenance
@@ -97,6 +105,19 @@ export function verifiedRuntimeEvidence(): RuleEvidence[] {
     ...ufmFormulaEvidence.evidence,
     ...ufmThresholdEvidence.evidence,
     ...ufmPriorityEvidence.evidence,
+    ...hcmulawFormulaEvidence.evidence,
+    ...hcmulawThresholdEvidence.evidence,
+    ...hcmulawPriorityEvidence.evidence,
+    ...iuhFormulaEvidence.evidence,
+    ...iuhThresholdEvidence.evidence,
+    ...iuhPriorityEvidence.evidence,
+    ...iuhBonusEvidence.evidence,
+    ...vluThptExamThresholdEvidence.evidence,
+    ...vluTranscriptExtraRequirementEvidence.evidence,
+    ...umpFormulaEvidence.evidence,
+    ...umpThresholdEvidence.evidence,
+    ...umpPriorityEvidence.evidence,
+    ...umpBonusEvidence.evidence,
   ];
 }
 
@@ -119,11 +140,16 @@ export const allAdmissionMethods: AdmissionMethodDescriptor[] = [
   ...huflitAdmissionMethods,
   ...hutechAdmissionMethods,
   ...ufmAdmissionMethods,
+  ...hcmulawAdmissionMethods,
+  ...iuhAdmissionMethods,
+  ...vluAdmissionMethods,
+  ...umpAdmissionMethods,
 ];
 
 export const allMethodKnowledgeGaps: Array<KnowledgeGap & { schoolId?: string; methodId?: string }> = [
   ...methodGaps(hutechAdmissionMethods),
   ...methodGaps(ufmAdmissionMethods),
+  ...methodGaps(vluAdmissionMethods),
   ...methodGaps(uehAdmissionMethods),
   ...methodGaps(uelAdmissionMethods),
   ...methodGaps(uitAdmissionMethods),
@@ -135,4 +161,6 @@ export const allMethodKnowledgeGaps: Array<KnowledgeGap & { schoolId?: string; m
   ...methodGaps(hcmuteAdmissionMethods),
   ...methodGaps(tdtuAdmissionMethods),
   ...methodGaps(huflitAdmissionMethods),
+  ...methodGaps(hcmulawAdmissionMethods),
+  ...methodGaps(iuhAdmissionMethods),
 ];

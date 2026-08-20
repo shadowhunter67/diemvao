@@ -8,7 +8,7 @@ import { uitCutoffs } from '../src/schools/uit/data/cutoffs.ts';
 import { iuCutoffs2026 } from '../src/schools/iu/data/cutoffs.ts';
 import { allAdmissionSources } from '../src/schools/sourceRegistry.ts';
 
-const SCHOOLS = ['hcmut', 'ueh', 'uel', 'uit', 'hcmus', 'ussh', 'uhs', 'iu', 'agu', 'hcmute', 'tdtu', 'huflit', 'hutech', 'ufm'] as const;
+const SCHOOLS = ['hcmut', 'ueh', 'uel', 'uit', 'hcmus', 'ussh', 'uhs', 'iu', 'agu', 'hcmute', 'tdtu', 'huflit', 'hutech', 'ufm', 'hcmulaw', 'iuh', 'vlu', 'ump'] as const;
 const args = process.argv.slice(2);
 const verbose = args.includes('--verbose');
 const schoolFilter = args.find((arg) => arg.startsWith('--school='))?.slice('--school='.length) ?? args.find((arg) => SCHOOLS.includes(arg as (typeof SCHOOLS)[number]));

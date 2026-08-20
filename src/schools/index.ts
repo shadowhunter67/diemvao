@@ -14,6 +14,10 @@ import { tdtuModule } from './tdtu';
 import { huflitModule } from './huflit';
 import { hutechModule } from './hutech';
 import { ufmModule } from './ufm';
+import { iuhModule } from './iuh';
+import { hcmulawModule } from './hcmulaw';
+import { vluModule } from './vlu';
+import { umpModule } from './ump';
 
 /**
  * Các trường ĐHQG-HCM khác đã research (xem docs/admission-research-2026.md) nhưng CHƯA có
@@ -55,5 +59,9 @@ export const schoolRegistry: Record<string, SchoolModule> = {
   huflit: huflitModule,
   hutech: hutechModule,
   ufm: ufmModule,
+  iuh: iuhModule,
+  hcmulaw: hcmulawModule,
+  vlu: vluModule,
+  ump: umpModule,
   ...Object.fromEntries(researchedSchools.map((school) => [school.id, school])),
 };

@@ -18,6 +18,10 @@ import { tdtuAdmissionMethods } from '../schools/tdtu/methods';
 import { huflitAdmissionMethods } from '../schools/huflit/methods';
 import { hutechAdmissionMethods } from '../schools/hutech/methods';
 import { ufmAdmissionMethods } from '../schools/ufm/methods';
+import { iuhAdmissionMethods } from '../schools/iuh/methods';
+import { hcmulawAdmissionMethods } from '../schools/hcmulaw/methods';
+import { vluAdmissionMethods } from '../schools/vlu/methods';
+import { umpAdmissionMethods } from '../schools/ump/methods';
 
 /**
  * Khóa architectural invariant của compare orchestration — CI phải bắt được kiểu bug "trường đã
@@ -42,6 +46,10 @@ const methodDescriptorsBySchool: Record<string, readonly { id: string }[]> = {
   huflit: huflitAdmissionMethods,
   hutech: hutechAdmissionMethods,
   ufm: ufmAdmissionMethods,
+  iuh: iuhAdmissionMethods,
+  hcmulaw: hcmulawAdmissionMethods,
+  vlu: vluAdmissionMethods,
+  ump: umpAdmissionMethods,
 };
 
 /** Pure helper — trả danh sách schoolId bị trùng trong 1 mảng adapter. Test cả trên registry thật
