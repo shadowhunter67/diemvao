@@ -82,6 +82,21 @@ function BufferedScoreInput({
   );
 }
 
+/** Nút "x" nhỏ để bỏ 1 môn đã thêm — dùng chung cho cả Điểm THPT lẫn Học bạ. */
+function RemoveSubjectButton({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onRemove}
+      aria-label={`Xóa môn ${label}`}
+      title={`Xóa môn ${label}`}
+      className="shrink-0 rounded p-0.5 text-muted transition hover:bg-danger/10 hover:text-danger"
+    >
+      ✕
+    </button>
+  );
+}
+
 /**
  * Nhập/sửa trực tiếp hồ sơ điểm dùng chung (ĐGNL tổng, môn THPT/học bạ, kể cả thêm môn mới lần
  * đầu qua AddSubjectPicker) — dùng được ngay từ landing page, không bắt buộc phải mở một trường
@@ -155,6 +170,33 @@ export function SharedProfileEditor({ profile, updateProfile, updateVactTotal }:
       ...current,
       transcript: { ...current.transcript, [year]: { ...current.transcript?.[year], [subjectId]: value } },
     }));
+  }
+
+  function removeThptSubject(subjectId: SubjectId) {
+    updateProfile((current) => {
+      const { [subjectId]: _removed, ...rest } = current.thpt?.scores ?? {};
+      return { ...current, thpt: { scores: rest } };
+    });
+    setPendingThptSubjects((current) => current.filter((id) => id !== subjectId));
+  }
+
+  function removeTranscriptSubject(subjectId: SubjectId) {
+    updateProfile((current) => {
+      const stripSubject = (year: Partial<Record<SubjectId, number>> | undefined) => {
+        if (!year) return year;
+        const { [subjectId]: _removed, ...rest } = year;
+        return rest;
+      };
+      return {
+        ...current,
+        transcript: {
+          grade10: stripSubject(current.transcript?.grade10),
+          grade11: stripSubject(current.transcript?.grade11),
+          grade12: stripSubject(current.transcript?.grade12),
+        },
+      };
+    });
+    setPendingTranscriptSubjects((current) => current.filter((id) => id !== subjectId));
   }
 
   function commitPreferredCombination(combinationId: string) {
@@ -239,13 +281,21 @@ export function SharedProfileEditor({ profile, updateProfile, updateVactTotal }:
         {thptSubjectIds.size > 0 && (
           <div className="mt-1.5 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {[...thptSubjectIds].map((subjectId) => (
-              <BufferedScoreInput
-                key={subjectId}
-                id={`shared-profile-thpt-${subjectId}`}
-                label={SUBJECT_LABELS[subjectId]}
-                committedValue={profile.thpt?.scores?.[subjectId]}
-                onCommit={(raw) => commitThptScore(subjectId, raw)}
-              />
+              <div key={subjectId}>
+                <div className="flex items-baseline justify-between gap-1">
+                  <label htmlFor={`shared-profile-thpt-${subjectId}`} className="text-sm font-medium text-ink">
+                    {SUBJECT_LABELS[subjectId]}
+                  </label>
+                  <RemoveSubjectButton label={SUBJECT_LABELS[subjectId]} onRemove={() => removeThptSubject(subjectId)} />
+                </div>
+                <BufferedScoreInput
+                  id={`shared-profile-thpt-${subjectId}`}
+                  label={SUBJECT_LABELS[subjectId]}
+                  hideLabel
+                  committedValue={profile.thpt?.scores?.[subjectId]}
+                  onCommit={(raw) => commitThptScore(subjectId, raw)}
+                />
+              </div>
             ))}
           </div>
         )}
@@ -261,7 +311,10 @@ export function SharedProfileEditor({ profile, updateProfile, updateVactTotal }:
           <div className="mt-1.5 space-y-2">
             {[...transcriptSubjectIds].map((subjectId) => (
               <div key={subjectId} className="grid grid-cols-4 items-center gap-2">
-                <span className="text-xs text-muted">{SUBJECT_LABELS[subjectId]}</span>
+                <span className="flex items-center justify-between gap-1 text-xs text-muted">
+                  {SUBJECT_LABELS[subjectId]}
+                  <RemoveSubjectButton label={SUBJECT_LABELS[subjectId]} onRemove={() => removeTranscriptSubject(subjectId)} />
+                </span>
                 {(['grade10', 'grade11', 'grade12'] as const).map((year) => (
                   <BufferedScoreInput
                     key={year}
