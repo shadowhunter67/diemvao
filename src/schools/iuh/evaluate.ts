@@ -5,7 +5,16 @@ import type { SubjectId } from '../../core/subjects';
 import { SUBJECT_LABELS } from '../../core/subjects';
 import { iuhAdmissionMethods } from './methods';
 import { checkIuhStandardThreshold } from './eligibility';
-import { calculateIuhThptTotal, calculateIuhTranscriptTotal, calculateIuhXt1, calculateIuhXt2, calculateIuhCombinedFinalScore } from './calculator';
+import {
+  calculateIuhThptTotal,
+  calculateIuhTranscriptTotal,
+  calculateIuhDgnlConverted,
+  calculateIuhAcademicScore,
+  calculateIuhXt1,
+  calculateIuhXt2,
+  calculateIuhXt3,
+  calculateIuhCombinedFinalScore,
+} from './calculator';
 import { calculateIuhPriority30, lookupIuhStandardPriority30 } from './priority';
 import { calculateIuhReward30, calculateIuhTotalBonus30, type IuhRewardInput } from './bonus';
 import { iuhFormulaEvidence, iuhThresholdEvidence, iuhPriorityEvidence, iuhBonusEvidence } from './evidence';
@@ -43,13 +52,10 @@ function partial(input: { missingInputs: string[]; missingRequirements: MissingR
 }
 
 /**
- * Xét tuyển kết hợp IUH 2026 — thang 30, phạm vi Trụ sở chính TP.HCM/chương trình Chuẩn/KHÔNG có
- * điểm ĐGNL trong hồ sơ (xem `methods.ts`). ĐXT = Max(XT1,XT2) trong phạm vi module (bỏ XT3 — xem
- * `evidence.ts`/`knowledgeGaps.ts:iuh-dgnl-top-score-unresolved`).
- *
- * Nếu `profile.exams?.vact?.total` tồn tại (thí sinh CÓ điểm ĐGNL), hàm này CHỦ ĐỘNG hạ về `partial`
- * — vì ĐXT thật (Max cả XT3) có thể cao hơn giá trị Max(XT1,XT2) tính được ở đây, claim `exact` lúc
- * đó sẽ SAI (undercount), không phải chỉ "chưa đầy đủ".
+ * Xét tuyển kết hợp IUH 2026 — thang 30, phạm vi Trụ sở chính TP.HCM/chương trình Chuẩn. ĐXT =
+ * Max(XT1;XT2;XT3) đầy đủ cả 3 nhánh (batch 2026-08-20 đóng gap ĐTK, xem `calculator.ts:IUH_DTK_2026`)
+ * — nếu thí sinh có điểm ĐGNL (`profile.exams?.vact?.total`), ĐĐGNL được quy đổi và dùng cả trong ĐK
+ * (nhánh XT1) lẫn XT3.
  */
 export function evaluateIuhCombinedAdmission(profile: ApplicantProfile, context: IuhEvaluationContext = {}): AdmissionEvaluation {
   const explanation: CalculationStep[] = [];
@@ -86,14 +92,16 @@ export function evaluateIuhCombinedAdmission(profile: ApplicantProfile, context:
   explanation.push({ id: 'iuh-dtn', label: 'ĐTN — tổng thô 3 môn thi TN THPT', output: thptTotal30, scale: 30, formula: 'MT1 + MT2 + MT3', evidence: iuhFormulaEvidence.evidence });
 
   const vactScore = profile.exams?.vact?.total;
+  let dgnlConverted30: number | undefined;
   if (vactScore !== undefined) {
-    missingRequirements.push({ kind: 'official-rule', code: 'iuh-dgnl-top-score-unresolved', label: 'Hồ sơ có điểm ĐGNL ĐHQG-HCM — cần "điểm thủ khoa" (ĐTK) kỳ thi 2026 để tính nhánh XT3, chưa xác định từ nguồn IUH nên KHÔNG thể khẳng định ĐXT thật (Max cả 3 nhánh).' });
-    return partial({
-      missingInputs: ['ĐTK (điểm thủ khoa kỳ thi ĐGNL ĐHQG-HCM 2026) — dùng để quy đổi ĐĐGNL sang thang 30, chưa xác định từ nguồn IUH.'],
-      missingRequirements,
-      explanation,
-      eligibilityReason: threshold.pass ? threshold.requiredText : threshold.requiredText,
-      evidence: [...iuhThresholdEvidence.evidence, ...iuhFormulaEvidence.evidence],
+    dgnlConverted30 = calculateIuhDgnlConverted(vactScore);
+    explanation.push({
+      id: 'iuh-ddgnl',
+      label: 'ĐĐGNL — quy đổi điểm ĐGNL ĐHQG-HCM sang thang 30',
+      output: dgnlConverted30,
+      scale: 30,
+      formula: `(Kết quả ĐGNL × 30) / ĐTK (ĐTK 2026 = 1139)`,
+      evidence: iuhFormulaEvidence.evidence,
     });
   }
 
@@ -119,12 +127,17 @@ export function evaluateIuhCombinedAdmission(profile: ApplicantProfile, context:
     evidence: iuhBonusEvidence.evidence,
   });
 
+  const academicScore30 = calculateIuhAcademicScore({ thptTotal30, dgnlConverted30 });
+  if (dgnlConverted30 !== undefined && academicScore30 === dgnlConverted30 && dgnlConverted30 !== thptTotal30) {
+    explanation.push({ id: 'iuh-dk', label: 'ĐK — Max(ĐTN, ĐĐGNL)', output: academicScore30, scale: 30, formula: 'Max(ĐTN; ĐĐGNL)', evidence: iuhFormulaEvidence.evidence });
+  }
+
   let xt1: number | undefined;
-  let xt1FormulaNote = 'Cần đủ điểm 3 môn học bạ lớp 12 theo tổ hợp để tính XT1.';
+  const xt1FormulaNote = 'Cần đủ điểm 3 môn học bạ lớp 12 theo tổ hợp để tính XT1.';
   if (missingTranscript.length === 0) {
     const transcriptTotal30 = calculateIuhTranscriptTotal({ subject1Score: transcriptScores[0], subject2Score: transcriptScores[1], subject3Score: transcriptScores[2] });
     explanation.push({ id: 'iuh-dhb', label: 'ĐHB — tổng thô 3 môn học bạ lớp 12', output: transcriptTotal30, scale: 30, formula: 'HB1 + HB2 + HB3', evidence: iuhFormulaEvidence.evidence });
-    xt1 = calculateIuhXt1({ thptTotal30, transcriptTotal30, priority30: priority.effectivePriority30, bonus30 });
+    xt1 = calculateIuhXt1({ academicScore30, transcriptTotal30, priority30: priority.effectivePriority30, bonus30 });
     explanation.push({ id: 'iuh-xt1', label: 'XT1 (kết hợp học bạ + thi TN THPT)', output: xt1, scale: 30, formula: '0.7×ĐK + 0.3×ĐHB + Đ(Kv;Đt) + ĐC', evidence: iuhFormulaEvidence.evidence });
   } else {
     missingRequirements.push(...missingTranscript.map((s) => ({ kind: 'profile-input' as const, code: `iuh-transcript-${s}`, label: `Điểm học bạ lớp 12 môn ${SUBJECT_LABELS[s]} (dùng cho XT1).` })));
@@ -133,8 +146,14 @@ export function evaluateIuhCombinedAdmission(profile: ApplicantProfile, context:
   const xt2 = calculateIuhXt2({ thptTotal30, priority30: priority.effectivePriority30, bonus30 });
   explanation.push({ id: 'iuh-xt2', label: 'XT2 (xét kết quả thi TN THPT)', output: xt2, scale: 30, formula: 'ĐTN + Đ(Kv;Đt) + ĐC', evidence: iuhFormulaEvidence.evidence });
 
-  const finalScore = calculateIuhCombinedFinalScore({ xt1: xt1 ?? xt2, xt2 });
-  explanation.push({ id: 'iuh-final', label: 'ĐXT — Điểm xét tuyển cuối cùng (Max XT1, XT2 — phạm vi không ĐGNL)', output: finalScore, scale: 30, formula: 'Max(XT1;XT2)' });
+  let xt3: number | undefined;
+  if (dgnlConverted30 !== undefined) {
+    xt3 = calculateIuhXt3({ dgnlConverted30, priority30: priority.effectivePriority30, bonus30 });
+    explanation.push({ id: 'iuh-xt3', label: 'XT3 (xét kết quả ĐGNL)', output: xt3, scale: 30, formula: 'ĐĐGNL + Đ(Kv;Đt) + ĐC', evidence: iuhFormulaEvidence.evidence });
+  }
+
+  const finalScore = calculateIuhCombinedFinalScore({ xt1: xt1 ?? -Infinity, xt2, xt3 });
+  explanation.push({ id: 'iuh-final', label: 'ĐXT — Điểm xét tuyển cuối cùng', output: finalScore, scale: 30, formula: 'Max(XT1;XT2;XT3)' });
 
   if (xt1 === undefined) {
     return {

@@ -52,4 +52,18 @@ export const hcmulawSources: HcmulawSource[] = [
     note:
       'Bảng ngưỡng đầu vào theo (ngành × tổ hợp) là 1 ảnh nhúng trong trang (`upload/images/2026/SÀN + QUY ĐỔI/diemsan.png`, 1920×1920) — đọc bằng chrome-devtools take_screenshot trực tiếp trên ảnh gốc (không qua mirror/OCR bên thứ ba), transcribe đủ 11 dòng ngành × 15 cột tổ hợp. Phát hiện: trong phạm vi mỗi ngành, ngưỡng là 1 giá trị DUY NHẤT áp dụng cho MỌI tổ hợp mà ngành đó công bố xét tuyển (không có tổ hợp nào có ngưỡng khác biệt trong cùng 1 ngành) — vì vậy model hoá threshold theo `programId` (không cần theo từng combination code). Ghi chú dưới bảng (verbatim): "Mức điểm ngưỡng đầu vào nêu trên đã bao gồm điểm cộng (trừ ngành Luật, ngành Luật thương mại quốc tế và ngành Quản trị - Luật là không tính điểm cộng), điểm ưu tiên theo khu vực và điểm ưu tiên theo đối tượng chính sách theo quy định của Quy chế tuyển sinh của Bộ Giáo dục và Đào tạo và của Trường."',
   },
+  {
+    id: 'hcmulaw-equivalence-notice-2026',
+    publisher: 'Trường Đại học Luật Thành phố Hồ Chí Minh (HCMULAW)',
+    title:
+      'Thông báo về việc xác định quy tắc quy đổi điểm tương đương các phương thức tuyển sinh (Phương thức 2, 3 và 4) trình độ đại học hình thức đào tạo chính quy năm 2026',
+    url: 'https://ts.hcmulaw.edu.vn/thong-tin-tuyen-sinh-dai-hoc/thong-bao-ve-viec-xac-dinh-quy-tac-quy-doi-diem-tuong-duong-cac-phuong-thuc-tuyen-sinh-phuong-thuc-2-3-va-4-trinh-do-dai-hoc-hinh-thuc-dao-tao-chinh-quy-nam-2026-cua-truong-dai-hoc-luat-thanh-pho-ho-chi-minh-764.html',
+    accessedAt: '2026-08-20',
+    publishedAt: '2026-07-09',
+    sourceType: 'official-school',
+    verification: 'verified',
+    lifecycle: { effectiveYear: 2026, status: 'current' },
+    note:
+      'Batch 2026-08-20 — bảng quy đổi CHƯA TỒN TẠI khi research 2026-08-19/20 (đầu batch) giờ ĐÃ được công bố (kết quả thi TN THPT 2026 đã có). Mục 2.1 (Phương thức 2/3, học bạ↔THPT): công thức y=x-k (KHÔNG phải bách phân vị) + bảng "độ lệch k" theo 16 tổ hợp/nhóm tổ hợp (ảnh `LỆCH K.png`) — nhưng x = "điểm tổ hợp của học bạ cấp THPT (TRUNG BÌNH CỘNG CỦA 6 HỌC KỲ)" — granularity KHÁC `ApplicantProfile.transcript` (chỉ lưu TB năm/3 giá trị, không lưu 6 học kỳ riêng) — CHƯA implement, cùng loại blocker với HUTECH (`schools/hutech/knowledgeGaps.ts:hutech-hocba-semester-granularity-gap`), xem `knowledgeGaps.ts:hcmulaw-hocba-semester-granularity-gap`. Mục 2.2 (Phương thức 4, V-SAT↔THPT): bách phân vị + nội suy tuyến tính, RIÊNG CHO TỪNG MÔN THI (không theo tổ hợp) — 7 ảnh PNG (`toán.png`/`văn.png`/`anh.png`/`lý.png`/`hoá.png`/`sử.png`/`địa.png`, mỗi ảnh 14 khoảng phân vị) đọc trực tiếp qua chrome-devtools screenshot, verify khớp ví dụ minh họa của trang V-SAT.png (Toán x=125 → y≈8,68) — đã implement đầy đủ (`conversionTable.ts`).',
+  },
 ];

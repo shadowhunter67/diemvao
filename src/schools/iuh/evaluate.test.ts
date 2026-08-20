@@ -29,12 +29,23 @@ describe('evaluateIuhCombinedAdmission', () => {
     expect(result.eligibility?.status).toBe('eligible');
   });
 
-  it('downgrades to partial (no score) when the profile has a ĐGNL/V-ACT score — XT3 blocked by unresolved ĐTK', () => {
+  it('computes XT3 (ĐGNL branch) when the profile has a V-ACT score, using ĐTK=1139', () => {
     const profileWithVact: ApplicantProfile = { ...fullProfile, exams: { vact: { total: 950 } } };
     const result = evaluateIuhCombinedAdmission(profileWithVact, { subjectContext });
-    expect(result.confidence).toBe('partial');
-    expect(result.score).toBeUndefined();
-    expect(result.missingRequirements?.some((r) => r.code === 'iuh-dgnl-top-score-unresolved')).toBe(true);
+    expect(result.confidence).toBe('exact-verified');
+    // ĐĐGNL = round2(950*30/1139) = 25.02; XT1=22.91, XT2=24, XT3=25.02 → Max=25.02
+    const ddgnlStep = result.explanation.find((s) => s.id === 'iuh-ddgnl');
+    expect(ddgnlStep?.output).toBe(25.02);
+    const xt3Step = result.explanation.find((s) => s.id === 'iuh-xt3');
+    expect(xt3Step?.output).toBe(25.02);
+    expect(result.score).toEqual({ value: 25.02, scale: 30 });
+  });
+
+  it('a high enough ĐGNL score raises the final score above the no-ĐGNL case (ĐXT = Max includes XT3)', () => {
+    const profileWithHighVact: ApplicantProfile = { ...fullProfile, exams: { vact: { total: 1139 } } };
+    const result = evaluateIuhCombinedAdmission(profileWithHighVact, { subjectContext });
+    // ĐĐGNL = round2(1139*30/1139) = 30.00 (trần tuyệt đối)
+    expect(result.score?.value).toBe(30);
   });
 
   it('returns partial (xt1 not computable, score withheld) when grade-12 transcript scores are missing', () => {

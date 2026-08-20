@@ -55,7 +55,20 @@ export const iuhSources: IuhSource[] = [
     verification: 'verified',
     lifecycle: { effectiveYear: 2026, status: 'current' },
     note:
-      'File PDF 1 trang, tải trực tiếp từ domain gốc (`tuyensinh.iuh.edu.vn`), đọc nguyên văn công thức (không OCR/mirror). Thang điểm 30. "ĐTK: Điểm cao nhất trong kỳ thi đánh giá năng lực (Điểm thủ khoa của kỳ thi đánh giá năng lực năm 2026)" — số liệu CỤ THỂ của ĐTK 2026 KHÔNG xuất hiện trong văn bản này (là biến phụ thuộc kết quả thi, không phải hằng số cố định) — xem knowledgeGaps.ts:iuh-dgnl-top-score-unresolved.',
+      'File PDF 1 trang, tải trực tiếp từ domain gốc (`tuyensinh.iuh.edu.vn`), đọc nguyên văn công thức (không OCR/mirror). Thang điểm 30. "ĐTK: Điểm cao nhất trong kỳ thi đánh giá năng lực (Điểm thủ khoa của kỳ thi đánh giá năng lực năm 2026)" — số liệu CỤ THỂ của ĐTK 2026 KHÔNG xuất hiện trong văn bản này (biến phụ thuộc kết quả thi) nhưng đã xác định được = 1139 qua nguồn `iuh-vact-topscore-2026` (batch 2026-08-20), xem `calculator.ts:IUH_DTK_2026`.',
+  },
+  {
+    id: 'iuh-vact-topscore-2026',
+    publisher: 'ĐHQG-HCM — Trung tâm Khảo thí và Đánh giá Chất lượng Đào tạo',
+    title: 'Thủ khoa Kỳ thi Đánh giá năng lực đợt 2 ĐHQG-HCM 2026 đạt 1.139 điểm',
+    url: 'https://cetqa.vnuhcm.edu.vn/tin-tuc/thu-khoa-ky-thi-danh-gia-nang-luc-dot-2-dhqghcm-dat-1139-diem-p-341.html',
+    accessedAt: '2026-08-20',
+    publishedAt: '2026-06-07',
+    sourceType: 'vnuhcm',
+    verification: 'verified',
+    lifecycle: { effectiveYear: 2026, status: 'current' },
+    note:
+      'Trang chính thức của chính đơn vị tổ chức kỳ thi ĐGNL (Trung tâm Khảo thí và Đánh giá Chất lượng Đào tạo, ĐHQG-HCM, domain `.edu.vn`) — verbatim: "Thí sinh có điểm cao nhất trong Kỳ thi V-ACT đợt 2 là 1.139 điểm". Đợt 2 diễn ra sau đợt 1 (đợt 1 báo chí ghi tối đa 1098) nên 1139 là điểm cao nhất của cả năm 2026, khớp đúng định nghĩa "điểm cao nhất trong kỳ thi... năm 2026" (không tách riêng theo đợt) trong `iuh-formula-2026`. Cross-check độc lập: UFM (`ufm-quality-threshold-2026`, đọc trực tiếp PDF gốc, không liên quan tới nguồn này) dùng CHÍNH số 1139 làm trần "Khoảng 1" trong bảng quy đổi bách phân vị ĐGNL↔thi TN THPT của họ.',
   },
   {
     id: 'iuh-bonus-appendix-2026',

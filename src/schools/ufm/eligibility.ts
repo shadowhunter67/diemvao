@@ -47,8 +47,9 @@ export function checkUfmDgnlThreshold(dgnlScore1200: number, group: UfmThreshold
 }
 
 /** Xét V-SAT 2026 — "ngành thường: 241 điểm trở lên"; "Luật kinh tế: 270 điểm" (10/7/2026). Thang
- * điểm tối đa bài thi V-SAT CHƯA xác định (xem `knowledgeGaps.ts:ufm-vsat-scale-unconfirmed`) —
- * hàm này chỉ so sánh trực tiếp điểm thô với ngưỡng công bố. */
+ * điểm tối đa: tổng 3 môn, mỗi môn tối đa 150, tổng tối đa 450 (verified 2026-08-19). Hàm này chỉ so
+ * sánh trực tiếp điểm thô với ngưỡng công bố — "Điểm xét tuyển" chính thức (dùng để xếp hạng) là kết
+ * quả quy đổi qua `conversionTable.ts`, không phải điểm thô này. */
 export function checkUfmVsatThreshold(vsatScore: number, group: UfmThresholdGroup): UfmEligibilityResult {
   const threshold = VSAT_THRESHOLD[group];
   return {
@@ -58,8 +59,7 @@ export function checkUfmVsatThreshold(vsatScore: number, group: UfmThresholdGrou
 }
 
 /** Xét học bạ THPT — "ngành thường: 18 điểm"; "Luật kinh tế: 18 điểm" (giống nhau, không có tier
- * riêng cho phương thức này). Xuất khẩu để test/document ngưỡng, nhưng `evaluate.ts` KHÔNG gọi hàm
- * này cho kết quả `exact` (xem `knowledgeGaps.ts:ufm-hocba-semester-granularity-gap`). */
+ * riêng cho phương thức này). */
 export function checkUfmHocbaThreshold(transcriptTotal30: number, group: UfmThresholdGroup): UfmEligibilityResult {
   const threshold = HOCBA_THRESHOLD_30[group];
   return {

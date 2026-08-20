@@ -4,22 +4,13 @@ import type { KnowledgeGap } from '../../core/knowledgeStatus';
  * Research 2026-08-19/20 (5 nguồn chính thức, xem `sources.ts`). IUH 2026 chỉ có 1 phương thức có
  * công thức điểm ("xét tuyển kết hợp", công thức Max(XT1,XT2,XT3) — xem `evidence.ts`). Gap dưới đây
  * liệt kê đầy đủ phần CHƯA implement, theo đúng nguyên tắc "ghi rõ phần thiếu, không âm thầm bỏ sót".
+ *
+ * Batch 2026-08-20: đóng gap `iuh-dgnl-top-score-unresolved` (ĐTK 2026 cho nhánh XT3) — verified
+ * ĐTK=1139 qua nguồn chính thức ĐHQG-HCM (`cetqa.vnuhcm.edu.vn`) + cross-check độc lập với UFM (cùng
+ * số 1139 xuất hiện trong bảng quy đổi bách phân vị của họ, đọc trực tiếp PDF gốc) — xem
+ * `calculator.ts:IUH_DTK_2026`. Nhánh XT3 nay tính được đầy đủ.
  */
 export const iuhKnowledgeGaps: KnowledgeGap[] = [
-  {
-    id: 'iuh-dgnl-top-score-unresolved',
-    label:
-      'Nhánh XT3 (ĐĐGNL = Kết quả ĐGNL × 30 / ĐTK) cần ĐTK ("điểm thủ khoa của kỳ thi đánh giá năng lực năm 2026") — số liệu CỤ THỂ này KHÔNG xuất hiện trong văn bản công thức IUH (là biến phụ thuộc kết quả thi, IUH không tự công bố mốc dùng). Báo chí ghi 2 giá trị khác nhau cho 2 đợt thi ĐHQG-HCM 2026 (đợt 1: 1098/1200; đợt 2: 1139/1200) — không rõ IUH neo theo đợt nào hay theo giá trị nào khác (có thể ĐHQG-HCM tự công bố mốc riêng cho mục đích quy đổi liên trường, khác cả 2 số trên).',
-    status: 'incomplete',
-    sourceId: 'iuh-formula-2026',
-    scoreAffecting: true,
-    implemented: false,
-    whyNotInferred:
-      '2 nguồn thứ cấp (báo chí, không phải IUH) nêu số khác nhau cho "thủ khoa" — theo docs/data-maintainer-guide.md, nguồn mâu thuẫn không tìm được nguồn chính thức trực tiếp giải quyết là tín hiệu hạ mức implement, không suy đoán chọn 1 trong 2 số.',
-    impact: 'exact-blocking-for-applicants-with-vact-score',
-    note:
-      'Vì ĐXT = Max(XT1,XT2,XT3), bỏ qua XT3 sẽ khiến kết quả CÓ THỂ bị đánh giá thấp hơn thật đối với thí sinh có điểm ĐGNL — evaluate.ts hạ `confidence` về `partial` (không trả `score`) bất cứ khi nào `profile.exams.vact.total` tồn tại, thay vì âm thầm bỏ qua nhánh XT3 và claim exact sai.',
-  },
   {
     id: 'iuh-bonus-school-lookup-not-modeled',
     label:

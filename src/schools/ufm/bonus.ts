@@ -6,11 +6,10 @@ import { round2 } from '../../core/round2';
  * (`THONGTINTS2026-FINAL_compressed.pdf`, trang 7 mục 5.b, xem `evidence.ts:ufmBonusEvidence`),
  * KHÔNG còn dựa vào mirror chưa verify (research 2026-08-19).
  *
- * Chỉ áp dụng cho phương thức xét THPT (thang 30, native — "Điểm xét tuyển" phương thức 5 dùng
- * thẳng tổng thô, không qua bước "quy đổi thang điểm tương đương"). CHƯA áp dụng cho ĐGNL/V-SAT/học
- * bạ vì "Điểm xét tuyển" 3 phương thức đó (2/3/4) đọc verbatim trong văn bản gốc đều cần quy đổi qua
- * bảng bách phân vị (`khoảng phân vị`) của Bộ GD-ĐT trước khi cộng Điểm cộng — bảng đó CHƯA parse đầy
- * đủ, xem `knowledgeGaps.ts:ufm-final-score-conversion-unparsed`.
+ * Dùng chung cho cả 4 phương thức (mục 4 Thông báo 2639/TB-ĐHTCM: "Điểm xét tuyển (thang 30) =
+ * Điểm quy đổi tương đương + Điểm cộng (nếu có) + Điểm ưu tiên (nếu có)") — với học bạ/ĐGNL/V-SAT,
+ * "Điểm quy đổi tương đương" là `y` sau khi qua bảng bách phân vị (`conversionTable.ts`), KHÔNG phải
+ * điểm thang gốc.
  */
 
 export type UfmNationalAchievementLevel = 'first' | 'second' | 'third';

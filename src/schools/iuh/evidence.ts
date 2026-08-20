@@ -9,15 +9,12 @@ import type { SourcedRule } from '../../core/evidence';
  * XT3 = ĐĐGNL + Đ(Kv;Đt) + ĐC
  * ĐK = Max(ĐTN, ĐĐGNL); ĐĐGNL = (Kết quả ĐGNL × 30) / ĐTK
  *
- * Module này CHỈ implement nhánh XT1/XT2 (không dùng kết quả ĐGNL) — ĐTK ("điểm thủ khoa của kỳ thi
- * đánh giá năng lực năm 2026") là biến phụ thuộc kết quả thi thật, KHÔNG phải hằng số công bố trong
- * văn bản gốc. Research 2026-08-19 tìm được 2 giá trị khác nhau từ báo chí (không phải nguồn IUH):
- * "thủ khoa đợt 1 = 1098/1200" và "thủ khoa đợt 2 = 1139/1200" — không rõ IUH dùng mốc nào (đợt nào,
- * hay giá trị nào khác do chính ĐHQG-HCM công bố chính thức) nên KHÔNG suy đoán số, xem
- * `knowledgeGaps.ts:iuh-dgnl-top-score-unresolved`. Vì Max(XT1,XT2,XT3) là phép chọn giá trị LỚN
- * NHẤT, bỏ qua XT3 khi thí sinh CÓ dùng kết quả ĐGNL sẽ khiến kết quả có thể bị đánh giá THẤP hơn giá
- * trị thật — do đó evaluator hạ về `partial` (không cho `exact-verified`) bất cứ khi nào hồ sơ có điểm
- * ĐGNL, thay vì âm thầm bỏ qua nhánh XT3.
+ * ĐTK ("điểm thủ khoa của kỳ thi đánh giá năng lực năm 2026") là biến phụ thuộc kết quả thi thật,
+ * KHÔNG phải hằng số công bố trong văn bản gốc IUH. Batch 2026-08-20 xác định ĐTK 2026 = 1139 qua
+ * nguồn CHÍNH THỨC `iuh-vact-topscore-2026` (ĐHQG-HCM, đơn vị tổ chức kỳ thi tự công bố "điểm cao
+ * nhất trong Kỳ thi V-ACT đợt 2 là 1.139 điểm") + cross-check độc lập với UFM (dùng chính số 1139 làm
+ * trần bảng quy đổi bách phân vị của họ) — xem `calculator.ts:IUH_DTK_2026`. Cả 3 nhánh XT1/XT2/XT3
+ * nay đều implement đầy đủ.
  */
 export const iuhFormulaEvidence = {
   value: {
@@ -36,6 +33,14 @@ export const iuhFormulaEvidence = {
       effectiveYear: 2026,
       verifiedAt: '2026-08-19',
       note: 'Đọc trực tiếp PDF gốc tại `tuyensinh.iuh.edu.vn` (không OCR/mirror).',
+    },
+    {
+      sourceId: 'iuh-vact-topscore-2026',
+      location: '"Thí sinh có điểm cao nhất trong Kỳ thi V-ACT đợt 2 là 1.139 điểm" — dùng làm ĐTK trong công thức ĐĐGNL.',
+      verification: 'verified' as const,
+      effectiveYear: 2026,
+      verifiedAt: '2026-08-20',
+      note: 'Nguồn của chính đơn vị tổ chức kỳ thi (ĐHQG-HCM), cross-check độc lập với UFM (dùng cùng số 1139 làm trần bảng quy đổi bách phân vị của họ).',
     },
   ],
 } satisfies SourcedRule<{

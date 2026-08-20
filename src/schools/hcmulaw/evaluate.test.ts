@@ -89,14 +89,47 @@ describe('evaluateHcmulawThpt5Admission', () => {
   });
 });
 
-describe('evaluateHcmulawCombined2Admission / evaluateHcmulawPriorityHighschool3Admission / evaluateHcmulawVsat4Admission — always unavailable', () => {
-  it('never returns a score and reports the pending equivalence-table gap', () => {
-    for (const evaluate of [evaluateHcmulawCombined2Admission, evaluateHcmulawPriorityHighschool3Admission, evaluateHcmulawVsat4Admission]) {
+describe('evaluateHcmulawCombined2Admission / evaluateHcmulawPriorityHighschool3Admission — always unavailable (6-semester granularity gap)', () => {
+  it('never returns a score and reports the hocba-granularity gap', () => {
+    for (const evaluate of [evaluateHcmulawCombined2Admission, evaluateHcmulawPriorityHighschool3Admission]) {
       const result = evaluate();
       expect(result.confidence).toBe('unavailable');
       expect(result.score).toBeUndefined();
       expect(result.eligibility?.status).toBe('unknown');
-      expect(result.missingRequirements?.some((r) => r.code === 'hcmulaw-equivalence-table-not-yet-published')).toBe(true);
+      expect(result.missingRequirements?.some((r) => r.code === 'hcmulaw-hocba-semester-granularity-gap')).toBe(true);
     }
+  });
+});
+
+describe('evaluateHcmulawVsat4Admission — quy đổi riêng từng môn (mục 2.2)', () => {
+  it('returns partial when no program is chosen', () => {
+    const result = evaluateHcmulawVsat4Admission({});
+    expect(result.confidence).toBe('partial');
+    expect(result.missingRequirements?.some((r) => r.code === 'hcmulaw-program')).toBe(true);
+  });
+
+  it('reports missing V-SAT subject scores', () => {
+    const result = evaluateHcmulawVsat4Admission({}, { programId: '7340101', combinationCode: 'A00' });
+    expect(result.confidence).toBe('partial');
+    expect(result.missingRequirements?.some((r) => r.code === 'hcmulaw-vsat-math')).toBe(true);
+  });
+
+  it('computes an exact score converting each subject independently, using boundary values so y=d exactly', () => {
+    // A00 = math/physics/chemistry, all 3 have published V-SAT tables.
+    // math x=129.5 (band max) -> y=9; physics x=92 (band max) -> y=6.25; chemistry x=136.5 (band max) -> y=9.25
+    const result = evaluateHcmulawVsat4Admission(
+      {},
+      { programId: '7340101', combinationCode: 'A00', vsatScoresBySubject: { math: 129.5, physics: 92, chemistry: 136.5 } }
+    );
+    expect(result.confidence).toBe('exact-verified');
+    const groupStep = result.explanation.find((s) => s.id === 'hcmulaw-vsat-subject-group');
+    expect(groupStep?.output).toBe(24.5); // 9 + 6.25 + 9.25
+    expect(result.score).toEqual({ value: 24.5, scale: 30 });
+    expect(result.eligibility?.status).toBe('eligible'); // threshold 17/30 for Quản trị kinh doanh
+  });
+
+  it('flags a combination with a subject that has no published V-SAT table (informatics, X26)', () => {
+    const result = evaluateHcmulawVsat4Admission({}, { programId: '7340101', combinationCode: 'X26' });
+    expect(result.missingRequirements?.some((r) => r.code === 'hcmulaw-vsat-subject-table-missing')).toBe(true);
   });
 });

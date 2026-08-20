@@ -3,6 +3,8 @@ import type { ApplicantProfile } from '../core/applicantProfile';
 import type { ApplicantProfileContextValue } from '../core/applicantProfileContextCore';
 import type { SubjectId } from '../core/subjects';
 import { COMMON_SUBJECT_COMBINATIONS, SUBJECT_LABELS } from '../core/subjects';
+
+const ALL_SUBJECT_IDS = Object.keys(SUBJECT_LABELS) as SubjectId[];
 import { ScoreInput } from './ScoreInput';
 
 interface SharedProfileEditorProps {
@@ -81,12 +83,56 @@ function BufferedScoreInput({
 }
 
 /**
- * Sửa trực tiếp các giá trị hồ sơ điểm dùng chung ĐÃ CÓ (ĐGNL tổng, từng môn THPT/học bạ đã
- * nhập) — không phải nơi thêm môn mới lần đầu (vẫn làm qua form riêng từng trường, vì mỗi trường
- * cần ngữ cảnh riêng như tổ hợp môn).
+ * Nhập/sửa trực tiếp hồ sơ điểm dùng chung (ĐGNL tổng, môn THPT/học bạ, kể cả thêm môn mới lần
+ * đầu qua AddSubjectPicker) — dùng được ngay từ landing page, không bắt buộc phải mở một trường
+ * cụ thể trước. Compare (`MultiSchoolComparisonPage`) tự báo thiếu input theo từng trường.
  */
+/** Môn thêm thủ công nhưng chưa gõ điểm — vẫn phải hiện ô nhập dù `ApplicantProfile` chưa có giá
+ * trị (missing ≠ 0, nên không thể "thêm môn" bằng cách ghi placeholder 0 vào profile). */
+function AddSubjectPicker({
+  availableIds,
+  onAdd,
+}: {
+  availableIds: SubjectId[];
+  onAdd: (subjectId: SubjectId) => void;
+}) {
+  const [selected, setSelected] = useState('');
+  if (availableIds.length === 0) return null;
+  return (
+    <div className="mt-1.5 flex items-center gap-2">
+      <select
+        value={selected}
+        onChange={(e) => setSelected(e.target.value)}
+        className="h-9 rounded-lg border border-ink/10 bg-surface px-2.5 text-xs text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+      >
+        <option value="">+ Thêm môn...</option>
+        {availableIds.map((subjectId) => (
+          <option key={subjectId} value={subjectId}>
+            {SUBJECT_LABELS[subjectId]}
+          </option>
+        ))}
+      </select>
+      <button
+        type="button"
+        disabled={selected === ''}
+        onClick={() => {
+          if (selected === '') return;
+          onAdd(selected as SubjectId);
+          setSelected('');
+        }}
+        className="rounded-md border border-accent/30 bg-accent/10 px-2.5 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        Thêm
+      </button>
+    </div>
+  );
+}
+
 export function SharedProfileEditor({ profile, updateProfile, updateVactTotal }: SharedProfileEditorProps) {
   const [componentsClearedNotice, setComponentsClearedNotice] = useState(false);
+  // Môn user vừa bấm "Thêm" nhưng chưa gõ điểm nên chưa có trong profile — vẫn phải hiện ô nhập.
+  const [pendingThptSubjects, setPendingThptSubjects] = useState<SubjectId[]>([]);
+  const [pendingTranscriptSubjects, setPendingTranscriptSubjects] = useState<SubjectId[]>([]);
 
   function commitVactTotal(raw: string) {
     const value = parseScore(raw);
@@ -113,6 +159,10 @@ export function SharedProfileEditor({ profile, updateProfile, updateVactTotal }:
 
   function commitPreferredCombination(combinationId: string) {
     updateProfile((current) => ({ ...current, preferredCombinationId: combinationId || undefined }));
+    const combination = COMMON_SUBJECT_COMBINATIONS.find((c) => c.id === combinationId);
+    if (!combination) return;
+    // Chọn tổ hợp → tự hiện luôn ô nhập điểm cho đúng 3 môn của tổ hợp đó (không ghi đè môn đã có).
+    setPendingThptSubjects((current) => [...new Set([...current, ...combination.subjects])]);
   }
 
   function commitPriorityRegion(region: string) {
@@ -128,11 +178,12 @@ export function SharedProfileEditor({ profile, updateProfile, updateVactTotal }:
     updateProfile((current) => ({ ...current, certificates: { ...current.certificates, [key]: value } }));
   }
 
-  const thptEntries = Object.entries(profile.thpt?.scores ?? {}).filter(
-    (entry): entry is [SubjectId, number] => entry[1] !== undefined
-  );
+  const thptSubjectIds = new Set<SubjectId>(pendingThptSubjects);
+  for (const [subjectId, value] of Object.entries(profile.thpt?.scores ?? {})) {
+    if (value !== undefined) thptSubjectIds.add(subjectId as SubjectId);
+  }
 
-  const transcriptSubjectIds = new Set<SubjectId>();
+  const transcriptSubjectIds = new Set<SubjectId>(pendingTranscriptSubjects);
   for (const year of [profile.transcript?.grade10, profile.transcript?.grade11, profile.transcript?.grade12]) {
     if (!year) continue;
     for (const [subjectId, value] of Object.entries(year)) {
@@ -176,32 +227,37 @@ export function SharedProfileEditor({ profile, updateProfile, updateVactTotal }:
           ))}
         </select>
         <p className="mt-1 text-xs text-muted">
-          Chỉ để tham khảo nhanh — không tự áp dụng cho trường nào. Nếu một trường tính điểm không khớp tổ hợp bạn chọn ở
-          đây, vào trang chi tiết của trường đó (bấm "Xem hồ sơ ở tất cả trường" bên dưới rồi mở từng trường) để chọn/sửa
-          lại tổ hợp riêng cho trường đó.
+          Chọn tổ hợp sẽ tự hiện ô nhập điểm đúng 3 môn bên dưới — hoặc bỏ qua bước này, tự thêm từng môn ở mục "Điểm
+          THPT". Đây chỉ là gợi ý nhanh, không tự áp dụng cho trường nào; nếu một trường tính điểm không khớp tổ hợp
+          bạn chọn ở đây, vào trang chi tiết của trường đó (bấm "Xem hồ sơ ở tất cả trường" bên dưới rồi mở từng
+          trường) để chọn/sửa lại tổ hợp riêng cho trường đó.
         </p>
       </div>
 
-      {thptEntries.length > 0 && (
-        <div>
-          <p className="text-xs font-medium text-ink">Điểm THPT</p>
+      <div>
+        <p className="text-xs font-medium text-ink">Điểm THPT</p>
+        {thptSubjectIds.size > 0 && (
           <div className="mt-1.5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {thptEntries.map(([subjectId, score]) => (
+            {[...thptSubjectIds].map((subjectId) => (
               <BufferedScoreInput
                 key={subjectId}
                 id={`shared-profile-thpt-${subjectId}`}
                 label={SUBJECT_LABELS[subjectId]}
-                committedValue={score}
+                committedValue={profile.thpt?.scores?.[subjectId]}
                 onCommit={(raw) => commitThptScore(subjectId, raw)}
               />
             ))}
           </div>
-        </div>
-      )}
+        )}
+        <AddSubjectPicker
+          availableIds={ALL_SUBJECT_IDS.filter((id) => !thptSubjectIds.has(id))}
+          onAdd={(subjectId) => setPendingThptSubjects((current) => [...current, subjectId])}
+        />
+      </div>
 
-      {transcriptSubjectIds.size > 0 && (
-        <div>
-          <p className="text-xs font-medium text-ink">Học bạ</p>
+      <div>
+        <p className="text-xs font-medium text-ink">Học bạ</p>
+        {transcriptSubjectIds.size > 0 && (
           <div className="mt-1.5 space-y-2">
             {[...transcriptSubjectIds].map((subjectId) => (
               <div key={subjectId} className="grid grid-cols-4 items-center gap-2">
@@ -219,8 +275,12 @@ export function SharedProfileEditor({ profile, updateProfile, updateVactTotal }:
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+        <AddSubjectPicker
+          availableIds={ALL_SUBJECT_IDS.filter((id) => !transcriptSubjectIds.has(id))}
+          onAdd={(subjectId) => setPendingTranscriptSubjects((current) => [...current, subjectId])}
+        />
+      </div>
 
       <div>
         <p className="text-xs font-medium text-ink">Điểm ưu tiên khu vực/đối tượng</p>
@@ -280,7 +340,7 @@ export function SharedProfileEditor({ profile, updateProfile, updateVactTotal }:
         </div>
       </div>
 
-      <p className="text-xs text-muted">Sửa xong bấm ra ngoài ô là tự lưu. Thêm môn THPT/học bạ mới lần đầu thì nhập ở trang trường tương ứng.</p>
+      <p className="text-xs text-muted">Sửa xong bấm ra ngoài ô là tự lưu.</p>
     </div>
   );
 }

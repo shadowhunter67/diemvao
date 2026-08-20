@@ -22,6 +22,27 @@ export const hcmulawFormulaEvidence = {
   ],
 } satisfies SourcedRule<{ subjectGroupDescription: string; bonusApplicability: string }>;
 
+/** Phương thức 4 (V-SAT) — bảng quy đổi bách phân vị RIÊNG TỪNG MÔN THI (mục 2.2, `conversionTable.ts`),
+ * verified khớp ví dụ minh họa chính thức (Toán x=125 → y≈8,68). */
+export const hcmulawVsatConversionEvidence = {
+  value: {
+    formula: 'y = c + (x-a)(d-c)/(b-a), làm tròn 2 chữ số thập phân, mỗi môn quy đổi độc lập (thang 150→thang 10)',
+    subjectsCovered: ['math', 'literature', 'english', 'physics', 'chemistry', 'history', 'geography'],
+  },
+  evidence: [
+    {
+      sourceId: 'hcmulaw-equivalence-notice-2026',
+      location:
+        'Mục 2.2 "Quy đổi điểm thi V-SAT tương đương với điểm thi tốt nghiệp THPT năm 2026 theo từng môn thi" + 7 ảnh "Khung quy đổi điểm thi V-SAT..." (mỗi môn Toán/Ngữ văn/Tiếng Anh/Vật lý/Hoá học/Lịch sử/Địa lý, 14 khoảng phân vị/môn) + ví dụ minh họa (Toán x=125, khoảng 10%, a=122,5 b=129,5 c=8,5 d=9,0 → y≈8,68).',
+      verification: 'verified' as const,
+      effectiveYear: 2026,
+      publishedAt: '2026-07-09',
+      verifiedAt: '2026-08-20',
+      note: 'Đọc trực tiếp 7 ảnh PNG gốc qua chrome-devtools screenshot (không OCR/mirror) — mỗi dòng đối chiếu 2 lần với ảnh gốc; công thức nội suy verify bằng cách tái tạo đúng ví dụ minh họa của văn bản.',
+    },
+  ],
+} satisfies SourcedRule<{ formula: string; subjectsCovered: string[] }>;
+
 /** Ngưỡng đầu vào theo ngành (thang 30) — bảng ảnh gốc, transcribe đủ 11 ngành, xem
  * `programs.ts`/`sources.ts:hcmulaw-quality-threshold-2026`. */
 export const hcmulawThresholdEvidence = {
@@ -50,7 +71,7 @@ export const hcmulawThresholdEvidence = {
       publishedAt: '2026-07-09',
       verifiedAt: '2026-08-20',
       note:
-        'Ghi chú gốc dưới bảng: ngưỡng đã bao gồm điểm ưu tiên + điểm cộng (trừ Luật/Luật thương mại quốc tế/Quản trị - Luật không tính điểm cộng). Trong phạm vi module này (chỉ Phương thức 5, vốn không có điểm cộng) sự khác biệt này không ảnh hưởng kết quả so ngưỡng.',
+        'Ghi chú gốc dưới bảng: ngưỡng đã bao gồm điểm ưu tiên + điểm cộng (trừ Luật/Luật thương mại quốc tế/Quản trị - Luật không tính điểm cộng). Trong phạm vi module này (Phương thức 5 và 4, cả 2 đều KHÔNG có điểm cộng) sự khác biệt này không ảnh hưởng kết quả so ngưỡng — ngưỡng dùng chung `checkHcmulawThreshold` cho cả 2 phương thức (method-agnostic, xem `eligibility.ts`).',
     },
   ],
 } satisfies SourcedRule<{ thresholds30: Record<string, number> }>;

@@ -26,8 +26,8 @@ Mỗi công thức đều gắn nguồn dữ liệu chính thức cụ thể. Ph
 
 | Trường | Trạng thái |
 |---|---|
-| HCMUT, UEH, UEL, HCMUS, USSH, IU, TDTU, HUFLIT, UMP | ✅ Tính điểm chính xác |
-| HUTECH, UFM, IUH, HCMULAW | ✅ Chính xác một phần phương thức, phần còn lại đang bổ sung |
+| HCMUT, UEH, UEL, HCMUS, USSH, IU, TDTU, HUFLIT, UMP, UFM, IUH | ✅ Tính điểm chính xác |
+| HUTECH, HCMULAW | ✅ Chính xác một phần phương thức, phần còn lại đang bổ sung |
 | UIT, UHS, AGU, HCMUE, HCMUTE, VLU | 🟡 Kiểm tra điều kiện/ngưỡng, chưa có calculator chính xác |
 
 "Chính xác" nghĩa là công thức, ngưỡng, điểm cộng và điểm ưu tiên đều có nguồn chính thức xác minh trong phạm vi đã công bố — một số trường chỉ chính xác trong phạm vi cụ thể (ví dụ thí sinh không có thành tích cộng điểm). Chi tiết từng trường, nguồn dữ liệu, và giới hạn hiện tại xem [docs/admission-research-2026.md](docs/admission-research-2026.md).

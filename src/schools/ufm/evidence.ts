@@ -5,7 +5,7 @@ export const ufmFormulaEvidence = {
     thptDescription:
       'tổng thô 3 môn thi TN THPT 2026 theo tổ hợp xét tuyển (thang 30), phạm vi chương trình Chuẩn — hệ số Toán×2 CHỈ áp dụng chương trình Tiếng Anh toàn phần (định hướng quốc tế), KHÔNG áp dụng chương trình Chuẩn, xác nhận verbatim 2026-08-19 (xem knowledgeGaps.ts)',
     dgnlDescription:
-      'tổng điểm thô bài thi ĐGNL ĐHQG TP.HCM 2026 (thang 1200), đọc từ hồ sơ điểm dùng chung — CHỈ dùng để so ngưỡng đầu vào; "Điểm xét tuyển" chính thức (dùng xếp hạng trúng tuyển) theo văn bản gốc là "Điểm kết quả kỳ thi đánh giá năng lực quy đổi" sang thang 30 qua bảng bách phân vị Bộ GD-ĐT, CHƯA parse (xem knowledgeGaps.ts:ufm-final-score-conversion-unparsed) — module KHÔNG claim exact cho phương thức này.',
+      'tổng điểm thô bài thi ĐGNL ĐHQG TP.HCM 2026 (thang 1200), đọc từ hồ sơ điểm dùng chung — dùng để so ngưỡng đầu vào, sau đó quy đổi sang thang 30 qua bảng bách phân vị chính thức (`conversionTable.ts`, xem ufmConversionEvidence) trước khi cộng ưu tiên/điểm cộng ra "Điểm xét tuyển".',
   },
   evidence: [
     {
@@ -94,6 +94,31 @@ export const ufmThresholdEvidence = {
   lawEconomicsMathMinRaw: number;
   lawEconomicsSubjectFloor: number;
 }>;
+
+/** "Khung quy đổi tương đương điểm" (mục 3+3.4, Thông báo 2639/TB-ĐHTCM) dùng cho học bạ/ĐGNL/V-SAT
+ * — bảng bách phân vị + công thức nội suy tuyến tính, verified TRỰC TIẾP qua chrome-devtools
+ * screenshot toàn bộ 8 trang PDF gốc tại `login.ufm.edu.vn` (2026-08-20, có dấu/chữ ký Lê Trung Đạo
+ * — Phó Hiệu trưởng). Đối chiếu khớp 100% ví dụ minh họa chính thức của văn bản (V-SAT x=360,00 →
+ * y=23,98, xem `conversionTable.test.ts`). */
+export const ufmConversionEvidence = {
+  value: {
+    formula: 'y = c + (x-a)(d-c)/(b-a), làm tròn 2 chữ số thập phân',
+    bandsCount: { hocba: 6, dgnl: 6, vsat: 6 },
+  },
+  evidence: [
+    {
+      sourceId: 'ufm-quality-threshold-2026',
+      location:
+        'Mục 3.1 (học bạ↔thi TN THPT, trang 4-5), 3.2 (ĐGNL↔thi TN THPT, trang 5), 3.3 (V-SAT↔thi TN THPT, trang 5-6), 3.4 (công thức nội suy + ví dụ minh họa, trang 6-7), mục 4 (công thức tính Điểm xét tuyển = Điểm quy đổi + Điểm cộng + Điểm ưu tiên, trang 7) của "Thông báo 2639/TB-ĐHTCM ngày 10/7/2026".',
+      verification: 'verified' as const,
+      effectiveYear: 2026,
+      publishedAt: '2026-07-10',
+      verifiedAt: '2026-08-20',
+      note:
+        'Đọc TOÀN BỘ 8 trang PDF gốc qua chrome-devtools (điều hướng trực tiếp URL PDF tại login.ufm.edu.vn, screenshot từng trang ở zoom cao, KHÔNG qua OCR/mirror) — đóng dứt điểm knowledgeGaps.ts:ufm-final-score-conversion-unparsed (trước đó chỉ đọc được vài dòng đầu bảng 3.1). Transcribe từng dòng đối chiếu 2 lần với ảnh gốc; verify công thức nội suy bằng cách tái tạo đúng ví dụ minh họa của văn bản (V-SAT 360,00đ, khoảng 3, a=356,5 b=377,5 c=23,75 d=25,10 → y=23,98).',
+    },
+  ],
+} satisfies SourcedRule<{ formula: string; bandsCount: { hocba: number; dgnl: number; vsat: number } }>;
 
 /** Bảng điểm ưu tiên khu vực/đối tượng chuẩn quốc gia (Quy chế tuyển sinh Bộ GDĐT) — UFM KHÔNG tự
  * công bố bảng số riêng ("áp dụng điểm ưu tiên đối tượng, khu vực... theo quy định"), dùng chung

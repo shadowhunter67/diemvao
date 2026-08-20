@@ -98,75 +98,204 @@ export const ufmThptGoldenCases: GoldenAdmissionCase<
   },
 ];
 
+/**
+ * Batch 2026-08-20: "Điểm xét tuyển" ĐGNL/học bạ/V-SAT viết lại HOÀN TOÀN theo văn bản gốc đúng —
+ * quy đổi qua bảng bách phân vị (mục 3, `conversionTable.ts`) sang thang 30 TRƯỚC khi cộng ưu
+ * tiên/điểm cộng, KHÔNG cộng thẳng thang gốc như fixture batch trước (đã SAI, xem lịch sử ở
+ * `docs/CHANGELOG.md`). Case dưới đây cố tình chọn điểm thô TRÙNG BIÊN khoảng (min/max) để expected
+ * là giá trị `thpt30Min`/`thpt30Max` đọc thẳng từ bảng — tránh rủi ro sai số nội suy tay khi viết
+ * fixture. Case nội suy giữa-khoảng dùng ĐÚNG ví dụ minh họa chính thức của văn bản (V-SAT, xem
+ * `ufmVsatGoldenCases`) — không tự bịa case nội suy khác.
+ */
 export const ufmDgnlGoldenCases: GoldenAdmissionCase<
   { dgnlScore1200: number; priorityRegion?: string; priorityCategory?: string; group: UfmThresholdGroup },
-  { finalScore: number; eligible: boolean }
+  { convertedY30?: number; finalScore?: number; eligible: boolean }
 >[] = [
   {
-    id: 'ufm-2026-dgnl-standard-normal',
+    id: 'ufm-2026-dgnl-standard-boundary-floor',
     schoolId: 'ufm',
     methodId: 'ufm-dgnl-2026',
     year: 2026,
     tier: 'C',
     sourceId: 'ufm-quality-threshold-2026',
-    sourceNote: 'Ngưỡng nhóm "chuẩn" (ĐGNL) = 657/1200; ưu tiên KV2 = 0,25×40 = 10 (thang 1200).',
-    derivation: `
-      dgnlScore1200 = 700 (>=657 → eligible, nhóm standard)
-      standardPriority30 = KV2 = 0.25 → standardPriority1200 = 0.25×40 = 10
-      cappedScore=700 < 900 → KHÔNG giảm → effectivePriority1200 = 10
-      finalScore = round(700+10) = 710.00
-    `,
-    input: { dgnlScore1200: 700, priorityRegion: 'KV2', group: 'standard' },
-    expected: { finalScore: 710.0, eligible: true },
-  },
-  {
-    id: 'ufm-2026-dgnl-standard-boundary',
-    schoolId: 'ufm',
-    methodId: 'ufm-dgnl-2026',
-    year: 2026,
-    tier: 'C',
-    sourceId: 'ufm-quality-threshold-2026',
-    sourceNote: 'Ngưỡng nhóm "chuẩn" (ĐGNL) = 657/1200 — case này ĐÚNG bằng ngưỡng.',
+    sourceNote: 'Sàn Khoảng 6 (mục 3.2) = 657 = đúng ngưỡng đầu vào nhóm chuẩn — y đọc thẳng từ bảng = 16,00.',
     derivation: `
       dgnlScore1200 = 657 (== 657 → eligible, nhóm standard)
-      không khai KV/ĐT → effectivePriority1200 = 0
-      finalScore = round(657+0) = 657.00
+      y = quy đổi qua bảng (mục 3.2, Khoảng 6, x=min) = 16.00 (đọc thẳng, không nội suy)
+      không khai KV/ĐT → effectivePriority30 = 0
+      finalScore = round(min(30, 16.00+0)) = 16.00
     `,
-    boundaryNote: 'Ngưỡng đầu vào đúng bằng điểm.',
+    boundaryNote: 'Ngưỡng đầu vào đúng bằng sàn khoảng thấp nhất của bảng quy đổi.',
     input: { dgnlScore1200: 657, group: 'standard' },
-    expected: { finalScore: 657.0, eligible: true },
+    expected: { convertedY30: 16.0, finalScore: 16.0, eligible: true },
   },
   {
-    id: 'ufm-2026-dgnl-law-economics-below-threshold',
+    id: 'ufm-2026-dgnl-below-threshold-no-score',
     schoolId: 'ufm',
     methodId: 'ufm-dgnl-2026',
     year: 2026,
     tier: 'C',
     sourceId: 'ufm-quality-threshold-2026',
-    sourceNote: 'Ngưỡng nhóm "Luật kinh tế" (ĐGNL) = 720/1200 — case này DƯỚI ngưỡng 1 điểm.',
+    sourceNote: 'Ngưỡng nhóm "Luật kinh tế" (ĐGNL) = 720/1200 — case này DƯỚI ngưỡng 1 điểm, KHÔNG có Điểm xét tuyển.',
     derivation: `
       dgnlScore1200 = 719 (< 720 → ineligible, nhóm law-economics)
-      finalScore = round(719+0) = 719.00
+      Dưới ngưỡng đầu vào → KHÔNG tính "Điểm xét tuyển" (evaluate.ts không trả score khi ineligible)
     `,
     input: { dgnlScore1200: 719, group: 'law-economics' },
-    expected: { finalScore: 719.0, eligible: false },
+    expected: { eligible: false },
   },
   {
-    id: 'ufm-2026-dgnl-priority-reduction-boundary',
+    id: 'ufm-2026-dgnl-priority-reduction-at-ceiling',
     schoolId: 'ufm',
     methodId: 'ufm-dgnl-2026',
     year: 2026,
     tier: 'C',
     sourceId: 'ufm-admission-plan-2026',
-    sourceNote: 'Giảm điểm ưu tiên khi ĐGNL >= 900/1200 (bảng chuẩn quốc gia, cross-checked).',
+    sourceNote: 'Trần Khoảng 1 (mục 3.2) = 1139 → y=30,00 = trần tuyệt đối thang điểm; giảm ưu tiên tại y>=22,5 áp dụng ngay (bảng chuẩn quốc gia, cross-checked).',
     derivation: `
-      dgnlScore1200 = 950 (>=657 → eligible, nhóm standard)
-      standardPriority30 = KV1 = 0.75 → standardPriority1200 = 0.75×40 = 30
-      cappedScore=950 >= 900 → GIẢM: effectivePriority1200 = round(((1200-950)/300)×30) = round((250/300)×30) = round(25.00) = 25.00
-      finalScore = round(950+25.00) = 975.00
+      dgnlScore1200 = 1139 (trần bảng công bố, >=657 → eligible, nhóm standard)
+      y = quy đổi qua bảng (mục 3.2, Khoảng 1, x=max) = 30.00 (đọc thẳng)
+      standardPriority30 = KV1 = 0.75
+      cappedTotal=30.00 >= 22.5 → GIẢM: effectivePriority30 = round(((30-30)/7.5)×0.75) = 0.00
+      finalScore = round(min(30, 30.00+0.00)) = 30.00
     `,
-    boundaryNote: 'Priority reduction threshold (900/1200) vừa bị vượt.',
-    input: { dgnlScore1200: 950, priorityRegion: 'KV1', group: 'standard' },
-    expected: { finalScore: 975.0, eligible: true },
+    boundaryNote: 'y chạm trần 30 → điểm ưu tiên giảm về đúng 0 (không thể vượt trần thang điểm).',
+    input: { dgnlScore1200: 1139, priorityRegion: 'KV1', group: 'standard' },
+    expected: { convertedY30: 30.0, finalScore: 30.0, eligible: true },
+  },
+  {
+    id: 'ufm-2026-dgnl-clamped-above-table-ceiling',
+    schoolId: 'ufm',
+    methodId: 'ufm-dgnl-2026',
+    year: 2026,
+    tier: 'C',
+    sourceId: 'ufm-quality-threshold-2026',
+    sourceNote: 'ĐGNL cho phép điểm tới 1200 (trần lý thuyết) nhưng bảng quy đổi công bố chỉ tới 1139 (điểm cao nhất thực tế kỳ thi) — điểm vượt 1139 được kẹp về y=30 (xem conversionTable.ts).',
+    derivation: `
+      dgnlScore1200 = 1200 (trần lý thuyết, vượt trần bảng công bố 1139)
+      y = kẹp về 30.00 (không suy diễn công thức nội suy ngoài phạm vi bảng)
+      finalScore = round(min(30, 30.00+0)) = 30.00
+    `,
+    input: { dgnlScore1200: 1200, group: 'standard' },
+    expected: { convertedY30: 30.0, finalScore: 30.0, eligible: true },
+  },
+];
+
+/** Mục 3.1 — học bạ. Cùng cách chọn case (trùng biên khoảng) như `ufmDgnlGoldenCases`, xem comment ở đó. */
+export const ufmHocbaGoldenCases: GoldenAdmissionCase<
+  UfmThreeSubjectInput & { priorityRegion?: string; priorityCategory?: string; group: UfmThresholdGroup },
+  { raw30: number; convertedY30?: number; finalScore?: number; eligible: boolean }
+>[] = [
+  {
+    id: 'ufm-2026-hocba-standard-boundary-floor',
+    schoolId: 'ufm',
+    methodId: 'ufm-hocba-2026',
+    year: 2026,
+    tier: 'C',
+    sourceId: 'ufm-quality-threshold-2026',
+    sourceNote: 'raw30=18,00 = đúng ngưỡng đầu vào = sàn Khoảng 6 (mục 3.1) → y đọc thẳng từ bảng = 16,00.',
+    derivation: `
+      raw30 = 6+6+6 = 18.00 (== 18 → eligible, nhóm standard)
+      y = quy đổi qua bảng (mục 3.1, Khoảng 6, x=min) = 16.00 (đọc thẳng)
+      không khai KV/ĐT → effectivePriority30 = 0
+      finalScore = round(min(30, 16.00+0)) = 16.00
+    `,
+    boundaryNote: 'Ngưỡng đầu vào đúng bằng sàn khoảng thấp nhất của bảng quy đổi.',
+    input: { subject1Score: 6, subject2Score: 6, subject3Score: 6, group: 'standard' },
+    expected: { raw30: 18.0, convertedY30: 16.0, finalScore: 16.0, eligible: true },
+  },
+  {
+    id: 'ufm-2026-hocba-below-threshold-no-score',
+    schoolId: 'ufm',
+    methodId: 'ufm-hocba-2026',
+    year: 2026,
+    tier: 'C',
+    sourceId: 'ufm-quality-threshold-2026',
+    sourceNote: 'raw30=17,99 < 18 → ineligible, KHÔNG có Điểm xét tuyển.',
+    derivation: `
+      raw30 = 6+6+5.99 = 17.99 (< 18 → ineligible, nhóm standard)
+      Dưới ngưỡng đầu vào → KHÔNG tính "Điểm xét tuyển"
+    `,
+    input: { subject1Score: 6, subject2Score: 6, subject3Score: 5.99, group: 'standard' },
+    expected: { raw30: 17.99, eligible: false },
+  },
+  {
+    id: 'ufm-2026-hocba-ceiling-priority-reduced-to-zero',
+    schoolId: 'ufm',
+    methodId: 'ufm-hocba-2026',
+    year: 2026,
+    tier: 'C',
+    sourceId: 'ufm-admission-plan-2026',
+    sourceNote: 'raw30=30,00 (điểm tuyệt đối tối đa mỗi môn thang 10) = trần Khoảng 1 → y=30,00, ưu tiên giảm về 0.',
+    derivation: `
+      raw30 = 10+10+10 = 30.00 (>=18 → eligible, nhóm standard)
+      y = quy đổi qua bảng (mục 3.1, Khoảng 1, x=max) = 30.00 (đọc thẳng)
+      standardPriority30 = KV1 = 0.75
+      cappedTotal=30.00 >= 22.5 → GIẢM: effectivePriority30 = round(((30-30)/7.5)×0.75) = 0.00
+      finalScore = round(min(30, 30.00+0.00)) = 30.00
+    `,
+    boundaryNote: 'y chạm trần 30 → điểm ưu tiên giảm về đúng 0.',
+    input: { subject1Score: 10, subject2Score: 10, subject3Score: 10, priorityRegion: 'KV1', group: 'standard' },
+    expected: { raw30: 30.0, convertedY30: 30.0, finalScore: 30.0, eligible: true },
+  },
+];
+
+/**
+ * Mục 3.3 — V-SAT. `ufm-2026-vsat-official-worked-example` là case DUY NHẤT trong toàn bộ UFM golden
+ * suite lấy trực tiếp từ ví dụ minh họa CHÍNH THỨC của văn bản gốc (trang 7, mục 3.4) — Tier cao hơn
+ * các case còn lại (tự thiết kế theo biên bảng).
+ */
+export const ufmVsatGoldenCases: GoldenAdmissionCase<
+  { vsatScore: number; priorityRegion?: string; priorityCategory?: string; group: UfmThresholdGroup },
+  { convertedY30?: number; finalScore?: number; eligible: boolean }
+>[] = [
+  {
+    id: 'ufm-2026-vsat-official-worked-example',
+    schoolId: 'ufm',
+    methodId: 'ufm-vsat-2026',
+    year: 2026,
+    tier: 'A',
+    sourceId: 'ufm-quality-threshold-2026',
+    sourceNote: 'Ví dụ minh họa CHÍNH THỨC của văn bản (mục 3.4, trang 7): V-SAT 360,00đ, Khoảng 3 (a=356,5 b=377,5 c=23,75 d=25,10) → y=23,98.',
+    derivation: `
+      vsatScore = 360.00 (>=241 → eligible, nhóm standard)
+      y = c + (x-a)(d-c)/(b-a) = 23.75 + (360-356.5)(25.10-23.75)/(377.5-356.5) = 23.98 (khớp ví dụ chính thức)
+      không khai KV/ĐT → effectivePriority30 = 0
+      finalScore = round(min(30, 23.98+0)) = 23.98
+    `,
+    input: { vsatScore: 360, group: 'standard' },
+    expected: { convertedY30: 23.98, finalScore: 23.98, eligible: true },
+  },
+  {
+    id: 'ufm-2026-vsat-floor-inclusive-boundary',
+    schoolId: 'ufm',
+    methodId: 'ufm-vsat-2026',
+    year: 2026,
+    tier: 'C',
+    sourceId: 'ufm-quality-threshold-2026',
+    sourceNote: 'vsatScore=241 = đúng ngưỡng đầu vào = sàn Khoảng 6, biên BAO GỒM (`≥`, khác Khoảng 1-5 dùng `>`) → y=16,00.',
+    derivation: `
+      vsatScore = 241 (== 241 → eligible, nhóm standard)
+      y = quy đổi qua bảng (mục 3.3, Khoảng 6, biên dưới bao gồm) = 16.00 (đọc thẳng)
+      finalScore = round(min(30, 16.00+0)) = 16.00
+    `,
+    boundaryNote: 'Chứng minh Khoảng 6 dùng biên dưới BAO GỒM (≥), khác các khoảng còn lại (>).',
+    input: { vsatScore: 241, group: 'standard' },
+    expected: { convertedY30: 16.0, finalScore: 16.0, eligible: true },
+  },
+  {
+    id: 'ufm-2026-vsat-below-threshold-no-score',
+    schoolId: 'ufm',
+    methodId: 'ufm-vsat-2026',
+    year: 2026,
+    tier: 'C',
+    sourceId: 'ufm-quality-threshold-2026',
+    sourceNote: 'vsatScore=240 < 241 → ineligible, KHÔNG có Điểm xét tuyển.',
+    derivation: `
+      vsatScore = 240 (< 241 → ineligible, nhóm standard)
+      Dưới ngưỡng đầu vào → KHÔNG tính "Điểm xét tuyển"
+    `,
+    input: { vsatScore: 240, group: 'standard' },
+    expected: { eligible: false },
   },
 ];

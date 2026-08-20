@@ -23,3 +23,17 @@ export function calculateHcmulawSubjectGroupScore(input: HcmulawThreeSubjectInpu
 export function calculateHcmulawThpt5FinalScore(input: { subjectGroupScore30: number; priority30: number }): number {
   return round2(Math.min(30, input.subjectGroupScore30 + input.priority30));
 }
+
+/** Phương thức 4 (V-SAT) — "điểm tổ hợp môn" = tổng 3 điểm môn ĐÃ quy đổi sang thang thi TN THPT
+ * (mỗi môn thang 10 qua `conversionTable.ts:convertHcmulawVsatSubjectScore`, quy đổi RIÊNG TỪNG
+ * MÔN — khác Phương thức 5 dùng thẳng điểm thô). */
+export function calculateHcmulawVsat4SubjectGroupScore(input: { subject1Converted10: number; subject2Converted10: number; subject3Converted10: number }): number {
+  return round2(input.subject1Converted10 + input.subject2Converted10 + input.subject3Converted10);
+}
+
+/** ĐXT (Phương thức 4, thang 30) = điểm tổ hợp môn (đã quy đổi) + điểm ưu tiên — cùng cấu trúc PT5
+ * (mục "công thức ĐXT = điểm tổ hợp + điểm cộng (nếu có) + điểm ưu tiên (nếu có)" áp dụng chung mọi
+ * phương thức, `hcmulaw-method-notice-2026`), kẹp trần 30. */
+export function calculateHcmulawVsat4FinalScore(input: { subjectGroupScore30: number; priority30: number }): number {
+  return round2(Math.min(30, input.subjectGroupScore30 + input.priority30));
+}

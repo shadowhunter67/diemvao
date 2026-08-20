@@ -78,13 +78,13 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
         </p>
       </div>
 
-      {profileSummary.hasData && (
-        <div className="mx-auto mt-8 max-w-2xl rounded-card border border-accent/20 bg-accent/5 px-4 py-3 text-sm">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-ink">
-              <span className="font-medium">Đã lưu hồ sơ điểm dùng chung.</span>{' '}
-              <span className="text-muted">Điểm đã nhập có thể được dùng lại khi bạn xem trường khác.</span>
-            </p>
+      <div className="mx-auto mt-8 max-w-2xl rounded-card border border-accent/20 bg-accent/5 px-4 py-3 text-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-ink">
+            <span className="font-medium">Hồ sơ điểm dùng chung.</span>{' '}
+            <span className="text-muted">Nhập ở đây, rồi UniscoreVN áp cho từng trường — thiếu gì sẽ báo khi so sánh.</span>
+          </p>
+          {profileSummary.hasData && (
             <button
               type="button"
               onClick={handleClearProfile}
@@ -92,7 +92,9 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
             >
               Xóa hồ sơ đã lưu
             </button>
-          </div>
+          )}
+        </div>
+        {profileSummary.hasData && (
           <p className="mt-1.5 text-xs text-muted">
             {[
               profileSummary.vactTotal !== undefined ? `ĐGNL: ${profileSummary.vactTotal}` : null,
@@ -102,10 +104,12 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
               .filter(Boolean)
               .join(' · ')}
           </p>
-          <details open className="mt-2 rounded-md border border-accent/15 bg-surface/70 px-3 py-2">
-            <summary className="cursor-pointer text-xs font-medium text-ink">Chỉnh sửa hồ sơ đã lưu</summary>
-            <SharedProfileEditor profile={profile} updateProfile={updateProfile} updateVactTotal={updateVactTotal} />
-          </details>
+        )}
+        <details open={profileSummary.hasData} className="mt-2 rounded-md border border-accent/15 bg-surface/70 px-3 py-2">
+          <summary className="cursor-pointer text-xs font-medium text-ink">Nhập / chỉnh sửa điểm</summary>
+          <SharedProfileEditor profile={profile} updateProfile={updateProfile} updateVactTotal={updateVactTotal} />
+        </details>
+        {profileSummary.hasData && (
           <button
             type="button"
             onClick={onOpenCompare}
@@ -113,17 +117,8 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
           >
             Xem hồ sơ ở tất cả trường
           </button>
-        </div>
-      )}
-
-      {!profileSummary.hasData && (
-        <div className="mx-auto mt-8 max-w-2xl rounded-card border border-ink/10 bg-surface px-4 py-3 text-sm shadow-card">
-          <p className="font-medium text-ink">Xem hồ sơ ở tất cả trường</p>
-          <p className="mt-1 text-xs text-muted">
-            Nhập điểm ở một trường trước, rồi UniscoreVN sẽ tổng hợp chính xác/một phần/chưa hỗ trợ cho từng trường.
-          </p>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="mx-auto mt-8 max-w-2xl">
         <h2 className="text-sm font-semibold text-ink">Chọn trường để bắt đầu</h2>

@@ -1,22 +1,25 @@
 import type { KnowledgeGap } from '../../core/knowledgeStatus';
 
 /**
- * Research 2026-08-20 (2 trang chính thức, đọc qua chrome-devtools do WebFetch thô lỗi TLS chain
- * trên domain `hcmulaw.edu.vn`). Cả 2 trang published trong chu kỳ 2026 (28/4 và 9/7/2026), không
- * phát hiện dấu hiệu "stale source"/"old-source trap".
+ * Research 2026-08-20 (đọc qua chrome-devtools do WebFetch thô lỗi TLS chain trên domain
+ * `hcmulaw.edu.vn`). Batch đầu (2026-08-19/20): bảng quy đổi tương đương Phương thức 2/3/4 CHƯA
+ * TỒN TẠI (chờ kết quả thi TN THPT 2026). Batch tiếp theo, CÙNG NGÀY 2026-08-20 (kết quả thi đã
+ * công bố trong lúc đó): bảng đã xuất hiện (`hcmulaw-equivalence-notice-2026`) — đóng gap cho
+ * Phương thức 4 (V-SAT, `conversionTable.ts`), Phương thức 2/3 (học bạ) vẫn blocked nhưng vì lý do
+ * KHÁC (granularity dữ liệu, xem `hcmulaw-hocba-semester-granularity-gap` dưới đây), không còn là
+ * "bảng chưa tồn tại".
  */
 export const hcmulawKnowledgeGaps: KnowledgeGap[] = [
   {
-    id: 'hcmulaw-equivalence-table-not-yet-published',
+    id: 'hcmulaw-hocba-semester-granularity-gap',
     label:
-      'Phương thức 2 (410, kết hợp học bạ + chứng chỉ/SAT), Phương thức 3 (200, học bạ trường ưu tiên ĐHQG-HCM), Phương thức 4 (417, V-SAT) đều cần "Mức quy đổi tương đương" sang thang điểm thi TN THPT trước khi ra ĐXT — văn bản gốc xác nhận mức quy đổi này SẼ được Trường/Trung tâm Khảo thí Quốc gia xác định NGAY SAU KHI Bộ GD-ĐT công bố kết quả thi TN THPT 2026 và số liệu thống kê tương quan. Đây KHÔNG phải tài liệu tồn tại nhưng chưa đọc được (khác `official-but-unparsed`) — bảng quy đổi CHƯA TỒN TẠI tại thời điểm research vì phụ thuộc kết quả thi TN THPT 2026 (chưa diễn ra).',
-    status: 'incomplete',
-    sourceId: 'hcmulaw-method-notice-2026',
+      'Phương thức 2 (410, kết hợp học bạ + chứng chỉ/SAT) và Phương thức 3 (200, học bạ trường ưu tiên ĐHQG-HCM) đều quy đổi học bạ↔THPT bằng công thức y=x-k (bảng "độ lệch k" theo 16 tổ hợp/nhóm tổ hợp, ĐÃ có đủ) — nhưng x = "điểm tổ hợp của học bạ cấp THPT (TRUNG BÌNH CỘNG CỦA 6 HỌC KỲ)". `ApplicantProfile.transcript` chỉ lưu TB CẢ NĂM (`grade10`/`grade11`/`grade12`, 3 giá trị/môn), không lưu theo 6 học kỳ riêng lẻ — TB năm (Thông tư 22/2021, thường = (TB HK1 + 2×TB HK2)/3) KHÔNG tương đương phép tính trung bình cộng đơn giản của 6 học kỳ, nên không thể suy ngược đúng công thức HCMULAW từ dữ liệu hiện có mà không có rủi ro sai số — cùng loại blocker với HUTECH (`schools/hutech/knowledgeGaps.ts:hutech-hocba-semester-granularity-gap`).',
+    status: 'official-but-unparsed',
+    sourceId: 'hcmulaw-equivalence-notice-2026',
     scoreAffecting: true,
     implemented: false,
-    whyNotInferred:
-      'Không thể suy đoán bảng quy đổi điểm học bạ/V-SAT sang thang thi TN THPT trước khi Bộ công bố — đây là quy đổi thống kê phụ thuộc kết quả thi thật của năm 2026, không phải hằng số cố định.',
-    impact: 'exact-blocking-for-method-2-3-4',
+    whyNotInferred: 'Không mở rộng `ApplicantProfile` sang lưu theo học kỳ trong batch này (ngoài phạm vi — tránh redesign model dùng chung chỉ để phục vụ 1-2 trường), giữ Phương thức 2/3 ở mức unavailable thay vì dùng TB năm làm proxy không chính xác.',
+    impact: 'exact-blocking-for-method-2-3',
   },
   {
     id: 'hcmulaw-foreign-language-combinations-not-modeled',
