@@ -53,6 +53,12 @@ import { nttuAdmissionMethods } from '../schools/nttu/methods';
 import { hsuAdmissionMethods } from '../schools/hsu/methods';
 import { uefAdmissionMethods } from '../schools/uef/methods';
 import { hubStandardThresholdEvidence, hubLawThresholdEvidence, hubEliteIeltsRequirementEvidence } from '../schools/hub/evidence';
+import { ctuAdmissionMethods } from '../schools/ctu/methods';
+import { ctuBaselineConditionEvidence, ctuAltPathEvidence } from '../schools/ctu/evidence';
+import { tdmuAdmissionMethods } from '../schools/tdmu/methods';
+import { tdmuThptExamThresholdEvidence, tdmuTranscriptThresholdEvidence, tdmuVactThresholdEvidence } from '../schools/tdmu/evidence';
+import { hiuAdmissionMethods } from '../schools/hiu/methods';
+import { hiuThptExamThresholdEvidence, hiuVactThresholdEvidence } from '../schools/hiu/evidence';
 
 /**
  * Pure data-assembly cho `npm run audit:data` (CLI script) VÀ test provenance
@@ -134,6 +140,13 @@ export function verifiedRuntimeEvidence(): RuleEvidence[] {
     ...hubStandardThresholdEvidence.evidence,
     ...hubLawThresholdEvidence.evidence,
     ...hubEliteIeltsRequirementEvidence.evidence,
+    ...ctuBaselineConditionEvidence.evidence,
+    ...ctuAltPathEvidence.evidence,
+    ...tdmuThptExamThresholdEvidence.evidence,
+    ...tdmuTranscriptThresholdEvidence.evidence,
+    ...tdmuVactThresholdEvidence.evidence,
+    ...hiuThptExamThresholdEvidence.evidence,
+    ...hiuVactThresholdEvidence.evidence,
   ];
 }
 
@@ -168,6 +181,9 @@ export const allAdmissionMethods: AdmissionMethodDescriptor[] = [
   ...nttuAdmissionMethods,
   ...hsuAdmissionMethods,
   ...uefAdmissionMethods,
+  ...ctuAdmissionMethods,
+  ...tdmuAdmissionMethods,
+  ...hiuAdmissionMethods,
 ];
 
 export const allMethodKnowledgeGaps: Array<KnowledgeGap & { schoolId?: string; methodId?: string }> = [
@@ -194,5 +210,8 @@ export const allMethodKnowledgeGaps: Array<KnowledgeGap & { schoolId?: string; m
   ...methodGaps(nttuAdmissionMethods),
   ...methodGaps(hsuAdmissionMethods),
   ...methodGaps(uefAdmissionMethods),
+  ...methodGaps(ctuAdmissionMethods),
+  ...methodGaps(tdmuAdmissionMethods),
+  ...methodGaps(hiuAdmissionMethods),
 ];
 

@@ -35,6 +35,9 @@ const SCHOOLS = [
   'nttu',
   'hsu',
   'uef',
+  'ctu',
+  'tdmu',
+  'hiu',
 ] as const;
 const args = process.argv.slice(2);
 const verbose = args.includes('--verbose');

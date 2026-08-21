@@ -79,12 +79,14 @@ describe('schoolRegistry', () => {
     const ids = Object.keys(schoolRegistry).sort();
     expect(ids).toEqual([
       'agu',
+      'ctu',
       'ftu',
       'hcmue',
       'hcmulaw',
       'hcmus',
       'hcmut',
       'hcmute',
+      'hiu',
       'hsu',
       'hub',
       'huflit',
@@ -95,6 +97,7 @@ describe('schoolRegistry', () => {
       'neu',
       'nttu',
       'ptit',
+      'tdmu',
       'tdtu',
       'uef',
       'ueh',

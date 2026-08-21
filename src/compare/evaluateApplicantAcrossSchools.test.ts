@@ -123,6 +123,9 @@ describe('evaluateApplicantAcrossSchools', () => {
       'nttu',
       'hsu',
       'uef',
+      'ctu',
+      'tdmu',
+      'hiu',
     ]);
   });
 

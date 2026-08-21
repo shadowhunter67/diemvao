@@ -6,7 +6,7 @@
 > tay research/implement 1 trường — mọi mã trường, domain, công thức ở đây đều cần verify lại qua
 > nguồn chính thức trước khi đưa vào code.
 
-## 0. Đã implement trong UniscoreVN (27 trường — KHÔNG phải backlog)
+## 0. Đã implement trong UniscoreVN (30 trường — KHÔNG phải backlog)
 
 Các trường dưới đây đã có module thật trong `src/schools/<id>/`, đăng ký ở
 `src/schools/index.ts`. Liệt kê lại ở đây chỉ để tránh nhầm lẫn khi đọc phần backlog bên dưới.
@@ -33,8 +33,6 @@ Các trường dưới đây đã có module thật trong `src/schools/<id>/`, �
 | Đại học Nguyễn Tất Thành | nttu | `src/schools/nttu/` |
 | Đại học Hoa Sen | hsu | `src/schools/hsu/` |
 | Đại học Kinh tế – Tài chính TP.HCM | uef | `src/schools/uef/` |
-
-| Đại học Ngân hàng TP.HCM | hub | `src/schools/hub/` |
 | Đại học Ngoại thương | ftu | `src/schools/ftu/` |
 | Đại học Kinh tế Quốc dân | neu | `src/schools/neu/` |
 | Học viện Công nghệ Bưu chính Viễn thông | ptit | `src/schools/ptit/` |
@@ -42,6 +40,9 @@ Các trường dưới đây đã có module thật trong `src/schools/<id>/`, �
 | Đại học Luật TP.HCM | hcmulaw | `src/schools/hcmulaw/` |
 | Đại học Y Dược TP.HCM | ump | `src/schools/ump/` |
 | Đại học Văn Lang | vlu | `src/schools/vlu/` |
+| Đại học Cần Thơ | ctu | `src/schools/ctu/` |
+| Đại học Thủ Dầu Một | tdmu | `src/schools/tdmu/` |
+| Đại học Quốc tế Hồng Bàng | hiu | `src/schools/hiu/` |
 
 `src/schools/index.ts` vẫn là nguồn sự thật đầy đủ nếu bảng này lệch — cập nhật thủ công, có thể trễ.
 
@@ -63,10 +64,8 @@ trường/Bộ GD&ĐT — bắt buộc verify lại khi thực sự research.**
 |---|---|---|---|---|---|
 | Đại học Sài Gòn | SGU | SGD | TP.HCM | sgu.edu.vn | Công lập (trực thuộc TP.HCM) |
 | Đại học Gia Định | GDU | GDU | TP.HCM | tuyensinh.giadinh.edu.vn | Tư thục |
-| Đại học Quốc tế Hồng Bàng | HIU | HIU | TP.HCM | tuyensinh.hiu.vn | Tư thục |
 | Đại học Công nghệ Sài Gòn | STU | DSG | TP.HCM | stu.edu.vn | Tư thục |
 | Đại học Y khoa Phạm Ngọc Thạch | PNTU | TYS | TP.HCM | pnt.edu.vn | Công lập (trực thuộc TP.HCM) |
-| Đại học Thủ Dầu Một | TDMU | TDM | Bình Dương | tuyensinh.tdmu.edu.vn | Công lập (trực thuộc tỉnh) |
 | Đại học Bình Dương | BDU | DBD | Bình Dương | tuyensinh.bdu.edu.vn | Tư thục |
 | Đại học Lạc Hồng | LHU | DLH | Đồng Nai | tuyensinh.lhu.edu.vn | Tư thục |
 | Đại học Nông Lâm TP.HCM | NLU | NLS | TP.HCM | tuyensinh.hcmuaf.edu.vn | Công lập (Bộ NN&MT) |
@@ -77,6 +76,9 @@ trường/Bộ GD&ĐT — bắt buộc verify lại khi thực sự research.**
 | Đại học Mở TP.HCM | OU / HUTECH-OU | MBS | TP.HCM | tuyensinh.ou.edu.vn | Công lập (Bộ GD&ĐT) |
 
 \* Mã trường: xem lưu ý ở đầu mục — cần verify lại trước khi dùng.
+
+Đại học Quốc tế Hồng Bàng (HIU) và Đại học Thủ Dầu Một (TDMU) đã research/implement xong (batch
+2026-08-21, threshold-only) — xem mục 0, KHÔNG còn là backlog. Đã bỏ khỏi bảng trên.
 
 ---
 
@@ -157,9 +159,11 @@ thục). Domain phần lớn chưa tra — cần research khi chọn implement.
 
 ## 4. Tier 2 — Miền Nam khác (ngoài TP.HCM, ngoài Tier 1)
 
+Đại học Cần Thơ đã research/implement xong (batch 2026-08-21, threshold-only, mã trường TCT) — xem
+mục 0, KHÔNG còn là backlog. Đã bỏ khỏi bảng dưới.
+
 | Tên trường | Khu vực | Ghi chú |
 |---|---|---|
-| Đại học Cần Thơ (đại học vùng) | Cần Thơ | Kinh tế, Nông nghiệp, Bách khoa, CNTT-TT, Thủy sản, Sư phạm, KHTN + cơ sở Hậu Giang/Sóc Trăng |
 | Đại học Y Dược Cần Thơ | Cần Thơ | Bộ Y tế |
 | Đại học Kỹ thuật – Công nghệ Cần Thơ | Cần Thơ | Trực thuộc TP |
 | Đại học Nam Cần Thơ | Cần Thơ | Tư thục |
