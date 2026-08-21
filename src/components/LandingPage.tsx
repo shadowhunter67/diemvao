@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { schoolRegistry } from '../schools';
 import { siteConfig } from '../config/site';
-import type { SchoolModule, SchoolOwnership, SchoolRegion, SchoolStatus } from '../core/schoolModule';
+import type { SchoolModule, SchoolRegion, SchoolStatus } from '../core/schoolModule';
 import { useApplicantProfile } from '../core/applicantProfileContextCore';
 import { summarizeApplicantProfile } from '../core/applicantProfileSummary';
 import { deriveSchoolCtaLabel } from '../core/schoolCta';
@@ -72,14 +72,12 @@ const TIER_LABELS: Record<CapabilityTier, string> = {
   info: 'Chỉ có thông tin',
 };
 
-const OWNERSHIP_LABELS: Record<SchoolOwnership, string> = { public: 'Công lập', private: 'Tư thục' };
-
 const REGION_LABELS: Record<SchoolRegion, string> = { hcm: 'TP.HCM', hanoi: 'Hà Nội', other: 'Khu vực khác' };
 
 type OptionalFilter<T extends string> = T | 'all';
 
-/** Select nhỏ dùng chung cho 4 bộ lọc phụ (loại hình/khu vực/ĐHQG-HCM/mức tính điểm) — trường nào
- * chưa set field tương ứng thì luôn bị loại khỏi mọi lựa chọn khác "Tất cả" (không đoán mặc định). */
+/** Select nhỏ dùng chung cho các bộ lọc phụ (khu vực/mức tính điểm) — trường nào chưa set field
+ * tương ứng thì luôn bị loại khỏi mọi lựa chọn khác "Tất cả" (không đoán mặc định). */
 function FilterSelect<T extends string>({
   label,
   value,
@@ -113,9 +111,7 @@ function FilterSelect<T extends string>({
 export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps) {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [ownershipFilter, setOwnershipFilter] = useState<OptionalFilter<SchoolOwnership>>('all');
   const [regionFilter, setRegionFilter] = useState<OptionalFilter<SchoolRegion>>('all');
-  const [vnuhcmFilter, setVnuhcmFilter] = useState<OptionalFilter<'member' | 'independent'>>('all');
   const [tierFilter, setTierFilter] = useState<OptionalFilter<CapabilityTier>>('all');
   const schools = useMemo(
     () => Object.values(schoolRegistry).sort((a, b) => a.shortName.localeCompare(b.shortName, 'vi')),
@@ -149,12 +145,7 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
         normalizeForSearch(school.name).includes(normalizedQuery)
     )
     .filter((school) => statusFilter === 'all' || school.status === statusFilter)
-    .filter((school) => ownershipFilter === 'all' || school.ownership === ownershipFilter)
     .filter((school) => regionFilter === 'all' || school.region === regionFilter)
-    .filter(
-      (school) =>
-        vnuhcmFilter === 'all' || (vnuhcmFilter === 'member' ? school.vnuhcm === true : school.vnuhcm === false)
-    )
     .filter((school) => tierFilter === 'all' || deriveCapabilityTier(school) === tierFilter);
 
   return (
@@ -265,15 +256,6 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
 
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
           <FilterSelect
-            label="Loại hình"
-            value={ownershipFilter}
-            onChange={setOwnershipFilter}
-            options={(Object.entries(OWNERSHIP_LABELS) as [SchoolOwnership, string][]).map(([value, label]) => ({
-              value,
-              label,
-            }))}
-          />
-          <FilterSelect
             label="Khu vực"
             value={regionFilter}
             onChange={setRegionFilter}
@@ -281,15 +263,6 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
               value,
               label,
             }))}
-          />
-          <FilterSelect
-            label="ĐHQG-HCM"
-            value={vnuhcmFilter}
-            onChange={setVnuhcmFilter}
-            options={[
-              { value: 'member', label: 'Thành viên' },
-              { value: 'independent', label: 'Độc lập' },
-            ]}
           />
           <FilterSelect
             label="Mức tính điểm"
