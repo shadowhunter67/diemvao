@@ -7,6 +7,8 @@ export const uhsModule: SchoolModule = {
   id: 'uhs',
   name: 'Trường Đại học Khoa học Sức khỏe - ĐHQG TP.HCM',
   shortName: 'UHS',
+  about:
+    'Tiền thân là Khoa Y (thành lập 2009), được nâng cấp thành trường đại học thành viên ĐHQG-HCM từ năm 2024, đào tạo khối ngành khoa học sức khỏe.',
   year: 2026,
   status: 'researching',
   summary:

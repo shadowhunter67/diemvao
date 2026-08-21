@@ -14,6 +14,8 @@ export const usshModule: SchoolModule = {
   id: 'ussh',
   name: 'Trường Đại học Khoa học Xã hội và Nhân văn – ĐHQG TP.HCM',
   shortName: 'USSH',
+  about:
+    'Thành lập năm 1957, trường đại học công lập thành viên ĐHQG-HCM từ 1996, đào tạo các ngành khoa học xã hội và nhân văn.',
   year: 2026,
   status: 'supported',
   summary:

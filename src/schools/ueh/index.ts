@@ -12,6 +12,8 @@ export const uehModule: SchoolModule = {
   id: 'ueh',
   name: 'Trường Đại học Kinh tế TP.HCM',
   shortName: 'UEH',
+  about:
+    'Đại học công lập đa ngành thành lập năm 1976, chuyên khối kinh tế, kinh doanh và quản lý, trực thuộc Bộ GD&ĐT (không thuộc ĐHQG-HCM).',
   year: 2026,
   status: 'supported',
   summary:

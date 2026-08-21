@@ -17,6 +17,7 @@ export const ufmModule: SchoolModule = {
   id: 'ufm',
   name: 'Trường Đại học Tài chính – Marketing',
   shortName: 'UFM',
+  about: 'Đại học công lập trực thuộc Bộ Tài chính, tiền thân từ năm 1976, chuyên đào tạo tài chính và marketing.',
   year: 2026,
   status: 'researching',
   summary:

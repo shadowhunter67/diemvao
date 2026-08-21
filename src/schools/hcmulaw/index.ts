@@ -17,6 +17,7 @@ export const hcmulawModule: SchoolModule = {
   id: 'hcmulaw',
   name: 'Trường Đại học Luật Thành phố Hồ Chí Minh',
   shortName: 'HCMULAW',
+  about: 'Đại học công lập thành lập năm 1996, một trong hai cơ sở đào tạo luật trọng điểm của Việt Nam.',
   year: 2026,
   status: 'researching',
   summary:

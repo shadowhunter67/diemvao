@@ -12,6 +12,7 @@ export const iuModule: SchoolModule = {
   id: 'iu',
   name: 'Trường Đại học Quốc tế – ĐHQG TP.HCM',
   shortName: 'IU',
+  about: 'Thành lập năm 2003, trường đại học công lập thành viên ĐHQG-HCM, giảng dạy hoàn toàn bằng tiếng Anh.',
   year: 2026,
   status: 'supported',
   summary: 'Điểm xét tuyển đầy đủ 2026 (Điểm học lực + Điểm cộng + Điểm ưu tiên) cho thí sinh tốt nghiệp THPT 2026 · So sánh trực tiếp với điểm trúng tuyển 38 ngành',

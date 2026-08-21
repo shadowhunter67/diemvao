@@ -16,6 +16,8 @@ export const hcmutModule: SchoolModule = {
   id: 'hcmut',
   name: 'Trường Đại học Bách khoa – ĐHQG TP.HCM',
   shortName: 'HCMUT',
+  about:
+    'Trường đại học kỹ thuật công lập, tiền thân từ năm 1957, chính thức mang tên Đại học Bách khoa từ 1976 và là thành viên ĐHQG-HCM từ 1996.',
   year: 2026,
   status: 'supported',
   capabilities: {

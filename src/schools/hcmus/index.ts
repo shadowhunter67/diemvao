@@ -12,6 +12,8 @@ export const hcmusModule: SchoolModule = {
   id: 'hcmus',
   name: 'Trường Đại học Khoa học Tự nhiên - ĐHQG TP.HCM',
   shortName: 'HCMUS',
+  about:
+    'Tiền thân từ năm 1941, chính thức là thành viên ĐHQG-HCM từ 1996; đào tạo các ngành khoa học cơ bản và công nghệ.',
   year: 2026,
   status: 'researching',
   summary:

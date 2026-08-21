@@ -17,6 +17,8 @@ export const hcmuteModule: SchoolModule = {
   id: 'hcmute',
   name: 'Trường Đại học Công nghệ Kỹ thuật TP. Hồ Chí Minh',
   shortName: 'HCMUTE',
+  about:
+    'Đại học công lập tự chủ tài chính, tiền thân từ năm 1962; đổi tên từ Đại học Sư phạm Kỹ thuật TP.HCM sang tên hiện tại cuối năm 2025.',
   year: 2026,
   status: 'researching',
   summary:

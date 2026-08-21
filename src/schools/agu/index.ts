@@ -14,6 +14,8 @@ export const aguModule: SchoolModule = {
   id: 'agu',
   name: 'Trường Đại học An Giang – ĐHQG TP.HCM',
   shortName: 'AGU',
+  about:
+    'Thành lập năm 1999 tại tỉnh An Giang, trở thành trường đại học thành viên ĐHQG-HCM từ 2019; thế mạnh nông nghiệp, tài nguyên và sư phạm.',
   year: 2026,
   status: 'researching',
   summary:

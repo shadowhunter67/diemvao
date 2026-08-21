@@ -14,6 +14,8 @@ export const uitModule: SchoolModule = {
   id: 'uit',
   name: 'Trường Đại học Công nghệ Thông tin – ĐHQG TP.HCM',
   shortName: 'UIT',
+  about:
+    'Thành lập năm 2006, trường đại học công lập thành viên ĐHQG-HCM, chuyên đào tạo và nghiên cứu công nghệ thông tin – truyền thông.',
   year: 2026,
   status: 'researching',
   summary: 'Dữ liệu tuyển sinh 2026 đầy đủ (điểm chuẩn, ngưỡng, điểm cộng) · Calculator chính xác đang chờ bảng quy đổi bách phân vị',

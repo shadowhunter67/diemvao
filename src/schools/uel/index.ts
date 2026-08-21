@@ -26,6 +26,8 @@ export const uelModule: SchoolModule = {
   id: 'uel',
   name: 'Trường Đại học Kinh tế - Luật – ĐHQG TP.HCM',
   shortName: 'UEL',
+  about:
+    'Trường đại học công lập thành viên ĐHQG-HCM, thành lập năm 2010 (tiền thân là Khoa Kinh tế từ năm 2000), đào tạo kinh tế, kinh doanh và luật.',
   year: 2026,
   status: 'supported',
   summary:

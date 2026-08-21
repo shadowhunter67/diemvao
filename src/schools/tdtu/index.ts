@@ -19,6 +19,8 @@ export const tdtuModule: SchoolModule = {
   id: 'tdtu',
   name: 'Trường Đại học Tôn Đức Thắng',
   shortName: 'TDTU',
+  about:
+    'Thành lập năm 1997, trường đại học công lập trực thuộc Tổng Liên đoàn Lao động Việt Nam, đào tạo đa ngành kỹ thuật, kinh tế và khoa học ứng dụng.',
   year: 2026,
   status: 'researching',
   summary:

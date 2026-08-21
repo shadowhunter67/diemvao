@@ -7,6 +7,8 @@ export const hcmueModule: SchoolModule = {
   id: 'hcmue',
   name: 'Trường Đại học Sư phạm Thành phố Hồ Chí Minh (HCMUE, TPHCM)',
   shortName: 'HCMUE',
+  about:
+    'Đại học công lập thành lập năm 1976, một trong hai trường sư phạm trọng điểm của cả nước, đào tạo giáo viên và khoa học giáo dục.',
   year: 2026,
   status: 'researching',
   summary:

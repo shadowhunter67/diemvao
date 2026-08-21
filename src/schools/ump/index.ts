@@ -14,6 +14,8 @@ export const umpModule: SchoolModule = {
   id: 'ump',
   name: 'Trường Đại học Y Dược Thành phố Hồ Chí Minh',
   shortName: 'UMP',
+  about:
+    'Đại học công lập chuyên ngành y dược, tiền thân là Đại học Y khoa Sài Gòn (1947), tổ chức lại thành trường hiện nay từ năm 1976.',
   year: 2026,
   status: 'researching',
   summary:

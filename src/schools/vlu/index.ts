@@ -15,6 +15,8 @@ export const vluModule: SchoolModule = {
   id: 'vlu',
   name: 'Trường Đại học Văn Lang',
   shortName: 'VLU',
+  about:
+    'Trường đại học tư thục thành lập năm 1995, đào tạo mạnh về nghệ thuật - thiết kế, khoa học xã hội - nhân văn và truyền thông.',
   year: 2026,
   status: 'researching',
   summary:

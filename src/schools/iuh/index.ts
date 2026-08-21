@@ -15,6 +15,8 @@ export const iuhModule: SchoolModule = {
   id: 'iuh',
   name: 'Trường Đại học Công nghiệp Thành phố Hồ Chí Minh',
   shortName: 'IUH',
+  about:
+    'Đại học công lập trực thuộc Bộ Công Thương, tiền thân là Trường Huấn nghiệp Gò Vấp thành lập năm 1956, đào tạo đa ngành kỹ thuật - công nghệ.',
   year: 2026,
   status: 'researching',
   summary:

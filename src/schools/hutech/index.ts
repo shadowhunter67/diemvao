@@ -15,6 +15,8 @@ export const hutechModule: SchoolModule = {
   id: 'hutech',
   name: 'Trường Đại học Công nghệ TP. Hồ Chí Minh',
   shortName: 'HUTECH',
+  about:
+    'Trường đại học tư thục thành lập năm 1995, đào tạo đa ngành: kỹ thuật - công nghệ, công nghệ thông tin, kinh tế, kiến trúc và ngoại ngữ.',
   year: 2026,
   status: 'researching',
   summary:

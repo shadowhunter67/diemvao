@@ -51,6 +51,13 @@ export interface SchoolModule {
    * researching mới chỉ có định danh). Bỏ trống thì LandingPage dùng wording mặc định theo status.
    */
   summary?: string;
+  /**
+   * Giới thiệu NGẮN về trường (1-2 câu, tiếng Việt, trung lập — năm thành lập/loại hình/hệ thống
+   * trực thuộc), KHÁC `summary` (mô tả capability tính điểm). Lấy từ nguồn uy tín (Wikipedia tiếng
+   * Việt/trang "giới thiệu" chính thức của trường), không phải marketing copy. Optional — bỏ trống
+   * thì card landing page không hiện dòng giới thiệu.
+   */
+  about?: string;
   /** Optional, xem SchoolCapabilities — chưa set thì LandingPage suy theo `status` như cũ. */
   capabilities?: SchoolCapabilities;
   /**

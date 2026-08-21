@@ -14,6 +14,8 @@ export const huflitModule: SchoolModule = {
   id: 'huflit',
   name: 'Trường Đại học Ngoại ngữ - Tin học TP. Hồ Chí Minh',
   shortName: 'HUFLIT',
+  about:
+    'Thành lập năm 1994, chuyển sang loại hình tư thục từ 2015; đào tạo ngoại ngữ, công nghệ thông tin, kinh tế - quản lý và du lịch.',
   year: 2026,
   status: 'researching',
   summary:
