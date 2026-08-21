@@ -29,6 +29,14 @@ Các trường dưới đây đã có module thật trong `src/schools/<id>/`, �
 | Đại học Công nghệ TP.HCM | hutech | `src/schools/hutech/` |
 | Đại học Tài chính – Marketing | ufm | `src/schools/ufm/` |
 | Đại học Ngân hàng TP.HCM | hub | `src/schools/hub/` |
+| Đại học Công Thương TP.HCM | huit | `src/schools/huit/` |
+| Đại học Nguyễn Tất Thành | nttu | `src/schools/nttu/` |
+| Đại học Hoa Sen | hsu | `src/schools/hsu/` |
+| Đại học Kinh tế – Tài chính TP.HCM | uef | `src/schools/uef/` |
+
+(Danh sách trên chưa liệt kê hết mọi trường đã implement — IUH/HCMULAW/UMP/FTU/PTIT/NEU cũng đã có
+module thật, xem `src/schools/index.ts` là nguồn sự thật đầy đủ; mục này chỉ để tránh trùng lặp với
+backlog bên dưới, không phải bảng kiểm kê chính thức.)
 
 Toàn bộ 8 trường thành viên của ĐHQG-HCM (Bách khoa, CNTT, Kinh tế-Luật, KHTN, KHXH&NV, Khoa học
 Sức khỏe, Quốc tế, An Giang) đã được implement — không còn backlog "trường ĐHQG-HCM còn thiếu".
@@ -50,12 +58,8 @@ trường/Bộ GD&ĐT — bắt buộc verify lại khi thực sự research.**
 | Đại học Y Dược TP.HCM | UMP | YDS | TP.HCM | tuyensinh.ump.edu.vn | Công lập (Bộ Y tế) |
 | Đại học Luật TP.HCM | HCMULAW | LPS | TP.HCM | tuyensinh.hcmulaw.edu.vn | Công lập |
 | Đại học Công nghiệp TP.HCM | IUH | IUH | TP.HCM | tuyensinh.iuh.edu.vn | Công lập (Bộ Công Thương) |
-| Đại học Công Thương TP.HCM | HUIT | DCT | TP.HCM | tuyensinh.huit.edu.vn | Công lập (Bộ Công Thương) |
-| Đại học Nguyễn Tất Thành | NTTU | NTT | TP.HCM | tuyensinh.ntt.edu.vn | Tư thục |
 | Đại học Văn Lang | VLU | DVL | TP.HCM | tuyensinh.vlu.edu.vn | Tư thục |
-| Đại học Hoa Sen | HSU | HSU | TP.HCM | tuyensinh.hoasen.edu.vn | Tư thục |
 | Đại học Gia Định | GDU | GDU | TP.HCM | tuyensinh.giadinh.edu.vn | Tư thục |
-| Đại học Kinh tế – Tài chính TP.HCM | UEF | UEF | TP.HCM | tuyensinh.uef.edu.vn | Tư thục |
 | Đại học Quốc tế Hồng Bàng | HIU | HIU | TP.HCM | tuyensinh.hiu.vn | Tư thục |
 | Đại học Công nghệ Sài Gòn | STU | DSG | TP.HCM | stu.edu.vn | Tư thục |
 | Đại học Y khoa Phạm Ngọc Thạch | PNTU | TYS | TP.HCM | pnt.edu.vn | Công lập (trực thuộc TP.HCM) |

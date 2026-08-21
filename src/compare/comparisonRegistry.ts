@@ -22,6 +22,10 @@ import { ftuComparisonAdapter } from '../schools/ftu/comparison';
 import { ptitComparisonAdapter } from '../schools/ptit/comparison';
 import { neuComparisonAdapter } from '../schools/neu/comparison';
 import { hubComparisonAdapter } from '../schools/hub/comparison';
+import { huitComparisonAdapter } from '../schools/huit/comparison';
+import { nttuComparisonAdapter } from '../schools/nttu/comparison';
+import { hsuComparisonAdapter } from '../schools/hsu/comparison';
+import { uefComparisonAdapter } from '../schools/uef/comparison';
 
 /**
  * Nguồn sự thật DUY NHẤT cho thứ tự + danh sách trường tham gia `/compare` — orchestration
@@ -59,6 +63,10 @@ export const schoolComparisonAdapters: readonly SchoolComparisonAdapter[] = [
   ptitComparisonAdapter,
   neuComparisonAdapter,
   hubComparisonAdapter,
+  huitComparisonAdapter,
+  nttuComparisonAdapter,
+  hsuComparisonAdapter,
+  uefComparisonAdapter,
 ];
 
 export const schoolComparisonAdapterRegistry: Readonly<Record<string, SchoolComparisonAdapter>> = Object.fromEntries(

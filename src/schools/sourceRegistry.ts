@@ -22,6 +22,10 @@ import { ftuSources } from './ftu/sources';
 import { ptitSources } from './ptit/sources';
 import { neuSources } from './neu/sources';
 import { hubSources } from './hub/sources';
+import { huitSources } from './huit/sources';
+import { nttuSources } from './nttu/sources';
+import { hsuSources } from './hsu/sources';
+import { uefSources } from './uef/sources';
 
 function withSchoolId(schoolId: string, sources: Omit<AdmissionSource, 'schoolId'>[]): AdmissionSource[] {
   return sources.map((source) => ({ ...source, schoolId }));
@@ -50,6 +54,10 @@ export const ftuSourceRegistry: AdmissionSource[] = withSchoolId('ftu', ftuSourc
 export const ptitSourceRegistry: AdmissionSource[] = withSchoolId('ptit', ptitSources);
 export const neuSourceRegistry: AdmissionSource[] = withSchoolId('neu', neuSources);
 export const hubSourceRegistry: AdmissionSource[] = withSchoolId('hub', hubSources);
+export const huitSourceRegistry: AdmissionSource[] = withSchoolId('huit', huitSources);
+export const nttuSourceRegistry: AdmissionSource[] = withSchoolId('nttu', nttuSources);
+export const hsuSourceRegistry: AdmissionSource[] = withSchoolId('hsu', hsuSources);
+export const uefSourceRegistry: AdmissionSource[] = withSchoolId('uef', uefSources);
 
 export const schoolSourceRegistries: Record<string, AdmissionSource[]> = {
   hcmut: hcmutSourceRegistry,
@@ -75,6 +83,10 @@ export const schoolSourceRegistries: Record<string, AdmissionSource[]> = {
   ptit: ptitSourceRegistry,
   neu: neuSourceRegistry,
   hub: hubSourceRegistry,
+  huit: huitSourceRegistry,
+  nttu: nttuSourceRegistry,
+  hsu: hsuSourceRegistry,
+  uef: uefSourceRegistry,
 };
 
 export const allAdmissionSources: AdmissionSource[] = [
@@ -101,5 +113,9 @@ export const allAdmissionSources: AdmissionSource[] = [
   ...ptitSourceRegistry,
   ...neuSourceRegistry,
   ...hubSourceRegistry,
+  ...huitSourceRegistry,
+  ...nttuSourceRegistry,
+  ...hsuSourceRegistry,
+  ...uefSourceRegistry,
 ];
 

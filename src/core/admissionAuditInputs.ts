@@ -48,6 +48,10 @@ import { ftuDomesticExamFormulaEvidence, ftuDomesticExamThresholdEvidence, ftuPr
 import { ptitAdmissionMethods } from '../schools/ptit/methods';
 import { neuAdmissionMethods } from '../schools/neu/methods';
 import { hubAdmissionMethods } from '../schools/hub/methods';
+import { huitAdmissionMethods } from '../schools/huit/methods';
+import { nttuAdmissionMethods } from '../schools/nttu/methods';
+import { hsuAdmissionMethods } from '../schools/hsu/methods';
+import { uefAdmissionMethods } from '../schools/uef/methods';
 import { hubStandardThresholdEvidence, hubLawThresholdEvidence, hubEliteIeltsRequirementEvidence } from '../schools/hub/evidence';
 
 /**
@@ -160,6 +164,10 @@ export const allAdmissionMethods: AdmissionMethodDescriptor[] = [
   ...ptitAdmissionMethods,
   ...neuAdmissionMethods,
   ...hubAdmissionMethods,
+  ...huitAdmissionMethods,
+  ...nttuAdmissionMethods,
+  ...hsuAdmissionMethods,
+  ...uefAdmissionMethods,
 ];
 
 export const allMethodKnowledgeGaps: Array<KnowledgeGap & { schoolId?: string; methodId?: string }> = [
@@ -182,5 +190,9 @@ export const allMethodKnowledgeGaps: Array<KnowledgeGap & { schoolId?: string; m
   ...methodGaps(ptitAdmissionMethods),
   ...methodGaps(neuAdmissionMethods),
   ...methodGaps(hubAdmissionMethods),
+  ...methodGaps(huitAdmissionMethods),
+  ...methodGaps(nttuAdmissionMethods),
+  ...methodGaps(hsuAdmissionMethods),
+  ...methodGaps(uefAdmissionMethods),
 ];
 

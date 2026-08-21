@@ -26,6 +26,10 @@ import { ftuAdmissionMethods } from '../schools/ftu/methods';
 import { ptitAdmissionMethods } from '../schools/ptit/methods';
 import { neuAdmissionMethods } from '../schools/neu/methods';
 import { hubAdmissionMethods } from '../schools/hub/methods';
+import { huitAdmissionMethods } from '../schools/huit/methods';
+import { nttuAdmissionMethods } from '../schools/nttu/methods';
+import { hsuAdmissionMethods } from '../schools/hsu/methods';
+import { uefAdmissionMethods } from '../schools/uef/methods';
 
 /**
  * Khóa architectural invariant của compare orchestration — CI phải bắt được kiểu bug "trường đã
@@ -58,6 +62,10 @@ const methodDescriptorsBySchool: Record<string, readonly { id: string }[]> = {
   ptit: ptitAdmissionMethods,
   neu: neuAdmissionMethods,
   hub: hubAdmissionMethods,
+  huit: huitAdmissionMethods,
+  nttu: nttuAdmissionMethods,
+  hsu: hsuAdmissionMethods,
+  uef: uefAdmissionMethods,
 };
 
 /** Pure helper — trả danh sách schoolId bị trùng trong 1 mảng adapter. Test cả trên registry thật

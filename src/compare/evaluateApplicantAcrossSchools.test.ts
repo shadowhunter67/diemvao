@@ -119,6 +119,10 @@ describe('evaluateApplicantAcrossSchools', () => {
       'ptit',
       'neu',
       'hub',
+      'huit',
+      'nttu',
+      'hsu',
+      'uef',
     ]);
   });
 

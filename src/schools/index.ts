@@ -22,6 +22,10 @@ import { ftuModule } from './ftu';
 import { ptitModule } from './ptit';
 import { neuModule } from './neu';
 import { hubModule } from './hub';
+import { huitModule } from './huit';
+import { nttuModule } from './nttu';
+import { hsuModule } from './hsu';
+import { uefModule } from './uef';
 
 /**
  * Các trường ĐHQG-HCM khác đã research (xem docs/admission-research-2026.md) nhưng CHƯA có
@@ -71,6 +75,10 @@ export const schoolRegistry: Record<string, SchoolModule> = {
   ptit: ptitModule,
   neu: neuModule,
   hub: hubModule,
+  huit: huitModule,
+  nttu: nttuModule,
+  hsu: hsuModule,
+  uef: uefModule,
   ...Object.fromEntries(researchedSchools.map((school) => [school.id, school])),
 };
 
