@@ -49,12 +49,23 @@ const BADGE_PALETTE = [
   'bg-emerald-500/10 text-emerald-600',
 ];
 
+type StatusFilter = SchoolStatus | 'all';
+
+/** Thứ tự hiển thị chip lọc: "đầy đủ nhất" trước, khớp thứ tự người dùng quan tâm khi chọn trường. */
+const STATUS_FILTER_ORDER: SchoolStatus[] = ['supported', 'researching', 'formula-incomplete'];
+
 export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps) {
   const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const schools = useMemo(
     () => Object.values(schoolRegistry).sort((a, b) => a.shortName.localeCompare(b.shortName, 'vi')),
     []
   );
+  const statusCounts = useMemo(() => {
+    const counts: Record<SchoolStatus, number> = { supported: 0, researching: 0, 'formula-incomplete': 0 };
+    for (const school of schools) counts[school.status] += 1;
+    return counts;
+  }, [schools]);
 
   // Batch 6, workstream O/P — cho user thấy rõ họ đang có "hồ sơ điểm dùng chung" (đã nhập ở 1
   // trường, có thể dùng lại ở trường khác) + cách xóa nếu muốn. Không build dashboard lớn — chỉ 1
@@ -70,14 +81,14 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
   }
 
   const normalizedQuery = normalizeForSearch(query.trim());
-  const filteredSchools =
-    normalizedQuery === ''
-      ? schools
-      : schools.filter(
-          (school) =>
-            normalizeForSearch(school.shortName).includes(normalizedQuery) ||
-            normalizeForSearch(school.name).includes(normalizedQuery)
-        );
+  const filteredSchools = schools
+    .filter(
+      (school) =>
+        normalizedQuery === '' ||
+        normalizeForSearch(school.shortName).includes(normalizedQuery) ||
+        normalizeForSearch(school.name).includes(normalizedQuery)
+    )
+    .filter((school) => statusFilter === 'all' || school.status === statusFilter);
 
   return (
     <div className="py-10 sm:py-14">
@@ -149,9 +160,47 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
           />
         </div>
 
+        <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Lọc theo trạng thái">
+          <button
+            type="button"
+            onClick={() => setStatusFilter('all')}
+            aria-pressed={statusFilter === 'all'}
+            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+              statusFilter === 'all'
+                ? 'border-accent bg-accent/10 text-accent'
+                : 'border-ink/10 bg-surface text-muted hover:border-ink/20'
+            }`}
+          >
+            Tất cả ({schools.length})
+          </button>
+          {STATUS_FILTER_ORDER.map((status) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setStatusFilter(status)}
+              aria-pressed={statusFilter === status}
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                statusFilter === status
+                  ? 'border-accent bg-accent/10 text-accent'
+                  : 'border-ink/10 bg-surface text-muted hover:border-ink/20'
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className={`h-1.5 w-1.5 rounded-full ${
+                  status === 'supported' ? 'bg-success' : status === 'researching' ? 'bg-warning' : 'bg-ink/20'
+                }`}
+              />
+              {STATUS_TEXT[status]} ({statusCounts[status]})
+            </button>
+          ))}
+        </div>
+
         {filteredSchools.length === 0 ? (
           <p className="mt-4 rounded-card border border-ink/10 bg-surface p-4 text-center text-sm text-muted">
-            Không tìm thấy trường phù hợp với "{query.trim()}".
+            {query.trim() === ''
+              ? `Không có trường nào ở trạng thái "${STATUS_TEXT[statusFilter as SchoolStatus]}".`
+              : `Không tìm thấy trường phù hợp với "${query.trim()}".`}
           </p>
         ) : (
           <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

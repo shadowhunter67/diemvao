@@ -4,13 +4,13 @@ import { ftuAdmissionMethods } from './methods';
 
 export const ftuModule: SchoolModule = {
   id: 'ftu',
-  name: 'Truong Dai hoc Ngoai thuong',
+  name: 'Trường Đại học Ngoại thương',
   shortName: 'FTU',
-  about: 'Public university focused on economics, international business, finance, law, and commercial languages.',
+  about: 'Đại học công lập trọng điểm khối kinh tế đối ngoại, đào tạo kinh doanh quốc tế, tài chính, luật và ngoại ngữ thương mại.',
   year: 2026,
   status: 'supported',
   summary:
-    'FTU domestic aptitude/thinking exam route is exact for the published standalone HSA/V-ACT/TSA formulas, including bonus cap and priority reduction. Program catalog, cutoffs, and international-certificate combination branches are not imported yet.',
+    'Phương thức xét tuyển bằng kết quả đánh giá năng lực/tư duy trong nước (HSA/V-ACT/TSA, không kết hợp chứng chỉ ngoại ngữ quốc tế) đã exact theo công thức công bố chính thức, gồm cả điểm thưởng và quy đổi điểm ưu tiên. Danh mục ngành, điểm chuẩn và các nhánh kết hợp chứng chỉ quốc tế chưa được nhập.',
   capabilities: {
     admissionInfo: true,
     programs: false,
