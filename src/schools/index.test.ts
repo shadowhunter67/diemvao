@@ -41,10 +41,16 @@ describe('schoolRegistry', () => {
     expect(hcmutModule.status).toBe('supported');
   });
 
-  it('hcmut, ueh, uel, iu, ussh, ftu có status supported — FTU route ĐGNL/ĐGTD nội địa exact 2026-08-21', () => {
+  it('hcmut, ueh, uel, iu, ussh có status supported (đều có Page thật để tính điểm)', () => {
     const supported = Object.values(schoolRegistry).filter((school) => school.status === 'supported');
-    expect(supported).toEqual(expect.arrayContaining([hcmutModule, uehModule, uelModule, iuModule, usshModule, ftuModule]));
-    expect(supported).toHaveLength(6);
+    expect(supported).toEqual(expect.arrayContaining([hcmutModule, uehModule, uelModule, iuModule, usshModule]));
+    expect(supported).toHaveLength(5);
+  });
+
+  it('ftuModule có exact calculator (route ĐGNL/ĐGTD nội địa) nhưng status vẫn researching vì chưa có Page thật', () => {
+    expect(ftuModule.capabilities?.exactCalculator).toBe(true);
+    expect(ftuModule.status).toBe('researching');
+    expect(ftuModule.Page).toBeUndefined();
   });
 
   it('có đủ các trường đã research (ĐHQG-HCM + UEH ngoài hệ thống)', () => {
