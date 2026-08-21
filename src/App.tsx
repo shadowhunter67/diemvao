@@ -7,17 +7,7 @@ import { schoolRegistry } from './schools';
 import { setPageMeta } from './core/pageMeta';
 import { siteConfig } from './config/site';
 import { ApplicantProfileProvider } from './core/ApplicantProfileContext';
-
-/**
- * "/" -> null (landing). "/<id>" -> id. Ngoại lệ: "/" + query non-empty là share link cũ
- * (từ trước khi có routing path-based, luôn là HCMUT) -> coi như "/hcmut" để không phá link cũ.
- */
-function resolveSchoolId(pathname: string): string | null {
-  const segment = pathname.replace(/^\/+/, '').split('/')[0];
-  if (segment !== '') return segment;
-  if (typeof window !== 'undefined' && window.location.search) return 'hcmut';
-  return null;
-}
+import { resolveSchoolId } from './core/resolveSchoolId';
 
 /**
  * App shell: chỉ biết routing + tra schoolRegistry, KHÔNG import bất kỳ gì từ
