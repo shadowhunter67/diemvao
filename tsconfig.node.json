@@ -1,4 +1,5 @@
 {
+  // Project config cho tooling chạy trên Node (vite.config.ts) — xem tsconfig.app.json cho code browser.
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "target": "es2023",

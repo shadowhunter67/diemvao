@@ -1,4 +1,5 @@
 {
+  // Root solution config — không compile trực tiếp, chỉ reference 2 project con.
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
