@@ -14,10 +14,23 @@ import { hcmulawModule } from './hcmulaw';
 import { ufmModule } from './ufm';
 import { iuhModule } from './iuh';
 import readme from '../../README.md?raw';
+import type { SchoolModule } from '../core/schoolModule';
+
+/**
+ * So metadata KHÔNG so `Page` — từ batch code-splitting (P1), `schoolRegistry` bọc `Page` của 16
+ * trường "nặng" bằng `React.lazy(...)` (xem `schools/index.ts`), nên `schoolRegistry.hcmut.Page`
+ * KHÔNG còn cùng reference với `hcmutModule.Page` (import trực tiếp, component thật, không lazy) —
+ * đây là khác biệt CÓ CHỦ ĐÍCH, không phải bug. Test so sánh danh tính/metadata của trường, không
+ * so cách `Page` được tải.
+ */
+function withoutPage(module: SchoolModule): Omit<SchoolModule, 'Page'> {
+  const { Page: _Page, ...rest } = module;
+  return rest;
+}
 
 describe('schoolRegistry', () => {
-  it('có hcmut đăng ký với id đúng', () => {
-    expect(schoolRegistry.hcmut).toBe(hcmutModule);
+  it('có hcmut đăng ký với id đúng, metadata khớp module import trực tiếp', () => {
+    expect(withoutPage(schoolRegistry.hcmut)).toEqual(withoutPage(hcmutModule));
     expect(schoolRegistry.hcmut.id).toBe('hcmut');
   });
 
@@ -50,23 +63,17 @@ describe('schoolRegistry', () => {
 
   it('hcmut, ueh, uel, iu, ussh, tdtu, huflit, ump, hutech, hcmulaw, ufm, iuh có status supported (đều có Page thật để tính điểm)', () => {
     const supported = Object.values(schoolRegistry).filter((school) => school.status === 'supported');
-    expect(supported).toEqual(
-      expect.arrayContaining([
-        hcmutModule,
-        uehModule,
-        uelModule,
-        iuModule,
-        usshModule,
-        tdtuModule,
-        huflitModule,
-        umpModule,
-        hutechModule,
-        hcmulawModule,
-        ufmModule,
-        iuhModule,
-      ])
+    expect(supported.map(withoutPage)).toEqual(
+      expect.arrayContaining(
+        [hcmutModule, uehModule, uelModule, iuModule, usshModule, tdtuModule, huflitModule, umpModule, hutechModule, hcmulawModule, ufmModule, iuhModule].map(
+          withoutPage
+        )
+      )
     );
     expect(supported).toHaveLength(12);
+    for (const school of supported) {
+      expect(school.Page, `${school.id} status=supported nhưng thiếu Page`).toBeDefined();
+    }
   });
 
   it('ftuModule có exact calculator (route ĐGNL/ĐGTD nội địa) nhưng status vẫn researching vì chưa có Page thật', () => {

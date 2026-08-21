@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import type { ComponentType } from 'react';
 
 /**
  * Thông tin định danh chung cho một "trường" trong nền tảng UniscoreVN. Cố tình KHÔNG ép buộc
@@ -78,6 +78,12 @@ export interface SchoolModule {
    * để tính điểm). App shell chỉ biết render `<Page />` khi có — không biết/không cần biết bên
    * trong là gì. Không bắt buộc: trường chưa có gì để hiển thị thì bỏ trống, LandingPage tự ẩn
    * CTA tương ứng.
+   *
+   * `ComponentType` (không phải kiểu function component thuần) để tương thích cả component
+   * thường LẪN `React.lazy(...)` — `schools/index.ts` bọc `Page` của 16 trường "nặng" (có UI
+   * calculator thật) bằng `lazy()` để code-split, `LazyExoticComponent` không cấu trúc giống
+   * function component thuần nên field này cần kiểu rộng hơn để nhận cả 2. App shell render
+   * `<Page />` trong `<Suspense>` — không cần biết bên trong là lazy hay không.
    */
-  Page?: (props: { onChangeSchool: () => void }) => ReactElement;
+  Page?: ComponentType<{ onChangeSchool: () => void }>;
 }

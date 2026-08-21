@@ -6,10 +6,13 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
-    // Bundle 1 file duy nhất đã vượt 500kb mặc định vì mỗi trường mới thêm business logic/Page
-    // riêng (kiến trúc multi-school, xem CLAUDE.md) — chưa code-split theo route, chấp nhận cảnh
-    // báo bị tắt thay vì im lặng bỏ qua cảnh báo mỗi lần build. Cân nhắc dynamic import() theo
-    // school khi bundle lớn hơn đáng kể.
-    chunkSizeWarningLimit: 1200,
+    // P1 code-splitting (batch production-readiness): 16 trường "nặng" (có Page/calculator UI
+    // thật) giờ lazy-load riêng chunk qua `React.lazy` (xem `schools/index.ts`), initial bundle
+    // giảm từ ~1038kB xuống ~675kB gzip ~165kB. Vẫn trên mức mặc định 500kB (index chunk gồm
+    // landing page/metadata 30 trường/toàn bộ core logic dùng chung) — 700 phản ánh đúng kích
+    // thước THẬT hiện tại (không phải số tùy tiện để im lặng cảnh báo), để cảnh báo vẫn nổ nếu có
+    // regression thật đẩy bundle lớn hơn. `scripts/check-bundle-size.mjs` (P3) enforce ngưỡng này
+    // trong CI, không chỉ dựa vào cảnh báo build.
+    chunkSizeWarningLimit: 700,
   },
 })

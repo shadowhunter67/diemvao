@@ -21,7 +21,7 @@ describe('deriveSchoolCtaLabel', () => {
 
   it('Tính điểm khi exactCalculator=true dù cũng có eligibility/scoreConversion', () => {
     const school = makeSchool({
-      Page: () => null as unknown as ReturnType<NonNullable<SchoolModule['Page']>>,
+      Page: (() => null) as unknown as SchoolModule['Page'],
       capabilities: { admissionInfo: true, programs: true, eligibility: true, cutoffs: true, scoreConversion: true, exactCalculator: true },
     });
     expect(deriveSchoolCtaLabel(school)).toBe('Tính điểm');
@@ -29,7 +29,7 @@ describe('deriveSchoolCtaLabel', () => {
 
   it('Tính một phần khi partialCalculator=true, chưa exact', () => {
     const school = makeSchool({
-      Page: () => null as unknown as ReturnType<NonNullable<SchoolModule['Page']>>,
+      Page: (() => null) as unknown as SchoolModule['Page'],
       capabilities: { admissionInfo: true, programs: true, eligibility: true, cutoffs: true, scoreConversion: true, exactCalculator: false, partialCalculator: true },
     });
     expect(deriveSchoolCtaLabel(school)).toBe('Tính một phần');
@@ -37,7 +37,7 @@ describe('deriveSchoolCtaLabel', () => {
 
   it('Quy đổi điểm khi chỉ có scoreConversion', () => {
     const school = makeSchool({
-      Page: () => null as unknown as ReturnType<NonNullable<SchoolModule['Page']>>,
+      Page: (() => null) as unknown as SchoolModule['Page'],
       capabilities: { admissionInfo: true, programs: true, eligibility: false, cutoffs: true, scoreConversion: true, exactCalculator: false },
     });
     expect(deriveSchoolCtaLabel(school)).toBe('Quy đổi điểm');
@@ -45,7 +45,7 @@ describe('deriveSchoolCtaLabel', () => {
 
   it('Kiểm tra điều kiện khi chỉ có eligibility', () => {
     const school = makeSchool({
-      Page: () => null as unknown as ReturnType<NonNullable<SchoolModule['Page']>>,
+      Page: (() => null) as unknown as SchoolModule['Page'],
       capabilities: { admissionInfo: true, programs: true, eligibility: true, cutoffs: true, scoreConversion: false, exactCalculator: false },
     });
     expect(deriveSchoolCtaLabel(school)).toBe('Kiểm tra điều kiện');
@@ -53,14 +53,14 @@ describe('deriveSchoolCtaLabel', () => {
 
   it('Xem thông tin khi chỉ có admissionInfo', () => {
     const school = makeSchool({
-      Page: () => null as unknown as ReturnType<NonNullable<SchoolModule['Page']>>,
+      Page: (() => null) as unknown as SchoolModule['Page'],
       capabilities: { admissionInfo: true, programs: false, eligibility: false, cutoffs: false, scoreConversion: false, exactCalculator: false },
     });
     expect(deriveSchoolCtaLabel(school)).toBe('Xem thông tin');
   });
 
   it('fallback theo status khi Page có nhưng chưa set capabilities', () => {
-    const school = makeSchool({ Page: () => null as unknown as ReturnType<NonNullable<SchoolModule['Page']>>, status: 'supported' });
+    const school = makeSchool({ Page: (() => null) as unknown as SchoolModule['Page'], status: 'supported' });
     expect(deriveSchoolCtaLabel(school)).toBe('Tính điểm');
   });
 });

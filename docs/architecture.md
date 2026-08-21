@@ -69,8 +69,19 @@ src/
 
 Thêm trường mới = tạo `schools/<id>/` theo cấu trúc tương tự + thêm 1 dòng vào `schoolRegistry`
 (`src/schools/index.ts`). Route dạng `/hcmut`, `/uit` xử lý bởi `src/hooks/useRoute.ts` (hand-rolled,
-không thêm router lib) — không cần sửa `App.tsx`/router khi thêm trường. Muốn trường đó tham gia
-`/compare` thì thêm bước 2: tạo `schools/<id>/comparison.ts` export 1 `SchoolComparisonAdapter` rồi
+không thêm router lib) — không cần sửa `App.tsx`/router khi thêm trường.
+
+**Nếu trường mới CÓ `Page`** (component UI calculator thật, không chỉ data/eligibility layer) —
+code splitting (P1, batch production-readiness): tách metadata (id/name/shortName/about/summary/
+status/capabilities/ownership/region/vnuhcm) ra `schools/<id>/meta.ts` KHÔNG import `Page`, xem
+`schools/hcmut/meta.ts` làm mẫu. `index.ts` compose `{ ...xxxMeta, Page: XxxPage }` như cũ (giữ
+nguyên cho code cần `SchoolModule` đầy đủ). `schools/index.ts` import `meta.ts` (nhẹ, đồng bộ cho
+landing page/search/filter) + bọc `Page` bằng `lazy(() => import('./<id>').then((m) => ({ default:
+m.xxxModule.Page! })))` — chunk của `Page` (+ cả cây import của nó) chỉ tải khi user thật sự mở
+route đó, không nằm trong initial bundle. Trường KHÔNG có `Page` (đa số, chỉ data/eligibility layer)
+thì import module đầy đủ như cũ, không cần tách gì — không có gì nặng để cắt.
+
+Muốn trường đó tham gia `/compare` thì thêm bước 2: tạo `schools/<id>/comparison.ts` export 1 `SchoolComparisonAdapter` rồi
 thêm 1 dòng vào `schoolComparisonAdapters` (`src/compare/comparisonRegistry.ts`) —
 `comparisonRegistry.test.ts` fail ngay nếu 1 trong 2 bước bị quên.
 

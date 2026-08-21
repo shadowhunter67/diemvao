@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Footer } from './components/Footer';
 import { LandingPage } from './components/LandingPage';
 import { MultiSchoolComparisonPage } from './components/MultiSchoolComparisonPage';
@@ -8,6 +8,16 @@ import { setPageMeta } from './core/pageMeta';
 import { siteConfig } from './config/site';
 import { ApplicantProfileProvider } from './core/ApplicantProfileContext';
 import { resolveSchoolId } from './core/resolveSchoolId';
+
+/** Fallback hiện trong lúc chunk của 1 trường (code-split, `React.lazy`) đang tải — thường chỉ
+ * thấy thoáng qua trên mạng chậm/lần đầu vào trường đó (chunk sau được browser cache). */
+function RouteLoadingFallback() {
+  return (
+    <div className="flex min-h-svh items-center justify-center bg-bg">
+      <p className="text-sm text-muted">Đang tải…</p>
+    </div>
+  );
+}
 
 /**
  * App shell: chỉ biết routing + tra schoolRegistry, KHÔNG import bất kỳ gì từ
@@ -48,7 +58,14 @@ function AppShell() {
 
   if (school?.Page) {
     const Page = school.Page;
-    return <Page onChangeSchool={() => navigate('/')} />;
+    // `Page` có thể là `React.lazy(...)` (16 trường có UI calculator thật, xem `schools/index.ts`)
+    // — bắt buộc bọc `<Suspense>` khi render component lazy, kể cả với 14 trường còn lại dùng
+    // component thường (Suspense không ảnh hưởng gì nếu con không thật sự lazy).
+    return (
+      <Suspense fallback={<RouteLoadingFallback />}>
+        <Page onChangeSchool={() => navigate('/')} />
+      </Suspense>
+    );
   }
 
   return (
