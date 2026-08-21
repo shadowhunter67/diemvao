@@ -63,7 +63,7 @@ function AppShell() {
 
   return (
     <div className="min-h-svh bg-bg">
-      <div className="mx-auto max-w-3xl px-4 pb-16">
+      <div className="mx-auto max-w-6xl px-4 pb-16">
         <LandingPage onSelectSchool={(id) => navigate(`/${id}`)} onOpenCompare={() => navigate('/compare')} />
         <Footer />
       </div>
