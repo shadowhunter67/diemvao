@@ -1,5 +1,6 @@
 import { COMMON_SUBJECT_COMBINATIONS } from '../../core/subjects';
 import { getSchoolStorageKey } from '../../core/storage';
+import { safeGetItem, safeRemoveItem, safeSetItem } from '../../core/safeStorage';
 
 const UEL_SUBJECT_CONTEXT_STORAGE_KEY = getSchoolStorageKey('uel', 'subject-context', 1);
 
@@ -20,15 +21,13 @@ export function parseUelCombinationId(raw: string | null): string {
 }
 
 export function loadStoredUelCombinationId(): string {
-  if (typeof window === 'undefined') return '';
-  return parseUelCombinationId(localStorage.getItem(UEL_SUBJECT_CONTEXT_STORAGE_KEY));
+  return parseUelCombinationId(safeGetItem(UEL_SUBJECT_CONTEXT_STORAGE_KEY));
 }
 
 export function saveStoredUelCombinationId(combinationId: string): void {
-  if (typeof window === 'undefined') return;
   if (!COMMON_SUBJECT_COMBINATIONS.some((combination) => combination.id === combinationId)) {
-    localStorage.removeItem(UEL_SUBJECT_CONTEXT_STORAGE_KEY);
+    safeRemoveItem(UEL_SUBJECT_CONTEXT_STORAGE_KEY);
     return;
   }
-  localStorage.setItem(UEL_SUBJECT_CONTEXT_STORAGE_KEY, JSON.stringify({ combinationId }));
+  safeSetItem(UEL_SUBJECT_CONTEXT_STORAGE_KEY, JSON.stringify({ combinationId }));
 }

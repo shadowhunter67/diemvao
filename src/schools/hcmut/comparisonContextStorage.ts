@@ -1,5 +1,6 @@
 import { COMMON_SUBJECT_COMBINATIONS } from '../../core/subjects';
 import { getSchoolStorageKey } from '../../core/storage';
+import { safeGetItem } from '../../core/safeStorage';
 import type { HcmutMethodContext } from './applicantProfileAdapter';
 
 const FORM_STORAGE_KEY = getSchoolStorageKey('hcmut', 'input', 1);
@@ -15,7 +16,7 @@ function parseNumberLike(value: unknown): number | undefined {
 export function loadStoredHcmutMethodContext(): HcmutMethodContext | undefined {
   if (typeof window === 'undefined') return undefined;
   try {
-    const subjectContext = JSON.parse(localStorage.getItem(SUBJECT_CONTEXT_STORAGE_KEY) ?? '{}') as {
+    const subjectContext = JSON.parse(safeGetItem(SUBJECT_CONTEXT_STORAGE_KEY) ?? '{}') as {
       subject2?: unknown;
       subject3?: unknown;
     };
@@ -25,7 +26,7 @@ export function loadStoredHcmutMethodContext(): HcmutMethodContext | undefined {
         candidate.subjects[1] === subjectContext.subject2 &&
         candidate.subjects[2] === subjectContext.subject3
     );
-    const form = JSON.parse(localStorage.getItem(FORM_STORAGE_KEY) ?? '{}') as {
+    const form = JSON.parse(safeGetItem(FORM_STORAGE_KEY) ?? '{}') as {
       bonus?: { reward?: unknown; considerationReward?: unknown; encouragement?: unknown };
       priorityRaw30Scale?: unknown;
     };

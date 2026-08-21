@@ -1,4 +1,5 @@
 import { getSchoolStorageKey } from '../core/storage';
+import { safeGetItem, safeRemoveItem, safeSetItem } from '../core/safeStorage';
 import { getProgramCatalogEntry } from './programCatalog';
 import { schoolComparisonAdapters } from './comparisonRegistry';
 
@@ -40,8 +41,7 @@ export function parseStoredProgramId(schoolId: string, raw: string | null): stri
 }
 
 export function loadStoredProgramId(schoolId: string): string | undefined {
-  if (typeof window === 'undefined') return undefined;
-  return parseStoredProgramId(schoolId, localStorage.getItem(getProgramStorageKey(schoolId)));
+  return parseStoredProgramId(schoolId, safeGetItem(getProgramStorageKey(schoolId)));
 }
 
 /** Đọc program đã lưu cho MỌI trường có comparison adapter (tự theo `comparisonRegistry` — trước
@@ -52,11 +52,10 @@ export function loadStoredProgramSelections(): Partial<Record<string, string>> {
 }
 
 export function saveStoredProgramId(schoolId: string, programId: string): void {
-  if (typeof window === 'undefined') return;
   const key = getProgramStorageKey(schoolId);
   if (!isKnownProgramId(schoolId, programId)) {
-    localStorage.removeItem(key);
+    safeRemoveItem(key);
     return;
   }
-  localStorage.setItem(key, JSON.stringify({ selectedProgramId: programId }));
+  safeSetItem(key, JSON.stringify({ selectedProgramId: programId }));
 }

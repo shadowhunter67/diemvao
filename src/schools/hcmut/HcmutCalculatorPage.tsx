@@ -18,6 +18,7 @@ import { ProgramHistoryCompare } from '../../components/ProgramHistoryCompare';
 import { FormulaExplanation } from '../../components/FormulaExplanation';
 import { SharedProfileNotice } from '../../components/SharedProfileNotice';
 import { getSchoolStorageKey, readWithMigration } from '../../core/storage';
+import { safeRemoveItem, safeSetItem } from '../../core/safeStorage';
 import { useApplicantProfile } from '../../core/applicantProfileContextCore';
 import { activeAdmissionConfig } from './config/admission-2026';
 import { hcmutPrograms } from './data/programs';
@@ -345,31 +346,31 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
   const [simulatorKey, setSimulatorKey] = useState(0);
 
   useEffect(() => {
-    localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formState));
+    safeSetItem(FORM_STORAGE_KEY, JSON.stringify(formState));
   }, [formState]);
 
   useEffect(() => {
     if (targetScore.trim() === '') {
-      localStorage.removeItem(TARGET_STORAGE_KEY);
+      safeRemoveItem(TARGET_STORAGE_KEY);
     } else {
-      localStorage.setItem(TARGET_STORAGE_KEY, targetScore);
+      safeSetItem(TARGET_STORAGE_KEY, targetScore);
     }
   }, [targetScore]);
 
   useEffect(() => {
-    localStorage.setItem(PROGRAM_STORAGE_KEY, JSON.stringify(programState));
+    safeSetItem(PROGRAM_STORAGE_KEY, JSON.stringify(programState));
   }, [programState]);
 
   useEffect(() => {
-    localStorage.setItem(DGNL_MODE_STORAGE_KEY, JSON.stringify(dgnlModeState));
+    safeSetItem(DGNL_MODE_STORAGE_KEY, JSON.stringify(dgnlModeState));
   }, [dgnlModeState]);
 
   useEffect(() => {
-    localStorage.setItem(APPLICANT_TYPE_STORAGE_KEY, applicantType);
+    safeSetItem(APPLICANT_TYPE_STORAGE_KEY, applicantType);
   }, [applicantType]);
 
   useEffect(() => {
-    localStorage.setItem(SUBJECT_CONTEXT_STORAGE_KEY, JSON.stringify(subjectContext));
+    safeSetItem(SUBJECT_CONTEXT_STORAGE_KEY, JSON.stringify(subjectContext));
   }, [subjectContext]);
 
   const isSupportedApplicantType = SUPPORTED_APPLICANT_TYPES.includes(applicantType);
@@ -644,12 +645,12 @@ export function HcmutCalculatorPage({ onChangeSchool }: HcmutCalculatorPageProps
   }
 
   function handleReset() {
-    localStorage.removeItem(FORM_STORAGE_KEY);
-    localStorage.removeItem(TARGET_STORAGE_KEY);
-    localStorage.removeItem(PROGRAM_STORAGE_KEY);
-    localStorage.removeItem(DGNL_MODE_STORAGE_KEY);
-    localStorage.removeItem(APPLICANT_TYPE_STORAGE_KEY);
-    localStorage.removeItem(SUBJECT_CONTEXT_STORAGE_KEY);
+    safeRemoveItem(FORM_STORAGE_KEY);
+    safeRemoveItem(TARGET_STORAGE_KEY);
+    safeRemoveItem(PROGRAM_STORAGE_KEY);
+    safeRemoveItem(DGNL_MODE_STORAGE_KEY);
+    safeRemoveItem(APPLICANT_TYPE_STORAGE_KEY);
+    safeRemoveItem(SUBJECT_CONTEXT_STORAGE_KEY);
     setFormState(defaultAdmissionFormState);
     setTargetScore('');
     setProgramState(defaultProgramState);

@@ -318,3 +318,41 @@ describe('parseApplicantProfile / loadApplicantProfile — end-to-end qua localS
     expect(loadApplicantProfile()).toEqual({});
   });
 });
+
+/** Storage bị chặn hoàn toàn (quota exceeded / disabled / private mode / policy) — mọi method
+ * throw. `saveApplicantProfile`/`clearStoredApplicantProfile`/`loadApplicantProfile` phải tiếp tục
+ * hoạt động bằng in-memory state, KHÔNG throw ra ngoài (xem `safeStorage.ts`). */
+class ThrowingStorage {
+  getItem(): string | null {
+    throw new DOMException('blocked', 'SecurityError');
+  }
+  setItem(): void {
+    throw new DOMException('quota exceeded', 'QuotaExceededError');
+  }
+  removeItem(): void {
+    throw new DOMException('blocked', 'SecurityError');
+  }
+  clear(): void {
+    throw new DOMException('blocked', 'SecurityError');
+  }
+}
+
+describe('khi storage throw (quota/disabled/private mode/policy)', () => {
+  beforeEach(() => {
+    globalThis.localStorage = new ThrowingStorage() as unknown as Storage;
+    (globalThis as { window?: unknown }).window = globalThis;
+  });
+
+  it('saveApplicantProfile không throw khi setItem throw', () => {
+    expect(() => saveApplicantProfile({ graduationYear: 2026 })).not.toThrow();
+  });
+
+  it('loadApplicantProfile không throw khi getItem throw — trả profile rỗng thay vì crash', () => {
+    expect(() => loadApplicantProfile()).not.toThrow();
+    expect(loadApplicantProfile()).toEqual({});
+  });
+
+  it('clearStoredApplicantProfile không throw khi removeItem throw (xóa hồ sơ vẫn an toàn dù storage bị chặn)', () => {
+    expect(() => clearStoredApplicantProfile()).not.toThrow();
+  });
+});

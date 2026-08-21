@@ -1,5 +1,6 @@
 import type { ApplicantProfile } from './applicantProfile';
 import { readWithMigration } from './storage';
+import { safeRemoveItem, safeSetItem } from './safeStorage';
 import {
   hasCompleteVactComponents,
   sumVactComponents,
@@ -250,8 +251,7 @@ export function loadApplicantProfile(): ApplicantProfile {
 }
 
 export function saveApplicantProfile(profile: ApplicantProfile): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(APPLICANT_PROFILE_STORAGE_KEY, JSON.stringify(profile));
+  safeSetItem(APPLICANT_PROFILE_STORAGE_KEY, JSON.stringify(profile));
 }
 
 /**
@@ -263,9 +263,8 @@ export function saveApplicantProfile(profile: ApplicantProfile): void {
  * hoàn toàn"), khác với đọc/migrate thụ động lúc mount.
  */
 export function clearStoredApplicantProfile(): void {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem(APPLICANT_PROFILE_STORAGE_KEY);
+  safeRemoveItem(APPLICANT_PROFILE_STORAGE_KEY);
   for (const legacyKey of APPLICANT_PROFILE_LEGACY_KEYS) {
-    localStorage.removeItem(legacyKey);
+    safeRemoveItem(legacyKey);
   }
 }

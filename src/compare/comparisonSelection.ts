@@ -1,4 +1,5 @@
 import { COMMON_SUBJECT_COMBINATIONS } from '../core/subjects';
+import { safeGetItem, safeSetItem } from '../core/safeStorage';
 
 export interface SchoolComparisonContext {
   combinationId?: string;
@@ -143,13 +144,11 @@ export function parseStoredComparisonSelections(raw: string | null): ComparisonS
 }
 
 export function loadStoredComparisonSelections(): ComparisonSelection[] {
-  if (typeof window === 'undefined') return [];
-  return parseStoredComparisonSelections(localStorage.getItem(COMPARE_SELECTION_STORAGE_KEY));
+  return parseStoredComparisonSelections(safeGetItem(COMPARE_SELECTION_STORAGE_KEY));
 }
 
 export function saveStoredComparisonSelections(selections: readonly ComparisonSelection[]): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(COMPARE_SELECTION_STORAGE_KEY, JSON.stringify(selections.slice(0, COMPARE_SELECTION_HARD_LIMIT)));
+  safeSetItem(COMPARE_SELECTION_STORAGE_KEY, JSON.stringify(selections.slice(0, COMPARE_SELECTION_HARD_LIMIT)));
 }
 
 export function encodeComparisonSelectionsForUrl(selections: readonly ComparisonSelection[]): string {
