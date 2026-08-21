@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import { schoolSourceRegistries } from '../schools/sourceRegistry';
 import { hcmutAdmissionMethods } from '../schools/hcmut/methods';
 import { uehAdmissionMethods } from '../schools/ueh/methods';
@@ -14,6 +14,7 @@ import { hutechAdmissionMethods } from '../schools/hutech/methods';
 import { ufmAdmissionMethods } from '../schools/ufm/methods';
 import { hcmulawAdmissionMethods } from '../schools/hcmulaw/methods';
 import { iuhAdmissionMethods } from '../schools/iuh/methods';
+import { ftuAdmissionMethods } from '../schools/ftu/methods';
 
 import { hcmutGoldenCases, hcmutNoDgnlGoldenCase } from '../schools/hcmut/__fixtures__/officialExamples2026';
 import { uehGoldenCases, uehOfficialFinalConversionCase } from '../schools/ueh/__fixtures__/officialExamples2026';
@@ -25,6 +26,7 @@ import { hutechThptGoldenCases, hutechDgnlGoldenCases } from '../schools/hutech/
 import { ufmThptGoldenCases, ufmDgnlGoldenCases, ufmHocbaGoldenCases, ufmVsatGoldenCases } from '../schools/ufm/__fixtures__/officialExamples2026';
 import { hcmulawThpt5GoldenCases, hcmulawVsat4GoldenCases } from '../schools/hcmulaw/__fixtures__/officialExamples2026';
 import { iuhCombinedGoldenCases } from '../schools/iuh/__fixtures__/officialExamples2026';
+import { ftuDomesticExamGoldenCases } from '../schools/ftu/__fixtures__/officialExamples2026';
 
 /**
  * Invariant CI bắt buộc: MỌI method có `capabilities.exactCalculator === true` phải có ÍT NHẤT 1
@@ -53,6 +55,7 @@ const allMethodsBySchool = {
   ufm: ufmAdmissionMethods,
   hcmulaw: hcmulawAdmissionMethods,
   iuh: iuhAdmissionMethods,
+  ftu: ftuAdmissionMethods,
 };
 
 function methodKey(schoolId: string, methodId: string): string {
@@ -89,6 +92,7 @@ const allGoldenCases = [
   ...hcmulawThpt5GoldenCases,
   ...hcmulawVsat4GoldenCases,
   ...iuhCombinedGoldenCases,
+  ...ftuDomesticExamGoldenCases,
 ];
 
 const coveredMethods = new Set(allGoldenCases.map((goldenCase) => methodKey(goldenCase.schoolId, goldenCase.methodId)));
@@ -136,7 +140,9 @@ describe('exact method golden coverage invariant', () => {
         'hcmulaw:hcmulaw-thpt5-2026',
         'hcmulaw:hcmulaw-vsat4-2026',
         'iuh:iuh-combined-2026',
+        'ftu:ftu-domestic-exam-2026',
       ].sort()
     );
   });
 });
+

@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import { schoolRegistry } from './index';
 import { hcmutModule } from './hcmut';
 import { uehModule } from './ueh';
 import { uelModule } from './uel';
 import { iuModule } from './iu';
 import { usshModule } from './ussh';
+import { ftuModule } from './ftu';
 import readme from '../../README.md?raw';
 
 describe('schoolRegistry', () => {
@@ -40,25 +41,29 @@ describe('schoolRegistry', () => {
     expect(hcmutModule.status).toBe('supported');
   });
 
-  it('hcmut, ueh, uel, iu, ussh có status supported — UEL nâng lên exact 2026-08-15 (bảng điểm cộng ngoại ngữ đã lộ công khai), USSH nâng lên exact 2026-08-15 (thí sinh không có thành tích cộng điểm)', () => {
+  it('hcmut, ueh, uel, iu, ussh, ftu có status supported — FTU route ĐGNL/ĐGTD nội địa exact 2026-08-21', () => {
     const supported = Object.values(schoolRegistry).filter((school) => school.status === 'supported');
-    expect(supported).toEqual(expect.arrayContaining([hcmutModule, uehModule, uelModule, iuModule, usshModule]));
-    expect(supported).toHaveLength(5);
+    expect(supported).toEqual(expect.arrayContaining([hcmutModule, uehModule, uelModule, iuModule, usshModule, ftuModule]));
+    expect(supported).toHaveLength(6);
   });
 
   it('có đủ các trường đã research (ĐHQG-HCM + UEH ngoài hệ thống)', () => {
     const ids = Object.keys(schoolRegistry).sort();
     expect(ids).toEqual([
       'agu',
+      'ftu',
       'hcmue',
       'hcmulaw',
       'hcmus',
       'hcmut',
       'hcmute',
+      'hub',
       'huflit',
       'hutech',
       'iu',
       'iuh',
+      'neu',
+      'ptit',
       'tdtu',
       'ueh',
       'uel',
@@ -77,3 +82,4 @@ describe('schoolRegistry', () => {
     }
   });
 });
+

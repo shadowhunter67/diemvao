@@ -1,4 +1,4 @@
-import type { RuleEvidence } from './evidence';
+﻿import type { RuleEvidence } from './evidence';
 import type { AdmissionMethodDescriptor } from './admissionMethod';
 import type { KnowledgeGap } from './knowledgeStatus';
 import { hcmutRuleEvidence } from '../schools/hcmut/evidence';
@@ -43,6 +43,12 @@ import { vluAdmissionMethods } from '../schools/vlu/methods';
 import { vluThptExamThresholdEvidence, vluTranscriptExtraRequirementEvidence } from '../schools/vlu/evidence';
 import { umpAdmissionMethods } from '../schools/ump/methods';
 import { umpFormulaEvidence, umpPriorityEvidence, umpBonusEvidence, umpThresholdEvidence } from '../schools/ump/evidence';
+import { ftuAdmissionMethods } from '../schools/ftu/methods';
+import { ftuDomesticExamFormulaEvidence, ftuDomesticExamThresholdEvidence, ftuPriorityAndBonusEvidence } from '../schools/ftu/evidence';
+import { ptitAdmissionMethods } from '../schools/ptit/methods';
+import { neuAdmissionMethods } from '../schools/neu/methods';
+import { hubAdmissionMethods } from '../schools/hub/methods';
+import { hubStandardThresholdEvidence, hubLawThresholdEvidence, hubEliteIeltsRequirementEvidence } from '../schools/hub/evidence';
 
 /**
  * Pure data-assembly cho `npm run audit:data` (CLI script) VÀ test provenance
@@ -118,6 +124,12 @@ export function verifiedRuntimeEvidence(): RuleEvidence[] {
     ...umpThresholdEvidence.evidence,
     ...umpPriorityEvidence.evidence,
     ...umpBonusEvidence.evidence,
+    ...ftuDomesticExamFormulaEvidence.evidence,
+    ...ftuDomesticExamThresholdEvidence.evidence,
+    ...ftuPriorityAndBonusEvidence.evidence,
+    ...hubStandardThresholdEvidence.evidence,
+    ...hubLawThresholdEvidence.evidence,
+    ...hubEliteIeltsRequirementEvidence.evidence,
   ];
 }
 
@@ -144,6 +156,10 @@ export const allAdmissionMethods: AdmissionMethodDescriptor[] = [
   ...iuhAdmissionMethods,
   ...vluAdmissionMethods,
   ...umpAdmissionMethods,
+  ...ftuAdmissionMethods,
+  ...ptitAdmissionMethods,
+  ...neuAdmissionMethods,
+  ...hubAdmissionMethods,
 ];
 
 export const allMethodKnowledgeGaps: Array<KnowledgeGap & { schoolId?: string; methodId?: string }> = [
@@ -163,4 +179,8 @@ export const allMethodKnowledgeGaps: Array<KnowledgeGap & { schoolId?: string; m
   ...methodGaps(huflitAdmissionMethods),
   ...methodGaps(hcmulawAdmissionMethods),
   ...methodGaps(iuhAdmissionMethods),
+  ...methodGaps(ptitAdmissionMethods),
+  ...methodGaps(neuAdmissionMethods),
+  ...methodGaps(hubAdmissionMethods),
 ];
+

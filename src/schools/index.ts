@@ -1,4 +1,4 @@
-import type { SchoolModule } from '../core/schoolModule';
+﻿import type { SchoolModule } from '../core/schoolModule';
 import { hcmutModule } from './hcmut';
 import { uitModule } from './uit';
 import { uelModule } from './uel';
@@ -18,6 +18,10 @@ import { iuhModule } from './iuh';
 import { hcmulawModule } from './hcmulaw';
 import { vluModule } from './vlu';
 import { umpModule } from './ump';
+import { ftuModule } from './ftu';
+import { ptitModule } from './ptit';
+import { neuModule } from './neu';
+import { hubModule } from './hub';
 
 /**
  * Các trường ĐHQG-HCM khác đã research (xem docs/admission-research-2026.md) nhưng CHƯA có
@@ -63,5 +67,10 @@ export const schoolRegistry: Record<string, SchoolModule> = {
   hcmulaw: hcmulawModule,
   vlu: vluModule,
   ump: umpModule,
+  ftu: ftuModule,
+  ptit: ptitModule,
+  neu: neuModule,
+  hub: hubModule,
   ...Object.fromEntries(researchedSchools.map((school) => [school.id, school])),
 };
+

@@ -1,4 +1,4 @@
-# UniscoreVN
+﻿# UniscoreVN
 
 Công cụ tính & so sánh điểm xét tuyển đại học Việt Nam — nhập điểm một lần, xem kết quả ở nhiều trường cùng lúc.
 
@@ -22,13 +22,13 @@ Mỗi công thức đều gắn nguồn dữ liệu chính thức cụ thể. Ph
 - Nhập điểm một lần, dùng lại cho nhiều trường; chia sẻ kết quả qua URL, không cần tài khoản
 - Tự lưu điểm đã nhập trên trình duyệt (không gửi lên server)
 
-## Trường đang hỗ trợ (19)
+## Trường đang hỗ trợ (23)
 
 | Trường | Trạng thái |
 |---|---|
-| HCMUT, UEH, UEL, HCMUS, USSH, IU, TDTU, HUFLIT, UMP, UFM, IUH | ✅ Tính điểm chính xác |
+| HCMUT, UEH, UEL, HCMUS, USSH, IU, TDTU, HUFLIT, UMP, UFM, IUH, FTU | ✅ Tính điểm chính xác |
 | HUTECH, HCMULAW | ✅ Chính xác một phần phương thức, phần còn lại đang bổ sung |
-| UIT, UHS, AGU, HCMUE, HCMUTE, VLU | 🟡 Kiểm tra điều kiện/ngưỡng, chưa có calculator chính xác |
+| UIT, UHS, AGU, HCMUE, HCMUTE, VLU, PTIT, NEU, HUB | 🟡 Kiểm tra điều kiện/ngưỡng, chưa có calculator chính xác |
 
 "Chính xác" nghĩa là công thức, ngưỡng, điểm cộng và điểm ưu tiên đều có nguồn chính thức xác minh trong phạm vi đã công bố — một số trường chỉ chính xác trong phạm vi cụ thể (ví dụ thí sinh không có thành tích cộng điểm). Chi tiết từng trường, nguồn dữ liệu, và giới hạn hiện tại xem [docs/admission-research-2026.md](docs/admission-research-2026.md).
 
@@ -61,3 +61,4 @@ Deploy qua Vercel (framework preset: Vite), domain canonical `uniscorevn.vercel.
 - [docs/admission-research-2026.md](docs/admission-research-2026.md) — research công thức từng trường
 - [docs/data-maintainer-guide.md](docs/data-maintainer-guide.md) — quy trình thêm/cập nhật dữ liệu tuyển sinh
 - [docs/release-checklist.md](docs/release-checklist.md) — quy trình release
+

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import type { SchoolComparisonAdapter } from './schoolComparisonAdapter';
 import { schoolComparisonAdapters, schoolComparisonAdapterRegistry, COMPARE_SCHOOL_ORDER } from './comparisonRegistry';
 import { schoolRegistry } from '../schools';
@@ -22,6 +22,10 @@ import { iuhAdmissionMethods } from '../schools/iuh/methods';
 import { hcmulawAdmissionMethods } from '../schools/hcmulaw/methods';
 import { vluAdmissionMethods } from '../schools/vlu/methods';
 import { umpAdmissionMethods } from '../schools/ump/methods';
+import { ftuAdmissionMethods } from '../schools/ftu/methods';
+import { ptitAdmissionMethods } from '../schools/ptit/methods';
+import { neuAdmissionMethods } from '../schools/neu/methods';
+import { hubAdmissionMethods } from '../schools/hub/methods';
 
 /**
  * Khóa architectural invariant của compare orchestration — CI phải bắt được kiểu bug "trường đã
@@ -50,6 +54,10 @@ const methodDescriptorsBySchool: Record<string, readonly { id: string }[]> = {
   hcmulaw: hcmulawAdmissionMethods,
   vlu: vluAdmissionMethods,
   ump: umpAdmissionMethods,
+  ftu: ftuAdmissionMethods,
+  ptit: ptitAdmissionMethods,
+  neu: neuAdmissionMethods,
+  hub: hubAdmissionMethods,
 };
 
 /** Pure helper — trả danh sách schoolId bị trùng trong 1 mảng adapter. Test cả trên registry thật
@@ -144,3 +152,4 @@ describe('comparisonRegistry invariants', () => {
     expect(evaluateComparisonSelections({}, [{ id: 'only', schoolId: 'ghost-school' }])).toEqual([]);
   });
 });
+

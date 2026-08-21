@@ -1,4 +1,4 @@
-# Research tuyển sinh 2026 — UniscoreVN
+﻿# Research tuyển sinh 2026 — UniscoreVN
 
 Research phục vụ quyết định trường/công thức nào đủ điều kiện implement calculator trong UniscoreVN. Nguyên tắc: **research trước, code sau; không suy đoán công thức; official source luôn ưu tiên cao nhất**. Ngày research: 2026-08-10.
 
@@ -167,3 +167,11 @@ Xếp theo độ ưu tiên đề xuất (không implement ngay trong phase này 
 
 - Một số trang chính thức không fetch được trực tiếp (timeout hoặc chặn crawler): `hcmut.edu.vn` (2 lần timeout — dùng cross-check qua 2 nguồn khác), `hcmiu.edu.vn` (IU, trả về rỗng), một phần `tuyensinh.iuh.edu.vn` (lỗi SSL). Các trường hợp này đều được ghi rõ "formulaVerified = false" hoặc "độ tin cậy trung bình", không tự suy đoán số liệu thay thế.
 - Không dùng bất kỳ trang tổng hợp điểm chuẩn không dẫn nguồn hoặc snippet Google không kèm link xác minh được làm nguồn chính cho bất kỳ khẳng định số liệu nào.
+## Research bổ sung 2026-08-21 — FTU/PTIT/NEU
+
+Thực hiện lại workflow 12 bước cho 3 trường Tier 1 ngoài nhóm đã có module, ưu tiên nguồn chính thức parse được:
+
+- **FTU (Trường Đại học Ngoại thương)** — nguồn chính thức `thongtintuyensinh.ftu.edu.vn/admissions-methods`, truy cập lại 2026-08-21. Inventory: 4 nhóm phương thức chính; module chỉ claim Phương thức 4 route ĐGNL/ĐGTD trong nước độc lập. Công thức verified: HSA `27 + (raw-100)*3/50`, V-ACT `27 + (raw-850)*3/350`, TSA `27 + (raw-70)*3/30`; nhóm tích hợp Khoa học máy tính/AI/Khoa học dữ liệu quy đổi sang thang 40 bằng `base30*4/3`. Điều kiện sàn đã đọc: HSA≥100, V-ACT≥850, TSA≥70. Điểm thưởng/cap và công thức giảm ưu tiên thang 30/40 có trên cùng nguồn. Chưa import danh mục chương trình để tự chọn nhóm thang 30/40, điểm chuẩn 2026, và các nhánh kết hợp chứng chỉ ngoại ngữ quốc tế. Implement `schools/ftu/`, `exactCalculator:true` cho route nội địa độc lập, có Tier C golden coverage.
+- **PTIT (Học viện Công nghệ Bưu chính Viễn thông)** — nguồn chính thức `tuyensinh.ptit.edu.vn`, thông báo ngày 03/04/2026. Inventory: 5 phương thức; module hiện chỉ dùng Phương thức 3 ĐGNL/ĐGTD trong nước. Ngưỡng verified: TSA≥50, HSA≥75, V-ACT≥600, SPT≥15. Công thức nguồn nêu `ĐXT = điểm ĐGNL/ĐGTD + điểm cộng + điểm ưu tiên`, nhưng chính văn bản ghi điểm xét tuyển ở phần C là trước quy đổi tương đương theo Bộ GD&ĐT; chưa tìm được bảng/công thức quy đổi tương đương final-score riêng PTIT. Implement `schools/ptit/` eligibility/raw-formula checker, `exactCalculator:false`.
+- **NEU (Đại học Kinh tế Quốc dân)** — nguồn chính thức `neu.edu.vn`, Thông báo 1613/TB-ĐHKTQD ngày 03/07/2026 và PDF thông tin tuyển sinh 2026. Inventory hiện dùng phần ngưỡng + bảng quy đổi tương đương. Ngưỡng ĐBCL: A00/A01/D01/D07 đều 22/30, áp dụng cho thi TN THPT và phương thức kết hợp TN THPT với chứng chỉ tiếng Anh quốc tế. Bảng quy đổi tương đương verified theo khoảng: THPT 22-24 ↔ V-ACT 700-752; 24-26 ↔ 752-882; 26-28 ↔ 882-1004; 28-30 ↔ 1004-1200 (cùng HSA/SAT/TSA trong PDF). PDF chỉ công bố khoảng và trỏ thí sinh đến AI tool để tra cứu chi tiết, nên không suy diễn hàm nội suy trong khoảng. Implement `schools/neu/` band checker, `exactCalculator:false`.
+

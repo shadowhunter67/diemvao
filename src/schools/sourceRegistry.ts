@@ -1,4 +1,4 @@
-import type { AdmissionSource } from '../core/sourceRegistry';
+﻿import type { AdmissionSource } from '../core/sourceRegistry';
 import { hcmutSources } from './hcmut/sources';
 import { uehSources } from './ueh/sources';
 import { uelSources } from './uel/sources';
@@ -18,6 +18,10 @@ import { hcmulawSources } from './hcmulaw/sources';
 import { vluSources } from './vlu/sources';
 import { iuhSources } from './iuh/sources';
 import { umpSources } from './ump/sources';
+import { ftuSources } from './ftu/sources';
+import { ptitSources } from './ptit/sources';
+import { neuSources } from './neu/sources';
+import { hubSources } from './hub/sources';
 
 function withSchoolId(schoolId: string, sources: Omit<AdmissionSource, 'schoolId'>[]): AdmissionSource[] {
   return sources.map((source) => ({ ...source, schoolId }));
@@ -42,6 +46,10 @@ export const hcmulawSourceRegistry: AdmissionSource[] = withSchoolId('hcmulaw', 
 export const vluSourceRegistry: AdmissionSource[] = withSchoolId('vlu', vluSources);
 export const iuhSourceRegistry: AdmissionSource[] = withSchoolId('iuh', iuhSources);
 export const umpSourceRegistry: AdmissionSource[] = withSchoolId('ump', umpSources);
+export const ftuSourceRegistry: AdmissionSource[] = withSchoolId('ftu', ftuSources);
+export const ptitSourceRegistry: AdmissionSource[] = withSchoolId('ptit', ptitSources);
+export const neuSourceRegistry: AdmissionSource[] = withSchoolId('neu', neuSources);
+export const hubSourceRegistry: AdmissionSource[] = withSchoolId('hub', hubSources);
 
 export const schoolSourceRegistries: Record<string, AdmissionSource[]> = {
   hcmut: hcmutSourceRegistry,
@@ -63,6 +71,10 @@ export const schoolSourceRegistries: Record<string, AdmissionSource[]> = {
   vlu: vluSourceRegistry,
   iuh: iuhSourceRegistry,
   ump: umpSourceRegistry,
+  ftu: ftuSourceRegistry,
+  ptit: ptitSourceRegistry,
+  neu: neuSourceRegistry,
+  hub: hubSourceRegistry,
 };
 
 export const allAdmissionSources: AdmissionSource[] = [
@@ -85,4 +97,9 @@ export const allAdmissionSources: AdmissionSource[] = [
   ...vluSourceRegistry,
   ...iuhSourceRegistry,
   ...umpSourceRegistry,
+  ...ftuSourceRegistry,
+  ...ptitSourceRegistry,
+  ...neuSourceRegistry,
+  ...hubSourceRegistry,
 ];
+

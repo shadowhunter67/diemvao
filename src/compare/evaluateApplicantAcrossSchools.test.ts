@@ -115,6 +115,10 @@ describe('evaluateApplicantAcrossSchools', () => {
       'hcmulaw',
       'vlu',
       'ump',
+      'ftu',
+      'ptit',
+      'neu',
+      'hub',
     ]);
   });
 

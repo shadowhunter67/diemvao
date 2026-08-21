@@ -1,4 +1,4 @@
-import { CURRENT_ADMISSION_YEAR } from '../src/core/admissionYear.ts';
+﻿import { CURRENT_ADMISSION_YEAR } from '../src/core/admissionYear.ts';
 import { auditAdmissionDataFreshness, type AuditableCutoffRecord, type FreshnessAuditIssue, type FreshnessAuditSeverity } from '../src/core/dataFreshnessAudit.ts';
 import { hcmutEvidence, verifiedRuntimeEvidence, allAdmissionMethods, allMethodKnowledgeGaps } from '../src/core/admissionAuditInputs.ts';
 import { hcmutCutoffs } from '../src/schools/hcmut/data/cutoffs.ts';
@@ -8,7 +8,7 @@ import { uitCutoffs } from '../src/schools/uit/data/cutoffs.ts';
 import { iuCutoffs2026 } from '../src/schools/iu/data/cutoffs.ts';
 import { allAdmissionSources } from '../src/schools/sourceRegistry.ts';
 
-const SCHOOLS = ['hcmut', 'ueh', 'uel', 'uit', 'hcmus', 'ussh', 'uhs', 'iu', 'agu', 'hcmute', 'tdtu', 'huflit', 'hutech', 'ufm', 'hcmulaw', 'iuh', 'vlu', 'ump'] as const;
+const SCHOOLS = ['hcmut', 'ueh', 'uel', 'uit', 'hcmus', 'ussh', 'uhs', 'iu', 'agu', 'hcmute', 'tdtu', 'huflit', 'hutech', 'ufm', 'hcmulaw', 'iuh', 'vlu', 'ump', 'ftu', 'ptit', 'neu', 'hub'] as const;
 const args = process.argv.slice(2);
 const verbose = args.includes('--verbose');
 const schoolFilter = args.find((arg) => arg.startsWith('--school='))?.slice('--school='.length) ?? args.find((arg) => SCHOOLS.includes(arg as (typeof SCHOOLS)[number]));
@@ -82,3 +82,4 @@ if (!schoolFilter || schoolFilter === 'hcmut') {
 }
 
 if (counts.errors > 0) process.exitCode = 1;
+

@@ -1,4 +1,4 @@
-import type { SchoolComparisonAdapter } from './schoolComparisonAdapter';
+﻿import type { SchoolComparisonAdapter } from './schoolComparisonAdapter';
 import { hcmutComparisonAdapter } from '../schools/hcmut/comparison';
 import { uehComparisonAdapter } from '../schools/ueh/comparison';
 import { iuComparisonAdapter } from '../schools/iu/comparison';
@@ -18,6 +18,10 @@ import { iuhComparisonAdapter } from '../schools/iuh/comparison';
 import { hcmulawComparisonAdapter } from '../schools/hcmulaw/comparison';
 import { vluComparisonAdapter } from '../schools/vlu/comparison';
 import { umpComparisonAdapter } from '../schools/ump/comparison';
+import { ftuComparisonAdapter } from '../schools/ftu/comparison';
+import { ptitComparisonAdapter } from '../schools/ptit/comparison';
+import { neuComparisonAdapter } from '../schools/neu/comparison';
+import { hubComparisonAdapter } from '../schools/hub/comparison';
 
 /**
  * Nguồn sự thật DUY NHẤT cho thứ tự + danh sách trường tham gia `/compare` — orchestration
@@ -51,6 +55,10 @@ export const schoolComparisonAdapters: readonly SchoolComparisonAdapter[] = [
   hcmulawComparisonAdapter,
   vluComparisonAdapter,
   umpComparisonAdapter,
+  ftuComparisonAdapter,
+  ptitComparisonAdapter,
+  neuComparisonAdapter,
+  hubComparisonAdapter,
 ];
 
 export const schoolComparisonAdapterRegistry: Readonly<Record<string, SchoolComparisonAdapter>> = Object.fromEntries(
@@ -59,3 +67,4 @@ export const schoolComparisonAdapterRegistry: Readonly<Record<string, SchoolComp
 
 /** Thứ tự hiển thị `/compare` — derive từ chính registry (không phải hằng số song song). */
 export const COMPARE_SCHOOL_ORDER: readonly string[] = schoolComparisonAdapters.map((adapter) => adapter.schoolId);
+

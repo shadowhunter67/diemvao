@@ -6,7 +6,7 @@
 > tay research/implement 1 trường — mọi mã trường, domain, công thức ở đây đều cần verify lại qua
 > nguồn chính thức trước khi đưa vào code.
 
-## 0. Đã implement trong UniscoreVN (15 trường — KHÔNG phải backlog)
+## 0. Đã implement trong UniscoreVN (16 trường — KHÔNG phải backlog)
 
 Các trường dưới đây đã có module thật trong `src/schools/<id>/`, đăng ký ở
 `src/schools/index.ts`. Liệt kê lại ở đây chỉ để tránh nhầm lẫn khi đọc phần backlog bên dưới.
@@ -28,6 +28,7 @@ Các trường dưới đây đã có module thật trong `src/schools/<id>/`, �
 | Đại học Ngoại ngữ – Tin học TP.HCM | huflit | `src/schools/huflit/` |
 | Đại học Công nghệ TP.HCM | hutech | `src/schools/hutech/` |
 | Đại học Tài chính – Marketing | ufm | `src/schools/ufm/` |
+| Đại học Ngân hàng TP.HCM | hub | `src/schools/hub/` |
 
 Toàn bộ 8 trường thành viên của ĐHQG-HCM (Bách khoa, CNTT, Kinh tế-Luật, KHTN, KHXH&NV, Khoa học
 Sức khỏe, Quốc tế, An Giang) đã được implement — không còn backlog "trường ĐHQG-HCM còn thiếu".
@@ -48,7 +49,6 @@ trường/Bộ GD&ĐT — bắt buộc verify lại khi thực sự research.**
 | Đại học Sài Gòn | SGU | SGD | TP.HCM | sgu.edu.vn | Công lập (trực thuộc TP.HCM) |
 | Đại học Y Dược TP.HCM | UMP | YDS | TP.HCM | tuyensinh.ump.edu.vn | Công lập (Bộ Y tế) |
 | Đại học Luật TP.HCM | HCMULAW | LPS | TP.HCM | tuyensinh.hcmulaw.edu.vn | Công lập |
-| Đại học Ngân hàng TP.HCM | HUB | NHS | TP.HCM | tuyensinh.hub.edu.vn | Công lập (NHNN) |
 | Đại học Công nghiệp TP.HCM | IUH | IUH | TP.HCM | tuyensinh.iuh.edu.vn | Công lập (Bộ Công Thương) |
 | Đại học Công Thương TP.HCM | HUIT | DCT | TP.HCM | tuyensinh.huit.edu.vn | Công lập (Bộ Công Thương) |
 | Đại học Nguyễn Tất Thành | NTTU | NTT | TP.HCM | tuyensinh.ntt.edu.vn | Tư thục |
