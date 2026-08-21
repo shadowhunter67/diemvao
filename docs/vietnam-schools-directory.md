@@ -6,7 +6,7 @@
 > tay research/implement 1 trường — mọi mã trường, domain, công thức ở đây đều cần verify lại qua
 > nguồn chính thức trước khi đưa vào code.
 
-## 0. Đã implement trong UniscoreVN (16 trường — KHÔNG phải backlog)
+## 0. Đã implement trong UniscoreVN (27 trường — KHÔNG phải backlog)
 
 Các trường dưới đây đã có module thật trong `src/schools/<id>/`, đăng ký ở
 `src/schools/index.ts`. Liệt kê lại ở đây chỉ để tránh nhầm lẫn khi đọc phần backlog bên dưới.
@@ -34,9 +34,16 @@ Các trường dưới đây đã có module thật trong `src/schools/<id>/`, �
 | Đại học Hoa Sen | hsu | `src/schools/hsu/` |
 | Đại học Kinh tế – Tài chính TP.HCM | uef | `src/schools/uef/` |
 
-(Danh sách trên chưa liệt kê hết mọi trường đã implement — IUH/HCMULAW/UMP/FTU/PTIT/NEU cũng đã có
-module thật, xem `src/schools/index.ts` là nguồn sự thật đầy đủ; mục này chỉ để tránh trùng lặp với
-backlog bên dưới, không phải bảng kiểm kê chính thức.)
+| Đại học Ngân hàng TP.HCM | hub | `src/schools/hub/` |
+| Đại học Ngoại thương | ftu | `src/schools/ftu/` |
+| Đại học Kinh tế Quốc dân | neu | `src/schools/neu/` |
+| Học viện Công nghệ Bưu chính Viễn thông | ptit | `src/schools/ptit/` |
+| Đại học Công nghiệp TP.HCM | iuh | `src/schools/iuh/` |
+| Đại học Luật TP.HCM | hcmulaw | `src/schools/hcmulaw/` |
+| Đại học Y Dược TP.HCM | ump | `src/schools/ump/` |
+| Đại học Văn Lang | vlu | `src/schools/vlu/` |
+
+`src/schools/index.ts` vẫn là nguồn sự thật đầy đủ nếu bảng này lệch — cập nhật thủ công, có thể trễ.
 
 Toàn bộ 8 trường thành viên của ĐHQG-HCM (Bách khoa, CNTT, Kinh tế-Luật, KHTN, KHXH&NV, Khoa học
 Sức khỏe, Quốc tế, An Giang) đã được implement — không còn backlog "trường ĐHQG-HCM còn thiếu".
@@ -55,10 +62,6 @@ trường/Bộ GD&ĐT — bắt buộc verify lại khi thực sự research.**
 | Tên trường | Viết tắt | Mã trường* | Tỉnh/TP | Domain tuyển sinh (chưa verify) | Loại hình |
 |---|---|---|---|---|---|
 | Đại học Sài Gòn | SGU | SGD | TP.HCM | sgu.edu.vn | Công lập (trực thuộc TP.HCM) |
-| Đại học Y Dược TP.HCM | UMP | YDS | TP.HCM | tuyensinh.ump.edu.vn | Công lập (Bộ Y tế) |
-| Đại học Luật TP.HCM | HCMULAW | LPS | TP.HCM | tuyensinh.hcmulaw.edu.vn | Công lập |
-| Đại học Công nghiệp TP.HCM | IUH | IUH | TP.HCM | tuyensinh.iuh.edu.vn | Công lập (Bộ Công Thương) |
-| Đại học Văn Lang | VLU | DVL | TP.HCM | tuyensinh.vlu.edu.vn | Tư thục |
 | Đại học Gia Định | GDU | GDU | TP.HCM | tuyensinh.giadinh.edu.vn | Tư thục |
 | Đại học Quốc tế Hồng Bàng | HIU | HIU | TP.HCM | tuyensinh.hiu.vn | Tư thục |
 | Đại học Công nghệ Sài Gòn | STU | DSG | TP.HCM | stu.edu.vn | Tư thục |
