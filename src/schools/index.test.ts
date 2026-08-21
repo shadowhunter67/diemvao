@@ -6,6 +6,13 @@ import { uelModule } from './uel';
 import { iuModule } from './iu';
 import { usshModule } from './ussh';
 import { ftuModule } from './ftu';
+import { tdtuModule } from './tdtu';
+import { huflitModule } from './huflit';
+import { umpModule } from './ump';
+import { hutechModule } from './hutech';
+import { hcmulawModule } from './hcmulaw';
+import { ufmModule } from './ufm';
+import { iuhModule } from './iuh';
 import readme from '../../README.md?raw';
 
 describe('schoolRegistry', () => {
@@ -27,7 +34,7 @@ describe('schoolRegistry', () => {
   });
 
   it('các trường formula-incomplete/researching còn lại chưa có Page', () => {
-    const withPage = new Set(['hcmut', 'uit', 'uel', 'ueh', 'hcmus', 'ussh', 'uhs', 'iu', 'hcmue']);
+    const withPage = new Set(['hcmut', 'uit', 'uel', 'ueh', 'hcmus', 'ussh', 'uhs', 'iu', 'hcmue', 'tdtu', 'huflit', 'ump', 'hutech', 'hcmulaw', 'ufm', 'iuh']);
     const withoutPage = Object.values(schoolRegistry).filter((school) => !withPage.has(school.id));
     for (const school of withoutPage) {
       expect(school.Page).toBeUndefined();
@@ -41,10 +48,25 @@ describe('schoolRegistry', () => {
     expect(hcmutModule.status).toBe('supported');
   });
 
-  it('hcmut, ueh, uel, iu, ussh có status supported (đều có Page thật để tính điểm)', () => {
+  it('hcmut, ueh, uel, iu, ussh, tdtu, huflit, ump, hutech, hcmulaw, ufm, iuh có status supported (đều có Page thật để tính điểm)', () => {
     const supported = Object.values(schoolRegistry).filter((school) => school.status === 'supported');
-    expect(supported).toEqual(expect.arrayContaining([hcmutModule, uehModule, uelModule, iuModule, usshModule]));
-    expect(supported).toHaveLength(5);
+    expect(supported).toEqual(
+      expect.arrayContaining([
+        hcmutModule,
+        uehModule,
+        uelModule,
+        iuModule,
+        usshModule,
+        tdtuModule,
+        huflitModule,
+        umpModule,
+        hutechModule,
+        hcmulawModule,
+        ufmModule,
+        iuhModule,
+      ])
+    );
+    expect(supported).toHaveLength(12);
   });
 
   it('ftuModule có exact calculator (route ĐGNL/ĐGTD nội địa) nhưng status vẫn researching vì chưa có Page thật', () => {

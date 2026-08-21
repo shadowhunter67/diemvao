@@ -1,6 +1,7 @@
 import type { SchoolModule } from '../../core/schoolModule';
 import { aggregateSchoolCapabilities } from '../../core/admissionMethod';
 import { hutechAdmissionMethods } from './methods';
+import { HutechPage } from './HutechPage';
 
 /**
  * Module HUTECH (Trường Đại học Công nghệ TP.HCM, trường thứ 14) — research 2026-08-18.
@@ -18,7 +19,7 @@ export const hutechModule: SchoolModule = {
   about:
     'Trường đại học tư thục thành lập năm 1995, đào tạo đa ngành: kỹ thuật - công nghệ, công nghệ thông tin, kinh tế, kiến trúc và ngoại ngữ.',
   year: 2026,
-  status: 'researching',
+  status: 'supported',
   ownership: 'private',
   region: 'hcm',
   vnuhcm: false,
@@ -30,4 +31,5 @@ export const hutechModule: SchoolModule = {
     cutoffs: false,
     ...aggregateSchoolCapabilities(hutechAdmissionMethods),
   },
+  Page: HutechPage,
 };

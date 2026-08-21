@@ -1,6 +1,7 @@
 import type { SchoolModule } from '../../core/schoolModule';
 import { aggregateSchoolCapabilities } from '../../core/admissionMethod';
 import { huflitAdmissionMethods } from './methods';
+import { HuflitPage } from './HuflitPage';
 
 /**
  * Module HUFLIT (Trường Đại học Ngoại ngữ - Tin học TP.HCM, trường thứ 13) — research 2026-08-18.
@@ -17,7 +18,7 @@ export const huflitModule: SchoolModule = {
   about:
     'Thành lập năm 1994, chuyển sang loại hình tư thục từ 2015; đào tạo ngoại ngữ, công nghệ thông tin, kinh tế - quản lý và du lịch.',
   year: 2026,
-  status: 'researching',
+  status: 'supported',
   ownership: 'private',
   region: 'hcm',
   vnuhcm: false,
@@ -29,4 +30,5 @@ export const huflitModule: SchoolModule = {
     cutoffs: false,
     ...aggregateSchoolCapabilities(huflitAdmissionMethods),
   },
+  Page: HuflitPage,
 };

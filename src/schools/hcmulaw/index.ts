@@ -1,6 +1,7 @@
 import type { SchoolModule } from '../../core/schoolModule';
 import { aggregateSchoolCapabilities } from '../../core/admissionMethod';
 import { hcmulawAdmissionMethods } from './methods';
+import { HcmulawPage } from './HcmulawPage';
 
 /**
  * Module HCMULAW (Trường Đại học Luật Thành phố Hồ Chí Minh, trường thứ 17) — research 2026-08-20,
@@ -19,7 +20,7 @@ export const hcmulawModule: SchoolModule = {
   shortName: 'HCMULAW',
   about: 'Đại học công lập thành lập năm 1996, một trong hai cơ sở đào tạo luật trọng điểm của Việt Nam.',
   year: 2026,
-  status: 'researching',
+  status: 'supported',
   ownership: 'public',
   region: 'hcm',
   vnuhcm: false,
@@ -31,4 +32,5 @@ export const hcmulawModule: SchoolModule = {
     cutoffs: false,
     ...aggregateSchoolCapabilities(hcmulawAdmissionMethods),
   },
+  Page: HcmulawPage,
 };

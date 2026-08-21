@@ -1,6 +1,7 @@
 import type { SchoolModule } from '../../core/schoolModule';
 import { aggregateSchoolCapabilities } from '../../core/admissionMethod';
 import { iuhAdmissionMethods } from './methods';
+import { IuhPage } from './IuhPage';
 
 /**
  * Module IUH (Trường Đại học Công nghiệp Thành phố Hồ Chí Minh, trường thứ 16) — research
@@ -18,7 +19,7 @@ export const iuhModule: SchoolModule = {
   about:
     'Đại học công lập trực thuộc Bộ Công Thương, tiền thân là Trường Huấn nghiệp Gò Vấp thành lập năm 1956, đào tạo đa ngành kỹ thuật - công nghệ.',
   year: 2026,
-  status: 'researching',
+  status: 'supported',
   ownership: 'public',
   region: 'hcm',
   vnuhcm: false,
@@ -30,4 +31,5 @@ export const iuhModule: SchoolModule = {
     cutoffs: false,
     ...aggregateSchoolCapabilities(iuhAdmissionMethods),
   },
+  Page: IuhPage,
 };

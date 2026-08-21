@@ -1,6 +1,7 @@
 import type { SchoolModule } from '../../core/schoolModule';
 import { aggregateSchoolCapabilities } from '../../core/admissionMethod';
 import { ufmAdmissionMethods } from './methods';
+import { UfmPage } from './UfmPage';
 
 /**
  * Module UFM (Trường Đại học Tài chính – Marketing, trường thứ 15) — research 2026-08-18, batch
@@ -19,7 +20,7 @@ export const ufmModule: SchoolModule = {
   shortName: 'UFM',
   about: 'Đại học công lập trực thuộc Bộ Tài chính, tiền thân từ năm 1976, chuyên đào tạo tài chính và marketing.',
   year: 2026,
-  status: 'researching',
+  status: 'supported',
   ownership: 'public',
   region: 'hcm',
   vnuhcm: false,
@@ -31,4 +32,5 @@ export const ufmModule: SchoolModule = {
     cutoffs: false,
     ...aggregateSchoolCapabilities(ufmAdmissionMethods),
   },
+  Page: UfmPage,
 };

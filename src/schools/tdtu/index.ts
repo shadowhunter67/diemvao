@@ -1,6 +1,7 @@
 import type { SchoolModule } from '../../core/schoolModule';
 import { aggregateSchoolCapabilities } from '../../core/admissionMethod';
 import { tdtuAdmissionMethods } from './methods';
+import { TdtuPage } from './TdtuPage';
 
 /**
  * Module TDTU (trường thứ 12) — research 2026-08-18 (batch expansion). Trang "Phương thức tuyển
@@ -22,7 +23,7 @@ export const tdtuModule: SchoolModule = {
   about:
     'Thành lập năm 1997, trường đại học công lập trực thuộc Tổng Liên đoàn Lao động Việt Nam, đào tạo đa ngành kỹ thuật, kinh tế và khoa học ứng dụng.',
   year: 2026,
-  status: 'researching',
+  status: 'supported',
   ownership: 'public',
   region: 'hcm',
   vnuhcm: false,
@@ -34,4 +35,5 @@ export const tdtuModule: SchoolModule = {
     cutoffs: false,
     ...aggregateSchoolCapabilities(tdtuAdmissionMethods),
   },
+  Page: TdtuPage,
 };

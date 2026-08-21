@@ -1,6 +1,7 @@
 import type { SchoolModule } from '../../core/schoolModule';
 import { aggregateSchoolCapabilities } from '../../core/admissionMethod';
 import { umpAdmissionMethods } from './methods';
+import { UmpPage } from './UmpPage';
 
 /**
  * Module UMP (Trường Đại học Y Dược Thành phố Hồ Chí Minh) — research 2026-08-19/20. Domain chính
@@ -17,7 +18,7 @@ export const umpModule: SchoolModule = {
   about:
     'Đại học công lập chuyên ngành y dược, tiền thân là Đại học Y khoa Sài Gòn (1947), tổ chức lại thành trường hiện nay từ năm 1976.',
   year: 2026,
-  status: 'researching',
+  status: 'supported',
   ownership: 'public',
   region: 'hcm',
   vnuhcm: false,
@@ -29,4 +30,5 @@ export const umpModule: SchoolModule = {
     cutoffs: false,
     ...aggregateSchoolCapabilities(umpAdmissionMethods),
   },
+  Page: UmpPage,
 };
