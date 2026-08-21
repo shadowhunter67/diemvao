@@ -22,6 +22,16 @@ Mỗi công thức đều gắn nguồn dữ liệu chính thức cụ thể. Ph
 - Nhập điểm một lần, dùng lại cho nhiều trường; chia sẻ kết quả qua URL, không cần tài khoản
 - Tự lưu điểm đã nhập trên trình duyệt (không gửi lên server)
 
+## Tiến độ tích hợp trường đại học toàn quốc
+
+```
+███░░░░░░░░░░░░░░░░░░░░░░░░░░  27 / 238 (~11%)
+```
+
+Mẫu số 238 là số cơ sở giáo dục đại học cả nước theo báo cáo Bộ GD&ĐT, tính đến 09/2025 ([nguồn](https://veci.edu.vn/nam-2025-ca-nuoc-co-238-co-so-giao-duc-dai-hoc-gan-1-200-co-so-giao-duc-nghe-nghiep/)) — số liệu tổng hợp thứ cấp, có thể lệch nhẹ so với con số mới nhất, không tính 20 trường cao đẳng sư phạm riêng.
+
+**Chưa bao gồm cao đẳng.** Thống kê công khai chỉ có "~1.163 cơ sở giáo dục nghề nghiệp" gộp chung cao đẳng/trung cấp/trung tâm, không tách được số trường cao đẳng cụ thể để đặt mẫu số đáng tin cậy — xem `docs/vietnam-schools-directory.md` mục 5 (danh sách cao đẳng tự biết là chưa đầy đủ).
+
 ## Trường đang hỗ trợ (27)
 
 | Trường | Trạng thái |
