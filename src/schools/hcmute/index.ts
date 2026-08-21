@@ -21,6 +21,9 @@ export const hcmuteModule: SchoolModule = {
     'Đại học công lập tự chủ tài chính, tiền thân từ năm 1962; đổi tên từ Đại học Sư phạm Kỹ thuật TP.HCM sang tên hiện tại cuối năm 2025.',
   year: 2026,
   status: 'researching',
+  ownership: 'public',
+  region: 'hcm',
+  vnuhcm: false,
   summary:
     'Ngưỡng đầu vào chung, bảng điểm ưu tiên khu vực/đối tượng + công thức giảm, và điểm học lực HLy.1/HLy.2/HLy.3/HLy.max (hệ số tương quan a=b=0,8 công bố chính thức 07/7/2026) đã xác minh từ văn bản chính thức đã ký · HLy.2 (nhánh học bạ) vẫn chờ ĐXTT theo nhóm trường (Bảng 3, phụ lục chưa import); ngưỡng riêng SP tiếng Anh/SP công nghệ/Luật và ĐXTCN mục 1/4-7 chưa wire',
   capabilities: {

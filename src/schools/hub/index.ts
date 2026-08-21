@@ -18,6 +18,9 @@ export const hubModule: SchoolModule = {
   about: 'Trường đại học công lập trực thuộc Ngân hàng Nhà nước Việt Nam, đào tạo mạnh về tài chính - ngân hàng, kinh tế và luật kinh tế.',
   year: 2026,
   status: 'researching',
+  ownership: 'public',
+  region: 'hcm',
+  vnuhcm: false,
   summary:
     'Ngưỡng đảm bảo chất lượng đầu vào theo nhóm ngành (thi TN THPT/Tổng hợp/V-SAT: 15/30 các ngành khác; 20/30 khối Luật kèm điều kiện môn Toán/Ngữ văn theo tổ hợp; IELTS ≥5.5 riêng Tài chính - Ngân hàng Elite Class) đã xác minh từ thông báo chính thức tuyensinh.hub.edu.vn (11/07/2026) · Quy đổi điểm trúng tuyển tương đương giữa phương thức/tổ hợp (Phụ lục I bảng phân vị V-SAT, Phụ lục II khung quy đổi Tổng hợp) đang chờ đọc được bảng số liệu đầy đủ',
   capabilities: {

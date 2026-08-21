@@ -15,6 +15,9 @@ export const iuModule: SchoolModule = {
   about: 'Thành lập năm 2003, trường đại học công lập thành viên ĐHQG-HCM, giảng dạy hoàn toàn bằng tiếng Anh.',
   year: 2026,
   status: 'supported',
+  ownership: 'public',
+  region: 'hcm',
+  vnuhcm: true,
   summary: 'Điểm xét tuyển đầy đủ 2026 (Điểm học lực + Điểm cộng + Điểm ưu tiên) cho thí sinh tốt nghiệp THPT 2026 · So sánh trực tiếp với điểm trúng tuyển 38 ngành',
   capabilities: {
     admissionInfo: true,

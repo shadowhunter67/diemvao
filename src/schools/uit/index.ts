@@ -18,6 +18,9 @@ export const uitModule: SchoolModule = {
     'Thành lập năm 2006, trường đại học công lập thành viên ĐHQG-HCM, chuyên đào tạo và nghiên cứu công nghệ thông tin – truyền thông.',
   year: 2026,
   status: 'researching',
+  ownership: 'public',
+  region: 'hcm',
+  vnuhcm: true,
   summary: 'Dữ liệu tuyển sinh 2026 đầy đủ (điểm chuẩn, ngưỡng, điểm cộng) · Calculator chính xác đang chờ bảng quy đổi bách phân vị',
   capabilities: {
     admissionInfo: true,

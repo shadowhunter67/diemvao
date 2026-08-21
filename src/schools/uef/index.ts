@@ -18,6 +18,9 @@ export const uefModule: SchoolModule = {
   about: 'Trường đại học tư thục định hướng quốc tế tại TP.HCM, đào tạo song ngữ, đào tạo mạnh về kinh tế - tài chính - quản trị và luật.',
   year: 2026,
   status: 'researching',
+  ownership: 'private',
+  region: 'hcm',
+  vnuhcm: false,
   summary:
     'Mức điểm nhận hồ sơ phương thức thi TN THPT (15 chuẩn/20 khối Luật, thang 30) và học bạ 6 học kỳ (18 chuẩn; khối Luật cần học lực Tốt/Giỏi + điểm thay thế) đã xác minh từ 1 bài công bố chính thức trên uef.edu.vn · Calculator chính xác đang chờ danh mục ngành, bảng điểm ưu tiên/điểm cộng, và phương pháp tính điểm học bạ theo học kỳ',
   capabilities: {

@@ -30,6 +30,9 @@ export const uelModule: SchoolModule = {
     'Trường đại học công lập thành viên ĐHQG-HCM, thành lập năm 2010 (tiền thân là Khoa Kinh tế từ năm 2000), đào tạo kinh tế, kinh doanh và luật.',
   year: 2026,
   status: 'supported',
+  ownership: 'public',
+  region: 'hcm',
+  vnuhcm: true,
   summary:
     'Dữ liệu tuyển sinh 2026 đầy đủ (điểm chuẩn 38 ngành, ngưỡng đầu vào, điều kiện điểm cộng) · Calculator chính xác đủ cả 3 đối tượng (DT1/DT2/DT3), gồm bảng điểm cộng chứng chỉ ngoại ngữ đã verified',
   capabilities: {

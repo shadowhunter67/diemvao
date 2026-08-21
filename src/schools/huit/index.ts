@@ -19,6 +19,9 @@ export const huitModule: SchoolModule = {
     'Trường đại học công lập trực thuộc Bộ Công Thương (mã trường DCT), đào tạo mạnh về công nghệ thực phẩm, công nghệ sinh học, công nghệ thông tin và kinh tế - quản trị.',
   year: 2026,
   status: 'researching',
+  ownership: 'public',
+  region: 'hcm',
+  vnuhcm: false,
   summary:
     'Ngưỡng đảm bảo chất lượng đầu vào theo nhóm ngành (thi TN THPT: 16/20; học tập THPT: 20/20 — Luật/Luật kinh tế so với các ngành còn lại) đã xác minh từ 1 bài công bố chính thức trên ts.huit.edu.vn · Calculator chính xác đang chờ danh mục ngành, bảng điểm ưu tiên/điểm cộng, và phương pháp tính điểm học bạ chi tiết',
   capabilities: {

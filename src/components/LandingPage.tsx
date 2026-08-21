@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { schoolRegistry } from '../schools';
 import { siteConfig } from '../config/site';
-import type { SchoolModule, SchoolStatus } from '../core/schoolModule';
+import type { SchoolModule, SchoolOwnership, SchoolRegion, SchoolStatus } from '../core/schoolModule';
 import { useApplicantProfile } from '../core/applicantProfileContextCore';
 import { summarizeApplicantProfile } from '../core/applicantProfileSummary';
 import { deriveSchoolCtaLabel } from '../core/schoolCta';
@@ -54,9 +54,69 @@ type StatusFilter = SchoolStatus | 'all';
 /** Thứ tự hiển thị chip lọc: "đầy đủ nhất" trước, khớp thứ tự người dùng quan tâm khi chọn trường. */
 const STATUS_FILTER_ORDER: SchoolStatus[] = ['supported', 'researching', 'formula-incomplete'];
 
+/** Mức tính điểm THẬT SỰ derive từ `capabilities` (không phải `status`, vốn còn phụ thuộc có Page
+ * hay chưa — xem `schoolModule.ts`) — cùng nguồn với `schoolStatusDotClass`. Trường chưa set
+ * `capabilities` (identity-only) rơi vào 'info'. */
+type CapabilityTier = 'exact' | 'partial' | 'info';
+
+function deriveCapabilityTier(school: SchoolModule): CapabilityTier {
+  const c = school.capabilities;
+  if (c?.exactCalculator) return 'exact';
+  if (c?.partialCalculator || c?.scoreConversion || c?.eligibility) return 'partial';
+  return 'info';
+}
+
+const TIER_LABELS: Record<CapabilityTier, string> = {
+  exact: 'Có công thức chính xác',
+  partial: 'Tính được một phần',
+  info: 'Chỉ có thông tin',
+};
+
+const OWNERSHIP_LABELS: Record<SchoolOwnership, string> = { public: 'Công lập', private: 'Tư thục' };
+
+const REGION_LABELS: Record<SchoolRegion, string> = { hcm: 'TP.HCM', hanoi: 'Hà Nội', other: 'Khu vực khác' };
+
+type OptionalFilter<T extends string> = T | 'all';
+
+/** Select nhỏ dùng chung cho 4 bộ lọc phụ (loại hình/khu vực/ĐHQG-HCM/mức tính điểm) — trường nào
+ * chưa set field tương ứng thì luôn bị loại khỏi mọi lựa chọn khác "Tất cả" (không đoán mặc định). */
+function FilterSelect<T extends string>({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: OptionalFilter<T>;
+  onChange: (value: OptionalFilter<T>) => void;
+  options: { value: T; label: string }[];
+}) {
+  return (
+    <label className="flex items-center gap-1.5 text-xs text-muted">
+      <span className="shrink-0">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value as OptionalFilter<T>)}
+        className="rounded-md border border-ink/10 bg-surface px-2 py-1 text-xs text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+      >
+        <option value="all">Tất cả</option>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps) {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [ownershipFilter, setOwnershipFilter] = useState<OptionalFilter<SchoolOwnership>>('all');
+  const [regionFilter, setRegionFilter] = useState<OptionalFilter<SchoolRegion>>('all');
+  const [vnuhcmFilter, setVnuhcmFilter] = useState<OptionalFilter<'member' | 'independent'>>('all');
+  const [tierFilter, setTierFilter] = useState<OptionalFilter<CapabilityTier>>('all');
   const schools = useMemo(
     () => Object.values(schoolRegistry).sort((a, b) => a.shortName.localeCompare(b.shortName, 'vi')),
     []
@@ -88,7 +148,14 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
         normalizeForSearch(school.shortName).includes(normalizedQuery) ||
         normalizeForSearch(school.name).includes(normalizedQuery)
     )
-    .filter((school) => statusFilter === 'all' || school.status === statusFilter);
+    .filter((school) => statusFilter === 'all' || school.status === statusFilter)
+    .filter((school) => ownershipFilter === 'all' || school.ownership === ownershipFilter)
+    .filter((school) => regionFilter === 'all' || school.region === regionFilter)
+    .filter(
+      (school) =>
+        vnuhcmFilter === 'all' || (vnuhcmFilter === 'member' ? school.vnuhcm === true : school.vnuhcm === false)
+    )
+    .filter((school) => tierFilter === 'all' || deriveCapabilityTier(school) === tierFilter);
 
   return (
     <div className="py-10 sm:py-14">
@@ -196,10 +263,49 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
           ))}
         </div>
 
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <FilterSelect
+            label="Loại hình"
+            value={ownershipFilter}
+            onChange={setOwnershipFilter}
+            options={(Object.entries(OWNERSHIP_LABELS) as [SchoolOwnership, string][]).map(([value, label]) => ({
+              value,
+              label,
+            }))}
+          />
+          <FilterSelect
+            label="Khu vực"
+            value={regionFilter}
+            onChange={setRegionFilter}
+            options={(Object.entries(REGION_LABELS) as [SchoolRegion, string][]).map(([value, label]) => ({
+              value,
+              label,
+            }))}
+          />
+          <FilterSelect
+            label="ĐHQG-HCM"
+            value={vnuhcmFilter}
+            onChange={setVnuhcmFilter}
+            options={[
+              { value: 'member', label: 'Thành viên' },
+              { value: 'independent', label: 'Độc lập' },
+            ]}
+          />
+          <FilterSelect
+            label="Mức tính điểm"
+            value={tierFilter}
+            onChange={setTierFilter}
+            options={(Object.entries(TIER_LABELS) as [CapabilityTier, string][]).map(([value, label]) => ({
+              value,
+              label,
+            }))}
+          />
+        </div>
+
         {filteredSchools.length === 0 ? (
           <p className="mt-4 rounded-card border border-ink/10 bg-surface p-4 text-center text-sm text-muted">
             {query.trim() === ''
-              ? `Không có trường nào ở trạng thái "${STATUS_TEXT[statusFilter as SchoolStatus]}".`
+              ? 'Không có trường nào khớp bộ lọc đang chọn.'
               : `Không tìm thấy trường phù hợp với "${query.trim()}".`}
           </p>
         ) : (

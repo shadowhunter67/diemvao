@@ -14,6 +14,13 @@ import type { ReactElement } from 'react';
  */
 export type SchoolStatus = 'supported' | 'researching' | 'formula-incomplete';
 
+/** Loại hình sở hữu — factual, lấy từ nguồn giới thiệu chính thức/Wikipedia (cùng nguồn với
+ * `about`), KHÔNG suy diễn từ tên trường. */
+export type SchoolOwnership = 'public' | 'private';
+
+/** Khu vực đặt trụ sở chính (nơi thí sinh thi/nộp hồ sơ trực tiếp), không phải nơi có phân hiệu. */
+export type SchoolRegion = 'hcm' | 'hanoi' | 'other';
+
 /**
  * Mô tả capability thật ở mức chi tiết hơn `status` — một trường có thể có info/cutoff/
  * eligibility mà KHÔNG có exact calculator (như UIT, UEL), khác hẳn `status: 'researching'`
@@ -60,6 +67,12 @@ export interface SchoolModule {
   about?: string;
   /** Optional, xem SchoolCapabilities — chưa set thì LandingPage suy theo `status` như cũ. */
   capabilities?: SchoolCapabilities;
+  /** Optional — phục vụ bộ lọc landing page. Chưa set thì trường đó không xuất hiện trong kết quả
+   * lọc theo tiêu chí tương ứng (không mặc định vào nhóm nào). */
+  ownership?: SchoolOwnership;
+  region?: SchoolRegion;
+  /** True nếu là 1 trong 8 trường thành viên ĐHQG-HCM (HCMUT/UIT/UEL/HCMUS/USSH/UHS/IU/AGU). */
+  vnuhcm?: boolean;
   /**
    * Component trang riêng của trường (calculator thật, hoặc trang thông tin nếu chưa đủ nguồn
    * để tính điểm). App shell chỉ biết render `<Page />` khi có — không biết/không cần biết bên

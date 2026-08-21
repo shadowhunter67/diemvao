@@ -20,6 +20,9 @@ export const hcmutModule: SchoolModule = {
     'Trường đại học kỹ thuật công lập, tiền thân từ năm 1957, chính thức mang tên Đại học Bách khoa từ 1976 và là thành viên ĐHQG-HCM từ 1996.',
   year: 2026,
   status: 'supported',
+  ownership: 'public',
+  region: 'hcm',
+  vnuhcm: true,
   capabilities: {
     admissionInfo: true,
     programs: true,

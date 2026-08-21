@@ -18,6 +18,9 @@ export const huflitModule: SchoolModule = {
     'Thành lập năm 1994, chuyển sang loại hình tư thục từ 2015; đào tạo ngoại ngữ, công nghệ thông tin, kinh tế - quản lý và du lịch.',
   year: 2026,
   status: 'researching',
+  ownership: 'private',
+  region: 'hcm',
+  vnuhcm: false,
   summary:
     'Điểm xét tuyển PT1 (thi THPT, thang 30), PT2 (học bạ, thang 30), PT3 (ĐGNL ĐHQG-HCM, thang 1200) đều tính CHÍNH XÁC — công thức là tổng thô 3 môn, ngưỡng đầu vào (kể cả ngành Luật/Luật kinh tế riêng) verified từ Thông báo 09/7/2026 · Bảng điểm thưởng/khuyến khích cụ thể chưa tìm được nguồn nên thí sinh có thành tích cộng điểm vẫn partial; danh mục 23 ngành/tổ hợp chưa import',
   capabilities: {

@@ -18,6 +18,9 @@ export const usshModule: SchoolModule = {
     'Thành lập năm 1957, trường đại học công lập thành viên ĐHQG-HCM từ 1996, đào tạo các ngành khoa học xã hội và nhân văn.',
   year: 2026,
   status: 'supported',
+  ownership: 'public',
+  region: 'hcm',
+  vnuhcm: true,
   summary:
     'Tính được điểm xét tuyển cuối (ĐHL1/ĐHL2/ĐHL3 + Điểm ưu tiên) cho thí sinh KHÔNG có thành tích được cộng điểm — thí sinh có thành tích cộng điểm vẫn partial vì mức cộng cụ thể theo tiêu chí chưa công bố.',
   capabilities: {

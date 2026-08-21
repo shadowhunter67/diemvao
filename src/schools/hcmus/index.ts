@@ -16,6 +16,9 @@ export const hcmusModule: SchoolModule = {
     'Tiền thân từ năm 1941, chính thức là thành viên ĐHQG-HCM từ 1996; đào tạo các ngành khoa học cơ bản và công nghệ.',
   year: 2026,
   status: 'researching',
+  ownership: 'public',
+  region: 'hcm',
+  vnuhcm: true,
   summary:
     'Đã tính được Điểm học lực (MAX route THPT/ĐGNL, quy đổi ĐGNL qua bảng phân vị chính thức 2026) và đã có 39 ngưỡng đăng ký xét tuyển theo ngành · Điểm cộng và Điểm ưu tiên chưa đủ evidence để tính điểm cuối',
   capabilities: {

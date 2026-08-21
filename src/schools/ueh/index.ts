@@ -16,6 +16,9 @@ export const uehModule: SchoolModule = {
     'Đại học công lập đa ngành thành lập năm 1976, chuyên khối kinh tế, kinh doanh và quản lý, trực thuộc Bộ GD&ĐT (không thuộc ĐHQG-HCM).',
   year: 2026,
   status: 'supported',
+  ownership: 'public',
+  region: 'hcm',
+  vnuhcm: false,
   summary:
     'Tính điểm chính xác Phương thức xét tuyển tích hợp (Đối tượng 1 — THPT Việt Nam): điểm thi/ĐGNL, học bạ, điểm cộng, ưu tiên · Điểm chuẩn 97 chương trình 2026',
   capabilities: {

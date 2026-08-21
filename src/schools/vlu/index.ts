@@ -19,6 +19,9 @@ export const vluModule: SchoolModule = {
     'Trường đại học tư thục thành lập năm 1995, đào tạo mạnh về nghệ thuật - thiết kế, khoa học xã hội - nhân văn và truyền thông.',
   year: 2026,
   status: 'researching',
+  ownership: 'private',
+  region: 'hcm',
+  vnuhcm: false,
   summary:
     'Ngưỡng đảm bảo chất lượng đầu vào theo nhóm ngành (thi TN THPT: 15/18/20/22; học bạ/kết hợp: điều kiện học lực lớp 12 + điểm thay thế khối Sức khỏe/Luật) đã xác minh từ 2 bài công bố chính thức trên vlu.edu.vn · Calculator chính xác đang chờ danh mục ngành có "môn thi chính" nhân hệ số 2, bảng điểm ưu tiên/điểm cộng, và bảng quy đổi kỳ thi kết hợp (V-ACT/HSA/TSA/V-SAT/SAT) chính thức',
   capabilities: {

@@ -18,6 +18,9 @@ export const hsuModule: SchoolModule = {
   about: 'Trường đại học tư thục tại TP.HCM, đạt tiêu chuẩn kiểm định quốc tế, đào tạo mạnh về kinh tế - quản trị, thiết kế và công nghệ.',
   year: 2026,
   status: 'researching',
+  ownership: 'private',
+  region: 'hcm',
+  vnuhcm: false,
   summary:
     'Điểm sàn phương thức thi TN THPT (15 chuẩn/20 khối Pháp luật, thang 30) và học bạ (18, chỉ nhóm chuẩn) đã xác minh từ 2 bài công bố chính thức trên hoasen.edu.vn · Calculator chính xác đang chờ danh mục ngành, bảng điểm ưu tiên/điểm cộng, và ngưỡng học bạ/ĐGNL nhóm Luật',
   capabilities: {

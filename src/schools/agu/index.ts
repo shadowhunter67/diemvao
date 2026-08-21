@@ -18,6 +18,9 @@ export const aguModule: SchoolModule = {
     'Thành lập năm 1999 tại tỉnh An Giang, trở thành trường đại học thành viên ĐHQG-HCM từ 2019; thế mạnh nông nghiệp, tài nguyên và sư phạm.',
   year: 2026,
   status: 'researching',
+  ownership: 'public',
+  region: 'other',
+  vnuhcm: true,
   summary:
     'Ngưỡng đảm bảo chất lượng 43 ngành và hệ số β1/β2/β3 (0,4/0,4/0,2) đã xác minh từ thông báo chính thức đã ký · Calculator chính xác đang chờ công thức quy đổi từng thành phần và bảng điểm cộng/ưu tiên chính thức (hiện chỉ có trong công cụ ước tính JS tự ghi "hệ số giả lập")',
   capabilities: {
