@@ -4,7 +4,7 @@ import { siteConfig } from '../config/site';
 import type { SchoolModule, SchoolRegion } from '../core/schoolModule';
 import { useApplicantProfile } from '../core/applicantProfileContextCore';
 import { summarizeApplicantProfile } from '../core/applicantProfileSummary';
-import { deriveSchoolCtaLabel, hasSchoolCtaAction } from '../core/schoolCta';
+import { deriveSchoolCtaAction, deriveSchoolCtaLabel } from '../core/schoolCta';
 import {
   SUPPORT_STATUS_LABELS,
   deriveInstitutionSupportStatus,
@@ -345,7 +345,8 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
         ) : (
           <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {visibleSchools.map((school) => {
-              const hasCtaAction = hasSchoolCtaAction(school);
+              const ctaAction = deriveSchoolCtaAction(school);
+              const hasCtaAction = ctaAction.kind !== 'none';
               const buttonLabel = deriveSchoolCtaLabel(school);
               const supportStatus = deriveInstitutionSupportStatus(school);
               const isCatalogOnly = supportStatus === 'catalog-only';
@@ -378,7 +379,10 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
                     {hasCtaAction ? (
                       <button
                         type="button"
-                        onClick={() => (school.Page ? onSelectSchool(school.id) : onOpenCompare())}
+                        onClick={() => {
+                          if (ctaAction.kind === 'compare') onOpenCompare();
+                          else onSelectSchool(school.id);
+                        }}
                         className="shrink-0 rounded-md border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                       >
                         {buttonLabel}
@@ -410,7 +414,7 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
         <p className="mt-5 text-center text-xs leading-relaxed text-muted">
           Xem nguồn & phương pháp dữ liệu tuyển sinh tại{' '}
           <a
-            href="https://github.com/shadowhunter67/uniscorevn/blob/main/docs/admission-research-2026.md"
+            href="https://github.com/shadowhunter67/uniscorevn/blob/main/docs/data-methodology.md"
             target="_blank"
             rel="noopener noreferrer"
             className="underline underline-offset-2"

@@ -24,12 +24,12 @@ export function useRoute(): Route {
 
   const navigate = useCallback((path: string) => {
     window.history.pushState(null, '', path);
-    setPathname(path);
+    setPathname(window.location.pathname);
   }, []);
 
   const redirect = useCallback((path: string) => {
     window.history.replaceState(null, '', path + window.location.search);
-    setPathname(path);
+    setPathname(window.location.pathname);
   }, []);
 
   return { pathname, navigate, redirect };

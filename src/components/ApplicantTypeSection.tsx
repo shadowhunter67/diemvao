@@ -51,12 +51,12 @@ export function ApplicantTypeSection({ value, onChange }: ApplicantTypeSectionPr
           Nhóm này chưa có công thức đủ rõ từ nguồn chính thức HCMUT 2026 nên UniscoreVN chưa tính điểm được — tránh
           hiển thị kết quả sai. Xem chi tiết research tại{' '}
           <a
-            href="https://github.com/shadowhunter67/uniscorevn/blob/main/docs/admission-research-2026.md"
+            href="https://github.com/shadowhunter67/uniscorevn/blob/main/docs/data-methodology.md"
             target="_blank"
             rel="noopener noreferrer"
             className="underline underline-offset-2"
           >
-            docs/admission-research-2026.md
+            docs/data-methodology.md
           </a>
           .
         </p>

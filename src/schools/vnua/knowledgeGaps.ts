@@ -2,19 +2,19 @@ import type { KnowledgeGap } from '../../core/knowledgeStatus';
 
 export const vnuaKnowledgeGaps: KnowledgeGap[] = [
   {
-    id: 'vnua-program-group-threshold-image-unparsed',
+    id: 'vnua-ministry-governed-group-thresholds',
     label:
-      'VNUA group-specific 2026 threshold table is image-rendered and has not been reviewed into structured program/group data.',
+      'VNUA HVN13 and HVN19 use Ministry of Education and Training threshold rules that are not modeled yet.',
     status: 'incomplete',
     impact:
-      'The module can reject profiles below the common 15/30 THPT baseline, but it cannot conclude eligible above that baseline.',
+      'The runtime can evaluate numeric VNUA groups, but it cannot conclude eligibility for the ministry-governed Law and Technology Pedagogy groups.',
     sourceId: 'vnua-threshold-notice-2026',
   },
   {
     id: 'vnua-program-catalog-image-unparsed',
-    label: 'VNUA 2026 program/group catalog in the admission notice is image-rendered and has not been imported.',
+    label: 'VNUA 2026 program/group catalog images have only been partially normalized into runtime group thresholds.',
     status: 'incomplete',
-    impact: 'Program-method scope and exact per-group thresholds are unavailable in runtime.',
+    impact: 'Program-level scope and UI selection metadata still need structured import before exact per-program UX can be offered.',
     sourceId: 'vnua-admission-notice-2026',
   },
   {

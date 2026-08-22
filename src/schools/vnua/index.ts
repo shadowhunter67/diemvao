@@ -13,7 +13,7 @@ export const vnuaModule: SchoolModule = {
   region: 'hanoi',
   vnuhcm: false,
   summary:
-    'Official 2026 VNUA sources are normalized for a safe THPT baseline: profiles below the common 15/30 condition are ineligible; profiles meeting it remain unresolved until the image-based group threshold table is imported.',
+    'Official 2026 VNUA sources are normalized for THPT eligibility: the common 15/30 baseline and numeric HVN01-HVN23 group thresholds are modeled; ministry-governed groups and bonus/priority scoring remain unresolved.',
   capabilities: {
     admissionInfo: true,
     programs: false,

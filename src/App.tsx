@@ -8,9 +8,13 @@ import { siteConfig } from './config/site';
 import { ApplicantProfileProvider } from './core/ApplicantProfileContext';
 import { resolveSchoolId } from './core/resolveSchoolId';
 import { ErrorBoundary } from './core/ErrorBoundary';
+import { deriveSchoolCtaAction } from './core/schoolCta';
 
 const MultiSchoolComparisonPage = lazy(() =>
   import('./components/MultiSchoolComparisonPage').then((module) => ({ default: module.MultiSchoolComparisonPage }))
+);
+const GenericSchoolEvaluationPage = lazy(() =>
+  import('./components/GenericSchoolEvaluationPage').then((module) => ({ default: module.GenericSchoolEvaluationPage }))
 );
 
 /** Fallback hiện trong lúc chunk của 1 trường (code-split, `React.lazy`) đang tải — thường chỉ
@@ -42,6 +46,7 @@ function AppShell() {
   }, [pathname, schoolId, redirect]);
 
   const school = schoolId ? schoolRegistry[schoolId] : undefined;
+  const schoolAction = school ? deriveSchoolCtaAction(school) : { kind: 'none' as const };
 
   useEffect(() => {
     if (pathname === '/compare') {
@@ -78,6 +83,16 @@ function AppShell() {
     content = (
       <Suspense fallback={<RouteLoadingFallback />}>
         <Page onChangeSchool={() => navigate('/')} />
+      </Suspense>
+    );
+  } else if (school && schoolAction.kind !== 'none') {
+    content = (
+      <Suspense fallback={<RouteLoadingFallback />}>
+        <GenericSchoolEvaluationPage
+          school={school}
+          onChangeSchool={() => navigate('/')}
+          onOpenCompare={(id) => navigate(`/compare?school=${encodeURIComponent(id)}`)}
+        />
       </Suspense>
     );
   } else {

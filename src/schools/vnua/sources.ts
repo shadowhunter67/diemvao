@@ -40,7 +40,7 @@ export const vnuaSources: VnuaSource[] = [
     verification: 'verified',
     lifecycle: { effectiveYear: 2026, status: 'current' },
     note:
-      'Official VNUA threshold notice. It states the common THPT baseline of total three subjects >= 15/30 and a second group-specific threshold condition shown as an image table.',
+      'Official VNUA threshold notice. It states the common THPT baseline of total three subjects >= 15/30 and a second group-specific threshold condition shown in image table tb1.jpg.',
   },
 ];
 
