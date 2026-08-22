@@ -35,6 +35,7 @@ import { hnueComparisonAdapter } from '../schools/hnue/comparison';
 import { vinhuniComparisonAdapter } from '../schools/vinhuni/comparison';
 import { utcComparisonAdapter } from '../schools/utc/comparison';
 import { vnuaComparisonAdapter } from '../schools/vnua/comparison';
+import { huceComparisonAdapter } from '../schools/huce/comparison';
 import { southernCatalogComparisonAdapters } from '../schools/southernCatalog';
 import { remainingCatalogComparisonAdapters } from '../schools/remainingCatalog';
 import { finalCatalogComparisonAdapters } from '../schools/finalCatalog';
@@ -89,8 +90,9 @@ export const schoolComparisonAdapters: readonly SchoolComparisonAdapter[] = [
   vinhuniComparisonAdapter,
   utcComparisonAdapter,
   vnuaComparisonAdapter,
+  huceComparisonAdapter,
   ...southernCatalogComparisonAdapters,
-  ...remainingCatalogComparisonAdapters,
+  ...remainingCatalogComparisonAdapters.filter((adapter) => adapter.schoolId !== 'huce'),
   ...finalCatalogComparisonAdapters,
   ...collegeCatalogComparisonAdapters,
 ];
