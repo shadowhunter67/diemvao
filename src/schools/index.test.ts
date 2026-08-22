@@ -13,6 +13,8 @@ import { hutechModule } from './hutech';
 import { hcmulawModule } from './hcmulaw';
 import { ufmModule } from './ufm';
 import { iuhModule } from './iuh';
+import { southernCatalogSchools } from './southernCatalog';
+import { remainingCatalogSchools } from './remainingCatalog';
 import readme from '../../README.md?raw';
 import type { SchoolModule } from '../core/schoolModule';
 
@@ -84,25 +86,15 @@ describe('schoolRegistry', () => {
 
   it('có đủ các trường đã research (ĐHQG-HCM + UEH ngoài hệ thống)', () => {
     const ids = Object.keys(schoolRegistry).sort();
-    expect(ids).toEqual([
+    const coreIds = [
       'agu',
-      'bdu',
-      'blu',
-      'bvu',
       'ctu',
-      'ctuet',
-      'ctump',
-      'dnu',
-      'dthu',
-      'due',
       'ftu',
-      'gdu',
       'hcmue',
       'hcmulaw',
       'hcmus',
       'hcmut',
       'hcmute',
-      'hcmunre',
       'hiu',
       'hnue',
       'hsu',
@@ -112,25 +104,13 @@ describe('schoolRegistry', () => {
       'hutech',
       'iu',
       'iuh',
-      'lhu',
-      'mku',
-      'nctu',
       'neu',
-      'nlu',
       'nttu',
       'ou',
-      'pntu',
       'ptit',
-      'pvu',
       'sgu',
-      'stu',
       'tdmu',
       'tdtu',
-      'tdu',
-      'tgu',
-      'ttu',
-      'tvu',
-      'uah',
       'uef',
       'ueh',
       'uel',
@@ -140,12 +120,11 @@ describe('schoolRegistry', () => {
       'ump',
       'ussh',
       'utc',
-      'uth',
-      'vaa',
       'vinhuni',
-      'vnkgu',
       'vlu',
-    ]);
+    ];
+    const catalogIds = [...southernCatalogSchools, ...remainingCatalogSchools].map((school) => school.id);
+    expect(ids).toEqual([...coreIds, ...catalogIds].sort());
   });
 
   it('README.md mục "Trường đang hỗ trợ" nhắc tên mọi trường trong registry (phát hiện drift)', () => {

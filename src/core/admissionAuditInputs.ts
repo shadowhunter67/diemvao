@@ -70,6 +70,7 @@ import { vinhuniThptExamThresholdEvidence } from '../schools/vinhuni/evidence';
 import { utcAdmissionMethods } from '../schools/utc/methods';
 import { utcThptExamThresholdEvidence } from '../schools/utc/evidence';
 import { southernCatalogMethods } from '../schools/southernCatalog';
+import { remainingCatalogMethods } from '../schools/remainingCatalog';
 
 /**
  * Pure data-assembly cho `npm run audit:data` (CLI script) VÀ test provenance
@@ -206,6 +207,7 @@ export const allAdmissionMethods: AdmissionMethodDescriptor[] = [
   ...vinhuniAdmissionMethods,
   ...utcAdmissionMethods,
   ...southernCatalogMethods,
+  ...remainingCatalogMethods,
 ];
 
 export const allMethodKnowledgeGaps: Array<KnowledgeGap & { schoolId?: string; methodId?: string }> = [
@@ -241,4 +243,5 @@ export const allMethodKnowledgeGaps: Array<KnowledgeGap & { schoolId?: string; m
   ...methodGaps(vinhuniAdmissionMethods),
   ...methodGaps(utcAdmissionMethods),
   ...methodGaps(southernCatalogMethods),
+  ...methodGaps(remainingCatalogMethods),
 ];

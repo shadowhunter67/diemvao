@@ -208,3 +208,17 @@ hoặc maintainer tiếp tục xử lý, không suy diễn thành calculator ch�
   Ngôn ngữ Anh và bảng quy đổi HSA/TSA/ĐGNL. Implement `schools/utc/`, evaluator chỉ loại chắc hồ
   sơ dưới 17/30.
 
+## Roster catalog bổ sung 2026-08-22 — phủ backlog toàn quốc
+
+Thêm `schools/remainingCatalog.ts` để đưa 75 trường/cụm trường còn lại trong backlog miền Bắc,
+miền Trung và Tây Nguyên vào `schoolRegistry` + `/compare` ở trạng thái `formula-incomplete`.
+Đây là lớp catalog-only: có mặt để user tìm/so sánh roster, nhưng evaluator luôn trả
+`confidence: unavailable`, `eligibility: unknown` và missing requirement `unsupported` cho đến khi
+maintainer research nguồn tuyển sinh chính thức từng trường. Không có công thức/ngưỡng/điểm chuẩn
+nào được suy diễn từ tên trường hay nguồn tổng hợp.
+
+Sau batch này README ghi 135/238 cơ sở giáo dục đại học: 35 module đã research/threshold, 25 trường
+miền Nam catalog-only trong `southernCatalog.ts`, và 75 trường/cụm trường toàn quốc trong
+`remainingCatalog.ts`. Mẫu số 238 vẫn giữ như README: thống kê cơ sở giáo dục đại học, chưa bao gồm
+cao đẳng và chưa claim là đã đủ mọi phân hiệu/đơn vị đặc thù.
+
