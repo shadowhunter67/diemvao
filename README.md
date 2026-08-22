@@ -32,23 +32,23 @@ Snapshot hiện tại được tính từ `schoolRegistry` bằng `npm run stats
 
 | KPI | Số lượng |
 |---|---:|
-| Mục trong danh mục/search/compare | 262 |
-| Cơ sở giáo dục độc lập trong danh mục | 252 |
+| Mục trong danh mục/search/compare | 267 |
+| Cơ sở giáo dục độc lập trong danh mục | 257 |
 | Đơn vị nội bộ/không tính vào KPI cơ sở | 10 |
 | Đại học / cơ sở hệ đại học | 206 |
 | Học viện | 22 |
 | Cao đẳng sư phạm/GDMN | 3 |
-| Cao đẳng giáo dục nghề nghiệp | 21 |
+| Cao đẳng giáo dục nghề nghiệp | 26 |
 | Nhóm độc lập khác | 0 |
 | Có dữ liệu tuyển sinh hoặc capability cao hơn | 35 |
 | Chỉ kiểm tra điều kiện/ngưỡng | 18 |
 | Có calculator một phần | 3 |
 | Calculator đã xác minh | 14 |
-| Chỉ có trong danh mục | 227 |
+| Chỉ có trong danh mục | 232 |
 
 Catalog coverage != calculator coverage. Con số danh mục là độ phủ search/compare, không phải 100% calculator. Một số mục trong danh mục là school/faculty nội bộ của hệ thống đại học lớn; các mục này vẫn có thể giữ cho navigation hoặc mapping chương trình, nhưng không làm tăng KPI "cơ sở đào tạo tuyển sinh độc lập".
 
-Nguồn nhóm đại học 238 ban đầu là số liệu tổng hợp thứ cấp tính đến 09/2025 ([nguồn](https://veci.edu.vn/nam-2025-ca-nuoc-co-238-co-so-giao-duc-dai-hoc-gan-1-200-co-so-giao-duc-nghe-nghiep/)). Nhóm cao đẳng hiện có 24 mục có nguồn chính thức theo từng lát dữ liệu: Cổng tuyển sinh Bộ GD&ĐT về phạm vi tuyển sinh đại học/CĐ ngành Giáo dục Mầm non 2026, Quyết định 1723/QĐ-TTg trên cổng Chính phủ về các trường cao đẳng công lập trực thuộc Bộ GD&ĐT, danh sách cơ sở GDNN Đà Nẵng đến 08/4/2025 và hệ thống quản lý thông tin GDNN TP.HCM. UniScoreVN chưa claim đã phủ toàn bộ hệ thống cao đẳng giáo dục nghề nghiệp.
+Nguồn nhóm đại học 238 ban đầu là số liệu tổng hợp thứ cấp tính đến 09/2025 ([nguồn](https://veci.edu.vn/nam-2025-ca-nuoc-co-238-co-so-giao-duc-dai-hoc-gan-1-200-co-so-giao-duc-nghe-nghiep/)). Nhóm cao đẳng hiện có 29 mục có nguồn chính thức theo từng lát dữ liệu: Cổng tuyển sinh Bộ GD&ĐT về phạm vi tuyển sinh đại học/CĐ ngành Giáo dục Mầm non 2026, Quyết định 1723/QĐ-TTg trên cổng Chính phủ về các trường cao đẳng công lập trực thuộc Bộ GD&ĐT, danh sách cơ sở GDNN Đà Nẵng đến 08/4/2025 và hệ thống quản lý thông tin GDNN TP.HCM. UniScoreVN chưa claim đã phủ toàn bộ hệ thống cao đẳng giáo dục nghề nghiệp.
 
 ## Trạng thái hỗ trợ
 
@@ -61,7 +61,7 @@ Nguồn nhóm đại học 238 ban đầu là số liệu tổng hợp thứ c�
 | VNU-UET, VNU-UEB, VNU-HUS, VNU-USSH, VNU-ULIS, VNU-UED, VNU-UMP, VJU, VNU-LS, VNU-HSB, VNU-IS, HUST, TMU, HUCE, HUMG, HOU, HANU, HaUI, AOF, BAV, VNUA, DAV, AJC, HLU, HMU, HUP, TLU, VNUF, TLU-HN, FPTU, HUBT, DNU-HN, Phenikaa, TNU, DHP, VMU, HPMU, HDU, HTU, HALOU, TQU, HVU, HueU, HUSC, HCE, HUL, HUAF, HUED, HUMP, HUFL, HAT, UDN, DUT, DUE-UDN, UED-UDN, UFLS-UDN, UTE-UDN, VKU, DTU, UDA, NTU, DLU, QNU, TTN, QNamU, QBU, PDU, PYU, UKH, MUCE, BMTU, DUMTP, PCTU, YDLU, UPT | ⚪ Có trong roster toàn quốc, chưa đủ nguồn chính thức để tính |
 | VNU-SIS, TNUS, TUEBA, TNUT, TUAF, TNUE, TUMP, TNU-IS, TNUFL, SoICT, SMS-HUST, SME-HUST, SCLS, SEEE, SEM-HUST, NEU-CoB, NCEPA, NCT-NEU, NAEM, UAD, NUAE, HUPES, HCMUPES, VGU, HPU2, VNAM, VNAD, HUC, VNUFA, SKDA, HCMCONS, SKDAHCM, HCMUFA, USH, VHS, HAM, UPES1, DSU, UTT, HAU, HNMU, HCA, UHD, NAUE, VMU-Vinh, HLUV, TBU, TUCST, CMCU, UTM, HDIU, HBU, NTU-HN, FBU, ThanhDo, VinUni, DHV, UMT, BHU, EAUT, CVAUni, LTVUni, TVUni, KBU, MDU, VTTU, EIU, AIU, QTU, TBDU, PXU, FUV, RMITVN, BUV, APD, NAPA, GASS, USTH, VWA, VYA, TUU, HUNRE, ULSA, MPA, MAL, MSA, ACTVN, MTA, AADAA, VMMU, NDA, OCP, TQT, SIGO, AOC, CCO, PSA, PPA, FPFU, PSU-CAND, PPU-CAND, BGA, VNA-Navy | ⚪ Có trong roster 238, chưa đủ nguồn chính thức để tính |
 | NCE, CĐSPTW-NT, CĐSPTW-HCM | ⚪ Cao đẳng sư phạm/GDMN catalog-only; chưa đủ đề án tuyển sinh chính thức để tính |
-| VCTE, DQC, HVCT, CIC1, HCMCC, NCC, CUWC, Việt-Xô 1, Lilama 2, CMC-CĐ, CCST, HCTB, DNC, DVTC, COC, CFI, TDC, HOTEC, HCE-CĐ, NSPC, TTC | ⚪ Cao đẳng giáo dục nghề nghiệp catalog-only; không dùng chung công thức đại học |
+| VCTE, DQC, HVCT, CIC1, HCMCC, NCC, CUWC, Việt-Xô 1, Lilama 2, CMC-CĐ, CCST, HCTB, DNC, DVTC, COC, CFI, TDC, HOTEC, HCE-CĐ, NSPC, TTC, HCMCT, KTXD-HCM, LTTC, HEPC, VHNT-HCM | ⚪ Cao đẳng giáo dục nghề nghiệp catalog-only; không dùng chung công thức đại học |
 
 "Chính xác" nghĩa là công thức, ngưỡng, điểm cộng và điểm ưu tiên đều có nguồn chính thức xác minh trong phạm vi đã công bố — một số trường chỉ chính xác trong phạm vi cụ thể (ví dụ thí sinh không có thành tích cộng điểm). Nhóm roster catalog đã được nối vào registry/search/compare ở trạng thái `formula-incomplete`; UniScoreVN sẽ không kết luận đủ điều kiện hoặc tính điểm cho các trường này cho đến khi có nguồn chính thức. Methodology public xem [docs/data-methodology.md](docs/data-methodology.md).
 

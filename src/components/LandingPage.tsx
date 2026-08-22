@@ -4,7 +4,7 @@ import { siteConfig } from '../config/site';
 import type { SchoolModule, SchoolRegion } from '../core/schoolModule';
 import { useApplicantProfile } from '../core/applicantProfileContextCore';
 import { summarizeApplicantProfile } from '../core/applicantProfileSummary';
-import { deriveSchoolCtaLabel } from '../core/schoolCta';
+import { deriveSchoolCtaLabel, hasSchoolCtaAction } from '../core/schoolCta';
 import {
   SUPPORT_STATUS_LABELS,
   deriveInstitutionSupportStatus,
@@ -256,7 +256,7 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
           >
             Tất cả ({schools.length})
           </button>
-          {SUPPORT_TIER_ORDER.map((tier) => (
+          {SUPPORT_TIER_ORDER.filter((tier) => tierCounts[tier] > 0).map((tier) => (
             <button
               key={tier}
               type="button"
@@ -345,7 +345,7 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
         ) : (
           <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {visibleSchools.map((school) => {
-              const isClickable = school.Page !== undefined;
+              const hasCtaAction = hasSchoolCtaAction(school);
               const buttonLabel = deriveSchoolCtaLabel(school);
               const supportStatus = deriveInstitutionSupportStatus(school);
               const isCatalogOnly = supportStatus === 'catalog-only';
@@ -375,10 +375,10 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
                       <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${schoolStatusDotClass(school)}`} />
                       {TIER_LABELS[supportStatus]}
                     </span>
-                    {isClickable ? (
+                    {hasCtaAction ? (
                       <button
                         type="button"
-                        onClick={() => onSelectSchool(school.id)}
+                        onClick={() => (school.Page ? onSelectSchool(school.id) : onOpenCompare())}
                         className="shrink-0 rounded-md border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                       >
                         {buttonLabel}

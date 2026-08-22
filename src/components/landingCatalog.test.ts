@@ -86,7 +86,7 @@ describe('landing catalog helpers', () => {
     const allResults = filterSchoolsForLanding(Object.values(schoolRegistry), defaultFilters);
     const exactResults = filterSchoolsForLanding(Object.values(schoolRegistry), { ...defaultFilters, tierFilter: 'verified-calculator' });
 
-    expect(allResults).toHaveLength(262);
+    expect(allResults).toHaveLength(267);
     expect(getVisibleSchoolCountAfterReset(allResults.length)).toBe(INITIAL_VISIBLE_SCHOOL_COUNT);
     expect(exactResults.length).toBeLessThan(INITIAL_VISIBLE_SCHOOL_COUNT);
     expect(getVisibleSchoolCountAfterReset(exactResults.length)).toBe(exactResults.length);

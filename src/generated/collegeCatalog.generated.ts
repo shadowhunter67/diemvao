@@ -20,6 +20,7 @@ interface CollegeCatalogSchool {
   name: string;
   location: string;
   province?: string;
+  admissionCode?: string;
   ownership: SchoolModule['ownership'];
   region: SchoolModule['region'];
   entityLevel: 'college_pedagogy' | 'vocational_college';
@@ -419,8 +420,8 @@ export const collegeCatalogSchools: readonly CollegeCatalogSchool[] = [
     catalogSources: [
       HCMC_GDNN_SOURCE,
       {
-        title: 'Danh mục cơ sở GDNN TP.HCM - Trường Cao đẳng Kinh tế Thành phố Hồ Chí Minh',
-        url: 'https://gdnn.tphcm.gov.vn/truong-cao-dang-kinh-te-thanh-pho-ho-chi-minh',
+        title: 'Trường Cao đẳng Bách khoa Nam Sài Gòn',
+        url: 'https://gdnn.tphcm.gov.vn/truong-cao-dang-bach-khoa-nam-sai-gon',
         type: 'official-local-authority',
         authority: 'Sở GD&ĐT TP.HCM',
         checkedAt: '2026-08-22',
@@ -440,10 +441,146 @@ export const collegeCatalogSchools: readonly CollegeCatalogSchool[] = [
     catalogSources: [
       HCMC_GDNN_SOURCE,
       {
-        title: 'Danh mục cơ sở GDNN TP.HCM - Trường Cao đẳng Kinh tế Thành phố Hồ Chí Minh',
-        url: 'https://gdnn.tphcm.gov.vn/truong-cao-dang-kinh-te-thanh-pho-ho-chi-minh',
+        title: 'Trường Cao đẳng Thủ Thiêm TP.HCM',
+        url: 'https://gdnn.tphcm.gov.vn/truong-cao-dang-thu-thiem-tphcm',
         type: 'official-local-authority',
         authority: 'Sở GD&ĐT TP.HCM',
+        checkedAt: '2026-08-22',
+      },
+    ],
+  },
+  {
+    id: 'hcmct',
+    shortName: 'HCMCT',
+    name: 'Trường Cao đẳng Giao thông Vận tải TP.HCM',
+    location: 'TP.HCM',
+    province: 'TP.HCM',
+    ownership: 'public',
+    region: 'hcm',
+    entityLevel: 'vocational_college',
+    aliases: ['Trường Cao đẳng Giao thông vận tải', 'The Transportation College'],
+    catalogSources: [
+      HCMC_GDNN_SOURCE,
+      {
+        title: 'Trường Cao đẳng Giao thông Vận tải TP. HCM',
+        url: 'https://gdnn.tphcm.gov.vn/truong-cao-dang-giao-thong-van-tai-tp-hcm',
+        type: 'official-local-authority',
+        authority: 'Sở GD&ĐT TP.HCM',
+        checkedAt: '2026-08-22',
+      },
+      {
+        title: 'Trường Cao đẳng Giao thông Vận tải TP.HCM',
+        url: 'https://www.hcmct.edu.vn',
+        type: 'official-institution',
+        checkedAt: '2026-08-22',
+      },
+    ],
+  },
+  {
+    id: 'ktxd-hcm',
+    shortName: 'KTXD-HCM',
+    name: 'Trường Cao đẳng Kiến trúc - Xây dựng Thành phố Hồ Chí Minh',
+    location: 'TP.HCM',
+    province: 'TP.HCM',
+    ownership: 'public',
+    region: 'hcm',
+    entityLevel: 'vocational_college',
+    aliases: ['Trường Cao đẳng Kiến trúc - Xây dựng TP.HCM'],
+    catalogSources: [
+      HCMC_GDNN_SOURCE,
+      {
+        title: 'Trường Cao đẳng Kiến trúc - Xây dựng Thành phố Hồ Chí Minh',
+        url: 'https://gdnn.tphcm.gov.vn/truong-cao-dang-kien-truc-xay-dung-thanh-pho-ho-chi-minh',
+        type: 'official-local-authority',
+        authority: 'Sở GD&ĐT TP.HCM',
+        checkedAt: '2026-08-22',
+      },
+      {
+        title: 'Trường Cao đẳng Kiến trúc - Xây dựng Thành phố Hồ Chí Minh',
+        url: 'https://www.ktxd.edu.vn',
+        type: 'official-institution',
+        checkedAt: '2026-08-22',
+      },
+    ],
+  },
+  {
+    id: 'lttc',
+    shortName: 'LTTC',
+    name: 'Trường Cao đẳng Lý Tự Trọng TP.HCM',
+    location: 'TP.HCM',
+    province: 'TP.HCM',
+    ownership: 'public',
+    region: 'hcm',
+    entityLevel: 'vocational_college',
+    aliases: ['Trường Cao đẳng Lý Tự Trọng Thành phố Hồ Chí Minh', 'LY TU TRONG COLLEGE OF HO CHI MINH CITY'],
+    catalogSources: [
+      HCMC_GDNN_SOURCE,
+      {
+        title: 'Trường Cao đẳng Lý Tự Trọng TP.HCM',
+        url: 'https://gdnn.tphcm.gov.vn/truong-cao-dang-ly-tu-trong-tphcm',
+        type: 'official-local-authority',
+        authority: 'Sở GD&ĐT TP.HCM',
+        checkedAt: '2026-08-22',
+      },
+      {
+        title: 'Trường Cao đẳng Lý Tự Trọng TP.HCM',
+        url: 'https://www.lttc.edu.vn',
+        type: 'official-institution',
+        checkedAt: '2026-08-22',
+      },
+    ],
+  },
+  {
+    id: 'hepc',
+    shortName: 'HEPC',
+    name: 'Trường Cao đẳng Điện lực TP.HCM',
+    location: 'TP.HCM',
+    province: 'TP.HCM',
+    ownership: 'public',
+    region: 'hcm',
+    entityLevel: 'vocational_college',
+    aliases: ['Trường Cao đẳng Điện lực Thành phố Hồ Chí Minh'],
+    catalogSources: [
+      HCMC_GDNN_SOURCE,
+      {
+        title: 'Trường Cao đẳng Điện lực TP.HCM',
+        url: 'https://gdnn.tphcm.gov.vn/truong-cao-dang-dien-luc-tphcm',
+        type: 'official-local-authority',
+        authority: 'Sở GD&ĐT TP.HCM',
+        checkedAt: '2026-08-22',
+      },
+      {
+        title: 'Trường Cao đẳng Điện lực TP.HCM',
+        url: 'http://www.hepc.edu.vn',
+        type: 'official-institution',
+        checkedAt: '2026-08-22',
+      },
+    ],
+  },
+  {
+    id: 'vhnthcm',
+    shortName: 'VHNT-HCM',
+    name: 'Trường Cao đẳng Văn hóa Nghệ thuật TP.HCM',
+    admissionCode: 'CDD0215',
+    location: 'TP.HCM',
+    province: 'TP.HCM',
+    ownership: 'public',
+    region: 'hcm',
+    entityLevel: 'vocational_college',
+    aliases: ['Trường Cao đẳng Văn hóa Nghệ thuật Thành phố Hồ Chí Minh'],
+    catalogSources: [
+      HCMC_GDNN_SOURCE,
+      {
+        title: 'Trường Cao đẳng Văn hóa nghệ thuật TP.HCM',
+        url: 'https://gdnn.tphcm.gov.vn/truong-cao-dang-van-hoa-nghe-thuat-tphcm',
+        type: 'official-local-authority',
+        authority: 'Sở GD&ĐT TP.HCM',
+        checkedAt: '2026-08-22',
+      },
+      {
+        title: 'Trường Cao đẳng Văn hóa Nghệ thuật TP.HCM',
+        url: 'http://www.vhnthcm.edu.vn',
+        type: 'official-institution',
         checkedAt: '2026-08-22',
       },
     ],
@@ -474,6 +611,7 @@ export const collegeCatalogModules: Record<string, SchoolModule> = Object.fromEn
       id: school.id,
       name: school.name,
       shortName: school.shortName,
+      admissionCode: school.admissionCode,
       about: `${school.name} (${school.location}).`,
       year: 2026,
       status: 'formula-incomplete',
