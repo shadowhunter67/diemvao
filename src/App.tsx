@@ -8,6 +8,7 @@ import { setPageMeta } from './core/pageMeta';
 import { siteConfig } from './config/site';
 import { ApplicantProfileProvider } from './core/ApplicantProfileContext';
 import { resolveSchoolId } from './core/resolveSchoolId';
+import { ErrorBoundary } from './core/ErrorBoundary';
 
 /** Fallback hiện trong lúc chunk của 1 trường (code-split, `React.lazy`) đang tải — thường chỉ
  * thấy thoáng qua trên mạng chậm/lần đầu vào trường đó (chunk sau được browser cache). */
@@ -60,29 +61,36 @@ function AppShell() {
     });
   }, [pathname, school, schoolId]);
 
+  let content;
   if (pathname === '/compare') {
-    return <MultiSchoolComparisonPage onBackHome={() => navigate('/')} onOpenSchool={(id) => navigate(`/${id}`)} />;
-  }
-
-  if (school?.Page) {
+    content = <MultiSchoolComparisonPage onBackHome={() => navigate('/')} onOpenSchool={(id) => navigate(`/${id}`)} />;
+  } else if (school?.Page) {
     const Page = school.Page;
     // `Page` có thể là `React.lazy(...)` (16 trường có UI calculator thật, xem `schools/index.ts`)
     // — bắt buộc bọc `<Suspense>` khi render component lazy, kể cả với 14 trường còn lại dùng
     // component thường (Suspense không ảnh hưởng gì nếu con không thật sự lazy).
-    return (
+    content = (
       <Suspense fallback={<RouteLoadingFallback />}>
         <Page onChangeSchool={() => navigate('/')} />
       </Suspense>
     );
+  } else {
+    content = (
+      <div className="min-h-svh bg-bg">
+        <div className="mx-auto max-w-6xl px-4 pb-16">
+          <LandingPage onSelectSchool={(id) => navigate(`/${id}`)} onOpenCompare={() => navigate('/compare')} />
+          <Footer />
+        </div>
+      </div>
+    );
   }
 
+  // `key={pathname}` (P3): đổi route tạo boundary instance mới -> tự reset hasError, tránh 1 lỗi ở
+  // route trước dính mãi sau khi user bấm "Về trang chủ"/điều hướng sang route khác.
   return (
-    <div className="min-h-svh bg-bg">
-      <div className="mx-auto max-w-6xl px-4 pb-16">
-        <LandingPage onSelectSchool={(id) => navigate(`/${id}`)} onOpenCompare={() => navigate('/compare')} />
-        <Footer />
-      </div>
-    </div>
+    <ErrorBoundary key={pathname} onGoHome={() => navigate('/')}>
+      {content}
+    </ErrorBoundary>
   );
 }
 
