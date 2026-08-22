@@ -41,16 +41,24 @@ function AppShell() {
 
   useEffect(() => {
     if (pathname === '/compare') {
-      setPageMeta(`So sánh hồ sơ nhiều trường | ${siteConfig.name}`, siteConfig.description);
+      setPageMeta({
+        title: `So sánh hồ sơ nhiều trường | ${siteConfig.name}`,
+        description: 'So sánh điểm xét tuyển, điểm chuẩn và mức độ đủ điều kiện của một hồ sơ ở nhiều trường/ngành cùng lúc.',
+        path: '/compare',
+      });
       return;
     }
     if (!school) {
-      setPageMeta(`${siteConfig.name} — Điểm xét tuyển đại học`, siteConfig.description);
+      setPageMeta({ title: `${siteConfig.name} — Điểm xét tuyển đại học`, description: siteConfig.description, path: '/' });
       return;
     }
     const suffix = school.status === 'supported' ? 'Tính điểm xét tuyển' : 'Điểm chuẩn & tuyển sinh';
-    setPageMeta(`${school.shortName} ${school.year} — ${suffix} | ${siteConfig.name}`);
-  }, [pathname, school]);
+    setPageMeta({
+      title: `${school.shortName} ${school.year} — ${suffix} | ${siteConfig.name}`,
+      description: school.about ?? school.summary ?? siteConfig.description,
+      path: `/${schoolId}`,
+    });
+  }, [pathname, school, schoolId]);
 
   if (pathname === '/compare') {
     return <MultiSchoolComparisonPage onBackHome={() => navigate('/')} onOpenSchool={(id) => navigate(`/${id}`)} />;
