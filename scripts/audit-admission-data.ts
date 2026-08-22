@@ -66,6 +66,25 @@ function marker(severity: FreshnessAuditSeverity): string {
   return '-';
 }
 
+type AuditWarningCategory = 'EXPECTED' | 'DATA_GAP' | 'LEGACY' | 'SHOULD_FIX';
+
+function warningCategory(issue: FreshnessAuditIssue): AuditWarningCategory {
+  if (
+    issue.code === 'VERIFIED_WITHOUT_SOURCE' ||
+    issue.code === 'INVALID_YEAR' ||
+    issue.code === 'DUPLICATE_SOURCE_ID' ||
+    issue.code === 'MISSING_RULE_SOURCE_REFERENCE' ||
+    issue.code === 'SUPERSEDED_SOURCE_REFERENCE'
+  ) {
+    return 'SHOULD_FIX';
+  }
+  if (issue.code === 'UNPARSED_OFFICIAL_RULE' || issue.code === 'INCOMPLETE_OFFICIAL_RULE') {
+    return 'DATA_GAP';
+  }
+  if (issue.code.includes('LEGACY')) return 'LEGACY';
+  return 'EXPECTED';
+}
+
 function printSchoolIssues(schoolId: string, issues: FreshnessAuditIssue[]): void {
   const scoped = issues
     .filter((issue) => issue.schoolId === schoolId || !issue.schoolId)
@@ -111,12 +130,25 @@ const catalogCounts = {
   errors: catalogIssues.filter((issue) => issue.severity === 'error').length,
   warnings: catalogIssues.filter((issue) => issue.severity === 'warning').length,
 };
+const warningBreakdown = scopedIssues
+  .filter((issue) => issue.severity === 'warning')
+  .reduce<Record<AuditWarningCategory, number>>(
+    (countsByCategory, issue) => {
+      countsByCategory[warningCategory(issue)] += 1;
+      return countsByCategory;
+    },
+    { EXPECTED: 0, DATA_GAP: 0, LEGACY: 0, SHOULD_FIX: 0 }
+  );
 
 console.log(`Admission data audit - ${CURRENT_ADMISSION_YEAR}${schoolFilter ? ` (${schoolFilter})` : ''}`);
 for (const schoolId of selectedSchools) printSchoolIssues(schoolId, scopedIssues);
 console.log('\nSummary');
 console.log(`  errors: ${counts.errors}`);
 console.log(`  warnings: ${counts.warnings}`);
+console.log(`    EXPECTED: ${warningBreakdown.EXPECTED}`);
+console.log(`    DATA_GAP: ${warningBreakdown.DATA_GAP}`);
+console.log(`    LEGACY: ${warningBreakdown.LEGACY}`);
+console.log(`    SHOULD_FIX: ${warningBreakdown.SHOULD_FIX}`);
 console.log(`  info: ${counts.info}`);
 console.log(`  catalog audit errors: ${catalogCounts.errors}`);
 console.log(`  catalog audit warnings: ${catalogCounts.warnings}`);

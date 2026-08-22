@@ -1,7 +1,6 @@
-import { Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Footer } from './components/Footer';
 import { LandingPage } from './components/LandingPage';
-import { MultiSchoolComparisonPage } from './components/MultiSchoolComparisonPage';
 import { useRoute } from './hooks/useRoute';
 import { schoolRegistry } from './schools';
 import { setPageMeta } from './core/pageMeta';
@@ -9,6 +8,10 @@ import { siteConfig } from './config/site';
 import { ApplicantProfileProvider } from './core/ApplicantProfileContext';
 import { resolveSchoolId } from './core/resolveSchoolId';
 import { ErrorBoundary } from './core/ErrorBoundary';
+
+const MultiSchoolComparisonPage = lazy(() =>
+  import('./components/MultiSchoolComparisonPage').then((module) => ({ default: module.MultiSchoolComparisonPage }))
+);
 
 /** Fallback hiện trong lúc chunk của 1 trường (code-split, `React.lazy`) đang tải — thường chỉ
  * thấy thoáng qua trên mạng chậm/lần đầu vào trường đó (chunk sau được browser cache). */
@@ -62,7 +65,11 @@ function AppShell() {
 
   let content;
   if (pathname === '/compare') {
-    content = <MultiSchoolComparisonPage onBackHome={() => navigate('/')} onOpenSchool={(id) => navigate(`/${id}`)} />;
+    content = (
+      <Suspense fallback={<RouteLoadingFallback />}>
+        <MultiSchoolComparisonPage onBackHome={() => navigate('/')} onOpenSchool={(id) => navigate(`/${id}`)} />
+      </Suspense>
+    );
   } else if (school?.Page) {
     const Page = school.Page;
     // `Page` có thể là `React.lazy(...)` (16 trường có UI calculator thật, xem `schools/index.ts`)

@@ -12,6 +12,8 @@ UniScoreVN là công cụ tính, so sánh và mô phỏng điểm xét tuyển t
 
 Mỗi công thức được triển khai theo quy định tuyển sinh của từng cơ sở đào tạo và gắn nguồn chính thức. Trường hoặc phương thức chưa đủ dữ liệu sẽ được đánh dấu chưa hỗ trợ thay vì ước đoán.
 
+Repo public này theo mô hình open-core: UI, generic engine, compare framework, public tests, methodology, và runtime artifacts cần để app chạy vẫn công khai. Source-of-truth research, normalized dataset, source conflict notes, deep audit, và export pipeline được duy trì trong private UniScoreVN data pipeline.
+
 ## Tính năng
 
 - Tính điểm xét tuyển realtime từ điểm ĐGNL, THPT, học bạ, điểm cộng, điểm ưu tiên
@@ -61,7 +63,7 @@ Nguồn nhóm đại học 238 ban đầu là số liệu tổng hợp thứ c�
 | NCE, CĐSPTW-NT, CĐSPTW-HCM | ⚪ Cao đẳng sư phạm/GDMN catalog-only; chưa đủ đề án tuyển sinh chính thức để tính |
 | VCTE, DQC, HVCT, CIC1, HCMCC, NCC, CUWC, Việt-Xô 1, Lilama 2, CMC-CĐ, CCST, HCTB, DNC, DVTC, COC, CFI, TDC, HOTEC, HCE-CĐ, NSPC, TTC | ⚪ Cao đẳng giáo dục nghề nghiệp catalog-only; không dùng chung công thức đại học |
 
-"Chính xác" nghĩa là công thức, ngưỡng, điểm cộng và điểm ưu tiên đều có nguồn chính thức xác minh trong phạm vi đã công bố — một số trường chỉ chính xác trong phạm vi cụ thể (ví dụ thí sinh không có thành tích cộng điểm). Nhóm roster catalog đã được nối vào registry/search/compare ở trạng thái `formula-incomplete`; UniScoreVN sẽ không kết luận đủ điều kiện hoặc tính điểm cho các trường này cho đến khi có nguồn chính thức. Chi tiết từng trường, nguồn dữ liệu, và giới hạn hiện tại xem [docs/admission-research-2026.md](docs/admission-research-2026.md).
+"Chính xác" nghĩa là công thức, ngưỡng, điểm cộng và điểm ưu tiên đều có nguồn chính thức xác minh trong phạm vi đã công bố — một số trường chỉ chính xác trong phạm vi cụ thể (ví dụ thí sinh không có thành tích cộng điểm). Nhóm roster catalog đã được nối vào registry/search/compare ở trạng thái `formula-incomplete`; UniScoreVN sẽ không kết luận đủ điều kiện hoặc tính điểm cho các trường này cho đến khi có nguồn chính thức. Methodology public xem [docs/data-methodology.md](docs/data-methodology.md).
 
 ## Bắt đầu
 
@@ -79,9 +81,9 @@ Trên Windows có thể double-click [start-dev.bat](start-dev.bat) — tự cà
 
 ## Kiến trúc
 
-Mỗi trường có công thức, thang điểm, và điều kiện xét tuyển riêng, sống độc lập trong `src/schools/<id>/` — không có "công thức chung" ép buộc. `src/core/` chỉ chứa phần thật sự dùng chung: hồ sơ điểm gốc của thí sinh, kiểu dữ liệu, và tiện ích tính toán. Thêm một trường mới không cần đụng vào phần lõi hay các trường khác.
+Mỗi trường có công thức, thang điểm, và điều kiện xét tuyển riêng, sống độc lập trong `src/schools/<id>/` hoặc được nạp qua runtime artifacts trong `src/generated/` — không có "công thức chung" ép buộc. `src/core/` chỉ chứa phần thật sự dùng chung: hồ sơ điểm gốc của thí sinh, kiểu dữ liệu, và tiện ích tính toán. Public build không cần access private repo nếu generated artifacts đã được commit.
 
-Chi tiết cấu trúc thư mục, nguyên tắc thêm trường mới, và các quy tắc bắt buộc (nguồn dữ liệu, độ chính xác, kiểm thử) nằm ở [docs/architecture.md](docs/architecture.md).
+Chi tiết kiến trúc public nằm ở [docs/architecture-public.md](docs/architecture-public.md).
 
 ## Deploy
 
@@ -89,7 +91,13 @@ Deploy qua Vercel (framework preset: Vite), domain canonical `uniscorevn.vercel.
 
 ## Tài liệu thêm
 
-- [docs/architecture.md](docs/architecture.md) — kiến trúc, model dữ liệu, quy tắc kỹ thuật bắt buộc
-- [docs/admission-research-2026.md](docs/admission-research-2026.md) — research công thức từng trường
-- [docs/data-maintainer-guide.md](docs/data-maintainer-guide.md) — quy trình thêm/cập nhật dữ liệu tuyển sinh
+- [docs/architecture-public.md](docs/architecture-public.md) — kiến trúc public/open-core
+- [docs/data-methodology.md](docs/data-methodology.md) — methodology dữ liệu public
+- [docs/contributing-data.md](docs/contributing-data.md) — cách báo lỗi/cập nhật nguồn
 - [docs/release-checklist.md](docs/release-checklist.md) — quy trình release
+
+## License và dữ liệu
+
+Code public được cấp phép theo AGPL-3.0-only, xem [LICENSE](LICENSE).
+
+Dữ liệu/source notice được tách riêng trong [DATA_NOTICE.md](DATA_NOTICE.md). UniScoreVN không claim sở hữu độc quyền với factual data từ nguồn chính thức; runtime data public là bản compiled/normalized độc lập để app hoạt động và cần được đối chiếu lại với thông báo tuyển sinh chính thức.

@@ -16,7 +16,8 @@ import { readFileSync, statSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const THRESHOLD_BYTES = 750 * 1024;
+// After lazy-loading /compare, the initial bundle is ~386kB; keep a 650kB budget to catch regressions.
+const THRESHOLD_BYTES = 650 * 1024;
 
 const projectRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const distDir = join(projectRoot, 'dist');
