@@ -16,6 +16,7 @@ import { iuhModule } from './iuh';
 import { southernCatalogSchools } from './southernCatalog';
 import { remainingCatalogSchools } from './remainingCatalog';
 import { finalCatalogSchools } from './finalCatalog';
+import { collegeCatalogSchools } from './collegeCatalog';
 import readme from '../../README.md?raw';
 import type { SchoolModule } from '../core/schoolModule';
 
@@ -124,9 +125,9 @@ describe('schoolRegistry', () => {
       'vinhuni',
       'vlu',
     ];
-    const catalogIds = [...southernCatalogSchools, ...remainingCatalogSchools, ...finalCatalogSchools].map((school) => school.id);
+    const catalogIds = [...southernCatalogSchools, ...remainingCatalogSchools, ...finalCatalogSchools, ...collegeCatalogSchools].map((school) => school.id);
     expect(ids).toEqual([...coreIds, ...catalogIds].sort());
-    expect(ids).toHaveLength(238);
+    expect(ids).toHaveLength(253);
   });
 
   it('README.md mục "Trường đang hỗ trợ" nhắc tên mọi trường trong registry (phát hiện drift)', () => {

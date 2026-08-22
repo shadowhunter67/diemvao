@@ -41,6 +41,7 @@ import { utcAdmissionMethods } from '../schools/utc/methods';
 import { southernCatalogMethods } from '../schools/southernCatalog';
 import { remainingCatalogMethods } from '../schools/remainingCatalog';
 import { finalCatalogMethods } from '../schools/finalCatalog';
+import { collegeCatalogMethods } from '../schools/collegeCatalog';
 
 /**
  * Khóa architectural invariant của compare orchestration — CI phải bắt được kiểu bug "trường đã
@@ -88,6 +89,7 @@ const methodDescriptorsBySchool: Record<string, readonly { id: string }[]> = {
   ...Object.fromEntries(southernCatalogMethods.map((method) => [method.schoolId!, [method]])),
   ...Object.fromEntries(remainingCatalogMethods.map((method) => [method.schoolId!, [method]])),
   ...Object.fromEntries(finalCatalogMethods.map((method) => [method.schoolId!, [method]])),
+  ...Object.fromEntries(collegeCatalogMethods.map((method) => [method.schoolId!, [method]])),
 };
 
 /** Pure helper — trả danh sách schoolId bị trùng trong 1 mảng adapter. Test cả trên registry thật

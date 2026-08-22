@@ -36,7 +36,10 @@ export type SchoolEntityLevel =
   | 'campus'
   | 'program_group'
   | 'college_pedagogy'
+  | 'vocational_college'
   | 'other_degree_awarding_institution';
+
+export type EducationLevel = 'university' | 'college';
 
 /**
  * Mô tả capability thật ở mức chi tiết hơn `status` — một trường có thể có info/cutoff/
@@ -89,6 +92,9 @@ export interface SchoolModule {
   ownership?: SchoolOwnership;
   region?: SchoolRegion;
   entityLevel?: SchoolEntityLevel;
+  educationLevels?: readonly EducationLevel[];
+  admissionCode?: string;
+  aliases?: readonly string[];
   /** True nếu là 1 trong 8 trường thành viên ĐHQG-HCM (HCMUT/UIT/UEL/HCMUS/USSH/UHS/IU/AGU). */
   vnuhcm?: boolean;
   /**

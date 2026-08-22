@@ -43,19 +43,18 @@ function AppShell() {
   useEffect(() => {
     if (pathname === '/compare') {
       setPageMeta({
-        title: `So sánh hồ sơ nhiều trường | ${siteConfig.name}`,
-        description: 'So sánh điểm xét tuyển, điểm chuẩn và mức độ đủ điều kiện của một hồ sơ ở nhiều trường/ngành cùng lúc.',
+        title: `So sánh điểm xét tuyển — ${siteConfig.name}`,
+        description: 'So sánh điểm xét tuyển, điểm chuẩn và mức độ đủ điều kiện của một hồ sơ ở nhiều cơ sở/ngành cùng lúc.',
         path: '/compare',
       });
       return;
     }
     if (!school) {
-      setPageMeta({ title: `${siteConfig.name} — Điểm xét tuyển đại học`, description: siteConfig.description, path: '/' });
+      setPageMeta({ title: `${siteConfig.name} — Tính & mô phỏng điểm xét tuyển`, description: siteConfig.description, path: '/' });
       return;
     }
-    const suffix = school.status === 'supported' ? 'Tính điểm xét tuyển' : 'Điểm chuẩn & tuyển sinh';
     setPageMeta({
-      title: `${school.shortName} ${school.year} — ${suffix} | ${siteConfig.name}`,
+      title: `${school.name} — ${siteConfig.name}`,
       description: school.about ?? school.summary ?? siteConfig.description,
       path: `/${schoolId}`,
     });

@@ -12,6 +12,8 @@ export interface UniversityCatalogEntry {
   fullName: string;
   region?: string;
   city?: string;
+  admissionCode?: string;
+  aliases?: readonly string[];
   programs: ProgramCatalogEntry[];
   capability: UniversityCapability;
 }
@@ -30,10 +32,11 @@ export const universityCatalog: UniversityCatalogEntry[] = Object.values(schoolR
     fullName: module.name,
     region: module.id === 'agu' ? 'Mien Tay' : 'TP.HCM va vung lan can',
     city: module.id === 'agu' ? 'An Giang' : 'TP.HCM',
+    admissionCode: module.admissionCode,
+    aliases: module.aliases,
     programs: programCatalogBySchool[module.id] ?? [],
     capability: getCapability(module),
-  }))
-  .filter((entry) => entry.programs.length > 0 || entry.capability !== 'catalog-only');
+  }));
 
 export function getUniversityCatalogEntry(schoolId: string): UniversityCatalogEntry | undefined {
   return universityCatalog.find((entry) => entry.schoolId === schoolId);
@@ -54,7 +57,7 @@ export function searchUniversityCatalog(query: string, entries: readonly Univers
   if (!normalizedQuery) return [...entries];
   const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
   return entries.filter((entry) =>
-    [entry.schoolId, entry.shortName, entry.fullName, entry.city, entry.region].some((value) => {
+    [entry.schoolId, entry.shortName, entry.fullName, entry.city, entry.region, entry.admissionCode, ...(entry.aliases ?? [])].some((value) => {
       const normalizedValue = normalizeVietnameseText(value ?? '');
       return normalizedValue.includes(normalizedQuery) || queryTokens.every((token) => normalizedValue.includes(token));
     })

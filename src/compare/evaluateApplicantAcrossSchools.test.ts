@@ -98,11 +98,21 @@ describe('evaluateApplicantAcrossSchools', () => {
    * Giờ roster mặc định lặp qua đúng `schoolComparisonAdapters` (1 nguồn duy nhất), nên HCMUE tự
    * động xuất hiện — xem `docs/architecture.md` Batch 16.
    */
-  it('renders the canonical 238-school compare roster in product order (registry-driven, no integration drift)', () => {
+  it('renders the canonical 253-entry compare roster in product order (registry-driven, no integration drift)', () => {
     const roster = evaluateApplicantAcrossSchools(profile).map((summary) => summary.schoolId);
 
     expect(roster).toEqual(COMPARE_SCHOOL_ORDER);
-    expect(roster).toHaveLength(238);
+    expect(roster).toHaveLength(253);
+    expect(roster).toEqual(expect.arrayContaining(['nce', 'ncspnt', 'ncehcm', 'vcte', 'hctb']));
+  });
+
+  it('keeps college catalog-only comparison entries unavailable with no synthetic score', () => {
+    const nce = evaluateApplicantAcrossSchools(profile).find((summary) => summary.schoolId === 'nce')!;
+
+    expect(nce.evaluation.confidence).toBe('unavailable');
+    expect(nce.evaluation.score).toBeUndefined();
+    expect(nce.evaluation.eligibility?.status).toBe('unknown');
+    expect(nce.evaluation.missingRequirements).toContainEqual(expect.objectContaining({ kind: 'unsupported' }));
   });
 
   it('uses real program registries for compare selectors', () => {

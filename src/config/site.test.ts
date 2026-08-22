@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { siteConfig } from './site';
 
-/** Batch 7 — rebrand Uniscore → UniscoreVN. `siteConfig` là single source of truth cho brand text
+/** Batch 7 — rebrand Uniscore → UniScoreVN. `siteConfig` là single source of truth cho brand text
  * hiển thị (Header/Footer/LandingPage/index.html đều đọc từ đây). */
 describe('siteConfig (Batch 7 rebrand)', () => {
-  it('brand name is UniscoreVN (đúng casing chuẩn, không phải biến thể Uniscorevn/UniScoreVN)', () => {
-    expect(siteConfig.name).toBe('UniscoreVN');
+  it('brand name is UniScoreVN with public-facing casing', () => {
+    expect(siteConfig.name).toBe('UniScoreVN');
   });
 
   it('slug is uniscorevn', () => {
@@ -17,7 +17,7 @@ describe('siteConfig (Batch 7 rebrand)', () => {
   });
 
   it('description mentions the new brand, not the old one', () => {
-    expect(siteConfig.description).toContain('UniscoreVN');
+    expect(siteConfig.description).toContain('UniScoreVN');
     expect(siteConfig.description.startsWith('Uniscore ')).toBe(false);
   });
 

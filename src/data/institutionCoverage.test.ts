@@ -2,14 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { schoolRegistry } from '../schools';
 import {
   countsAsInstitutionEntry,
+  countsAsUniversityInstitution,
   deriveInstitutionSupportStatus,
   institutionCoverage,
   summarizeInstitutionCoverage,
 } from './institutionCoverage';
+import { collegeCatalogSchools } from '../schools/collegeCatalog';
 
 describe('institution coverage statistics', () => {
   it('separates catalog coverage from institution KPI coverage', () => {
-    expect(institutionCoverage.totalCatalogEntries).toBe(238);
+    expect(institutionCoverage.totalCatalogEntries).toBe(253);
     expect(institutionCoverage.institutionEntries).toBeLessThan(institutionCoverage.totalCatalogEntries);
     expect(institutionCoverage.internalUnitEntries).toBe(10);
     expect(institutionCoverage.institutionEntries + institutionCoverage.internalUnitEntries).toBe(institutionCoverage.totalCatalogEntries);
@@ -31,17 +33,36 @@ describe('institution coverage statistics', () => {
     }
   });
 
+  it('keeps college catalog entries out of university KPI and calculator buckets', () => {
+    for (const college of collegeCatalogSchools) {
+      const school = schoolRegistry[college.id];
+
+      expect(countsAsInstitutionEntry(school)).toBe(true);
+      expect(countsAsUniversityInstitution(school)).toBe(false);
+      expect(deriveInstitutionSupportStatus(school)).toBe('catalog-only');
+      expect(school.capabilities?.exactCalculator).toBe(false);
+      expect(school.capabilities?.partialCalculator).not.toBe(true);
+      expect(school.capabilities?.scoreConversion).toBe(false);
+      expect(school.capabilities?.eligibility).toBe(false);
+    }
+  });
+
   it('derives stable public KPI counts from the registry', () => {
     expect(summarizeInstitutionCoverage()).toEqual({
-      totalCatalogEntries: 238,
-      institutionEntries: 228,
+      totalCatalogEntries: 253,
+      institutionEntries: 243,
+      independentEducationInstitutions: 243,
+      universityInstitutions: 206,
+      academies: 22,
+      pedagogicalColleges: 3,
+      vocationalColleges: 12,
       internalUnitEntries: 10,
       researched: 35,
       eligibilitySupported: 18,
       calculatorSupported: 17,
       partialCalculator: 3,
       fullyVerified: 14,
-      catalogOnly: 203,
+      catalogOnly: 218,
     });
   });
 });

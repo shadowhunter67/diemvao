@@ -72,6 +72,7 @@ import { utcThptExamThresholdEvidence } from '../schools/utc/evidence';
 import { southernCatalogMethods } from '../schools/southernCatalog';
 import { remainingCatalogMethods } from '../schools/remainingCatalog';
 import { finalCatalogMethods } from '../schools/finalCatalog';
+import { collegeCatalogMethods } from '../schools/collegeCatalog';
 
 /**
  * Pure data-assembly cho `npm run audit:data` (CLI script) VÀ test provenance
@@ -210,6 +211,7 @@ export const allAdmissionMethods: AdmissionMethodDescriptor[] = [
   ...southernCatalogMethods,
   ...remainingCatalogMethods,
   ...finalCatalogMethods,
+  ...collegeCatalogMethods,
 ];
 
 export const allMethodKnowledgeGaps: Array<KnowledgeGap & { schoolId?: string; methodId?: string }> = [
@@ -247,4 +249,5 @@ export const allMethodKnowledgeGaps: Array<KnowledgeGap & { schoolId?: string; m
   ...methodGaps(southernCatalogMethods),
   ...methodGaps(remainingCatalogMethods),
   ...methodGaps(finalCatalogMethods),
+  ...methodGaps(collegeCatalogMethods),
 ];

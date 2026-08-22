@@ -18,6 +18,14 @@ describe('universityCatalog', () => {
     expect(searchUniversityCatalog('hcmue').map((entry) => entry.schoolId)).toContain('hcmue');
   });
 
+  it('includes college catalog aliases in school search without requiring program data', () => {
+    const pedagogyCollege = searchUniversityCatalog('cdsp trung uong nha trang').find((entry) => entry.schoolId === 'ncspnt');
+    const vocationalCollege = searchUniversityCatalog('lilama 2').find((entry) => entry.schoolId === 'lilama2');
+
+    expect(pedagogyCollege?.programs).toEqual([]);
+    expect(vocationalCollege?.programs).toEqual([]);
+  });
+
   it('supports code and accent-insensitive program search', () => {
     const hcmus = universityCatalog.find((entry) => entry.schoolId === 'hcmus')!;
     expect(searchProgramCatalog('7480101TT', hcmus.programs).some((program) => program.code === '7480101TT')).toBe(true);

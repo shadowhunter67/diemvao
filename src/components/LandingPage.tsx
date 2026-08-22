@@ -1,11 +1,18 @@
 import { useMemo, useState } from 'react';
 import { schoolRegistry } from '../schools';
 import { siteConfig } from '../config/site';
-import type { SchoolModule, SchoolRegion, SchoolStatus } from '../core/schoolModule';
+import type { SchoolEntityLevel, SchoolModule, SchoolRegion, SchoolStatus } from '../core/schoolModule';
 import { useApplicantProfile } from '../core/applicantProfileContextCore';
 import { summarizeApplicantProfile } from '../core/applicantProfileSummary';
 import { deriveSchoolCtaLabel } from '../core/schoolCta';
-import { SUPPORT_STATUS_LABELS, deriveInstitutionSupportStatus, institutionCoverage, type InstitutionSupportStatus } from '../data/institutionCoverage';
+import {
+  SUPPORT_STATUS_LABELS,
+  deriveInstitutionSupportStatus,
+  getEntityLevelLabel,
+  getSchoolEntityLevel,
+  institutionCoverage,
+  type InstitutionSupportStatus,
+} from '../data/institutionCoverage';
 import { SharedProfileEditor } from './SharedProfileEditor';
 
 interface LandingPageProps {
@@ -51,6 +58,7 @@ const BADGE_PALETTE = [
 ];
 
 type StatusFilter = SchoolStatus | 'all';
+type EntityFilter = 'university' | 'academy' | 'college' | 'college_pedagogy' | 'vocational_college' | 'all';
 
 /** Thứ tự hiển thị chip lọc: "đầy đủ nhất" trước, khớp thứ tự người dùng quan tâm khi chọn trường. */
 const STATUS_FILTER_ORDER: SchoolStatus[] = ['supported', 'researching', 'formula-incomplete'];
@@ -72,6 +80,23 @@ const TIER_LABELS: Record<CapabilityTier, string> = {
 };
 
 const REGION_LABELS: Record<SchoolRegion, string> = { hcm: 'TP.HCM', hanoi: 'Hà Nội', other: 'Khu vực khác' };
+const ENTITY_FILTER_LABELS: Record<Exclude<EntityFilter, 'all'>, string> = {
+  university: 'Đại học',
+  academy: 'Học viện',
+  college: 'Cao đẳng',
+  college_pedagogy: 'CĐ sư phạm/GDMN',
+  vocational_college: 'CĐ nghề',
+};
+const UNIVERSITY_FILTER_LEVELS: readonly SchoolEntityLevel[] = ['institution', 'university_system', 'member_university', 'other_degree_awarding_institution'];
+
+function matchesEntityFilter(school: SchoolModule, filter: EntityFilter): boolean {
+  const entityLevel = getSchoolEntityLevel(school);
+  if (filter === 'all') return true;
+  if (filter === 'university') return UNIVERSITY_FILTER_LEVELS.includes(entityLevel);
+  if (filter === 'academy') return entityLevel === 'academy';
+  if (filter === 'college') return entityLevel === 'college_pedagogy' || entityLevel === 'vocational_college';
+  return entityLevel === filter;
+}
 
 type OptionalFilter<T extends string> = T | 'all';
 
@@ -112,6 +137,7 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [regionFilter, setRegionFilter] = useState<OptionalFilter<SchoolRegion>>('all');
   const [tierFilter, setTierFilter] = useState<OptionalFilter<CapabilityTier>>('all');
+  const [entityFilter, setEntityFilter] = useState<EntityFilter>('all');
   const schools = useMemo(
     () => Object.values(schoolRegistry).sort((a, b) => a.shortName.localeCompare(b.shortName, 'vi')),
     []
@@ -141,9 +167,12 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
       (school) =>
         normalizedQuery === '' ||
         normalizeForSearch(school.shortName).includes(normalizedQuery) ||
-        normalizeForSearch(school.name).includes(normalizedQuery)
+        normalizeForSearch(school.name).includes(normalizedQuery) ||
+        normalizeForSearch(school.admissionCode ?? '').includes(normalizedQuery) ||
+        (school.aliases ?? []).some((alias) => normalizeForSearch(alias).includes(normalizedQuery))
     )
     .filter((school) => statusFilter === 'all' || school.status === statusFilter)
+    .filter((school) => matchesEntityFilter(school, entityFilter))
     .filter((school) => regionFilter === 'all' || school.region === regionFilter)
     .filter((school) => tierFilter === 'all' || deriveCapabilityTier(school) === tierFilter);
 
@@ -153,8 +182,8 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
         <h1 className="text-3xl font-bold text-ink sm:text-4xl">{siteConfig.name}</h1>
         <p className="mt-2 text-base text-muted sm:text-lg">{siteConfig.tagline}</p>
         <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-          Nhập điểm một lần, rồi xem nhiều trường tự áp dụng quy tắc riêng: trường nào tính được chính xác,
-          trường nào mới tính được một phần, và nguồn nào đang được dùng.
+          Đại học · Học viện · Cao đẳng. Nhập điểm một lần, rồi xem từng cơ sở áp dụng quy tắc riêng:
+          nơi nào tính được chính xác, nơi nào mới tính được một phần, và nguồn nào đang được dùng.
         </p>
       </div>
 
@@ -162,7 +191,7 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-ink">
             <span className="font-medium">Hồ sơ điểm dùng chung.</span>{' '}
-            <span className="text-muted">Nhập ở đây, rồi UniscoreVN áp cho từng trường — thiếu gì sẽ báo khi so sánh.</span>
+            <span className="text-muted">Nhập ở đây, rồi {siteConfig.name} áp cho từng cơ sở — thiếu gì sẽ báo khi so sánh.</span>
           </p>
           {profileSummary.hasData && (
             <button
@@ -203,20 +232,22 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
       <div className="mx-auto mt-8 max-w-5xl">
         <section className="mb-6 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4" aria-label="Thống kê độ phủ dữ liệu">
           <div className="rounded-card border border-ink/10 bg-surface p-3">
-            <p className="text-xs text-muted">Danh mục</p>
+            <p className="text-xs text-muted">Tổng catalog</p>
             <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.totalCatalogEntries}</p>
           </div>
           <div className="rounded-card border border-ink/10 bg-surface p-3">
-            <p className="text-xs text-muted">Cơ sở tính KPI</p>
-            <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.institutionEntries}</p>
+            <p className="text-xs text-muted">Đại học/hệ ĐH</p>
+            <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.universityInstitutions}</p>
           </div>
           <div className="rounded-card border border-ink/10 bg-surface p-3">
-            <p className="text-xs text-muted">Calculator đã xác minh</p>
+            <p className="text-xs text-muted">Cao đẳng</p>
+            <p className="mt-1 text-lg font-semibold text-ink">
+              {institutionCoverage.pedagogicalColleges + institutionCoverage.vocationalColleges}
+            </p>
+          </div>
+          <div className="rounded-card border border-ink/10 bg-surface p-3">
+            <p className="text-xs text-muted">Calculator xác minh</p>
             <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.fullyVerified}</p>
-          </div>
-          <div className="rounded-card border border-ink/10 bg-surface p-3">
-            <p className="text-xs text-muted">Chỉ có trong catalog</p>
-            <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.catalogOnly}</p>
           </div>
         </section>
         <h2 className="text-sm font-semibold text-ink">Chọn trường để bắt đầu</h2>
@@ -273,6 +304,15 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
 
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
           <FilterSelect
+            label="Loại"
+            value={entityFilter}
+            onChange={setEntityFilter}
+            options={(Object.entries(ENTITY_FILTER_LABELS) as [Exclude<EntityFilter, 'all'>, string][]).map(([value, label]) => ({
+              value,
+              label,
+            }))}
+          />
+          <FilterSelect
             label="Khu vực"
             value={regionFilter}
             onChange={setRegionFilter}
@@ -316,6 +356,7 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-ink">{school.shortName}</p>
                       <p className="text-xs text-muted">{school.name}</p>
+                      <p className="mt-1 text-[11px] text-muted">{getEntityLevelLabel(school)}</p>
                     </div>
                   </div>
 

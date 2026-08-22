@@ -4,6 +4,8 @@ import type { MissingRequirement, MissingRequirementKind } from '../../core/admi
 import type { SchoolEvaluationSummary } from '../../compare/evaluateApplicantAcrossSchools';
 import { summarizeEvaluationCompleteness } from '../../compare/evaluationCompleteness';
 import { withMissingRequirementActions } from '../../compare/missingRequirementActions';
+import { schoolRegistry } from '../../schools';
+import { getEntityLevelLabel } from '../../data/institutionCoverage';
 import { ComparisonStatusBadge } from './ComparisonStatusBadge';
 import type { ProgramOption } from './types';
 
@@ -294,6 +296,7 @@ export function SchoolComparisonCard({
   const selectedProgram = options.find((program) => program.id === selectedProgramId);
   const officialRequirements = requirements.filter((requirement) => requirement.kind === 'official-rule');
   const userActionRequirements = requirements.filter((requirement) => requirement.action);
+  const school = schoolRegistry[summary.schoolId];
 
   return (
     <article className="rounded-card border border-ink/10 bg-surface p-5 shadow-card">
@@ -301,6 +304,7 @@ export function SchoolComparisonCard({
         <div>
           <h2 className="text-base font-semibold text-ink">{summary.shortName}</h2>
           <p className="text-xs text-muted">{summary.schoolName}</p>
+          {school && <p className="mt-1 text-[11px] text-muted">{getEntityLevelLabel(school)}</p>}
         </div>
         <ComparisonStatusBadge confidence={summary.evaluation.confidence} />
       </div>

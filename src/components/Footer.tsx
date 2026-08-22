@@ -11,7 +11,7 @@ export function Footer() {
           <p className="font-semibold text-ink">{siteConfig.name}</p>
           <p className="mt-1 leading-relaxed">{siteConfig.tagline}</p>
           <p className="mt-2 leading-relaxed">
-            {siteConfig.name} là công cụ độc lập, không thuộc các trường đại học được hỗ trợ.
+            {siteConfig.name} là công cụ độc lập, không thuộc Bộ GD&ĐT hay bất kỳ cơ sở đào tạo nào.
           </p>
         </div>
 

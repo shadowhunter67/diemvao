@@ -37,6 +37,7 @@ import { utcComparisonAdapter } from '../schools/utc/comparison';
 import { southernCatalogComparisonAdapters } from '../schools/southernCatalog';
 import { remainingCatalogComparisonAdapters } from '../schools/remainingCatalog';
 import { finalCatalogComparisonAdapters } from '../schools/finalCatalog';
+import { collegeCatalogComparisonAdapters } from '../schools/collegeCatalog';
 
 /**
  * Nguồn sự thật DUY NHẤT cho thứ tự + danh sách trường tham gia `/compare` — orchestration
@@ -89,6 +90,7 @@ export const schoolComparisonAdapters: readonly SchoolComparisonAdapter[] = [
   ...southernCatalogComparisonAdapters,
   ...remainingCatalogComparisonAdapters,
   ...finalCatalogComparisonAdapters,
+  ...collegeCatalogComparisonAdapters,
 ];
 
 export const schoolComparisonAdapterRegistry: Readonly<Record<string, SchoolComparisonAdapter>> = Object.fromEntries(
