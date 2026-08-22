@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Plus, Search, X } from 'lucide-react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { activeAdmissionConfig } from '../schools/hcmut/config/admission-2026';
+import { validateBonusComponent, validatePriorityRaw } from '../schools/hcmut/validation';
+import { ScoreInput } from './ScoreInput';
+import { buildSelectionFromDraft, EMPTY_DRAFT, SCHOOLS_REQUIRING_COMBINATION, selectionToDraft, type PickerDraft } from './compare/pickerDraft';
 import { useApplicantProfile } from '../core/applicantProfileContextCore';
 import { summarizeApplicantProfile } from '../core/applicantProfileSummary';
 import { COMMON_SUBJECT_COMBINATIONS } from '../core/subjects';
@@ -38,40 +42,10 @@ interface MultiSchoolComparisonPageProps {
   onOpenSchool: (schoolId: string) => void;
 }
 
-interface PickerDraft {
-  schoolId: string;
-  programId: string;
-  combinationId: string;
-  hcmutReward: string;
-  hcmutConsiderationReward: string;
-  hcmutEncouragement: string;
-  hcmutPriority: string;
-  hasUsshBonusAchievement: boolean;
-}
-
-const EMPTY_DRAFT: PickerDraft = {
-  schoolId: '',
-  programId: '',
-  combinationId: '',
-  hcmutReward: '0',
-  hcmutConsiderationReward: '0',
-  hcmutEncouragement: '0',
-  hcmutPriority: '0',
-  hasUsshBonusAchievement: false,
-};
-
-const SCHOOLS_REQUIRING_COMBINATION = new Set(['hcmut', 'uel', 'hcmus', 'ussh', 'uhs', 'iu', 'agu', 'hcmue']);
-
 function loadInitialSelections(): ComparisonSelection[] {
   if (typeof window === 'undefined') return [];
   const sharedSelections = parseComparisonSelectionsFromUrl(new URLSearchParams(window.location.search).get('s'));
   return sharedSelections.length > 0 ? sharedSelections : loadStoredComparisonSelections();
-}
-
-function parseNumber(value: string): number | undefined {
-  if (value.trim() === '') return undefined;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function toProgramOption(program: ProgramCatalogEntry | undefined): ProgramOption | undefined {
@@ -83,48 +57,6 @@ function toProgramOption(program: ProgramCatalogEntry | undefined): ProgramOptio
         campus: program.campus,
       }
     : undefined;
-}
-
-function selectionToDraft(selection: ComparisonSelection): PickerDraft {
-  return {
-    ...EMPTY_DRAFT,
-    schoolId: selection.schoolId,
-    programId: selection.programId ?? '',
-    combinationId: selection.context?.combinationId ?? '',
-    hcmutReward: String(selection.context?.hcmutBonus?.reward ?? 0),
-    hcmutConsiderationReward: String(selection.context?.hcmutBonus?.considerationReward ?? 0),
-    hcmutEncouragement: String(selection.context?.hcmutBonus?.encouragement ?? 0),
-    hcmutPriority: String(selection.context?.hcmutBonus?.priorityRaw30Scale ?? 0),
-    hasUsshBonusAchievement: selection.context?.hasUsshBonusAchievement === true,
-  };
-}
-
-function buildSelectionFromDraft(draft: PickerDraft): Omit<ComparisonSelection, 'id'> | undefined {
-  if (!draft.schoolId || !draft.programId) return undefined;
-  if (SCHOOLS_REQUIRING_COMBINATION.has(draft.schoolId) && !draft.combinationId) return undefined;
-
-  const context: ComparisonSelection['context'] = {};
-  if (draft.combinationId) context.combinationId = draft.combinationId;
-  if (draft.schoolId === 'ussh') context.hasUsshBonusAchievement = draft.hasUsshBonusAchievement;
-  if (draft.schoolId === 'hcmut') {
-    const reward = parseNumber(draft.hcmutReward);
-    const considerationReward = parseNumber(draft.hcmutConsiderationReward);
-    const encouragement = parseNumber(draft.hcmutEncouragement);
-    const priorityRaw30Scale = parseNumber(draft.hcmutPriority);
-    if ([reward, considerationReward, encouragement, priorityRaw30Scale].some((value) => value === undefined)) return undefined;
-    context.hcmutBonus = {
-      reward: reward ?? 0,
-      considerationReward: considerationReward ?? 0,
-      encouragement: encouragement ?? 0,
-      priorityRaw30Scale: priorityRaw30Scale ?? 0,
-    };
-  }
-
-  return {
-    schoolId: draft.schoolId,
-    programId: draft.programId,
-    context: Object.keys(context).length > 0 ? context : undefined,
-  };
 }
 
 function CapabilityBadge({ school }: { school: UniversityCatalogEntry }) {
@@ -275,23 +207,39 @@ function ComparePicker({
 
                 {draft.schoolId === 'hcmut' && (
                   <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                    {[
-                      ['Điểm ưu tiên thang 30', 'hcmutPriority'],
-                      ['Thưởng', 'hcmutReward'],
-                      ['Xét thưởng', 'hcmutConsiderationReward'],
-                      ['Khuyến khích', 'hcmutEncouragement'],
-                    ].map(([label, key]) => (
-                      <label key={key} className="text-xs font-medium text-ink">
-                        {label}
-                        <input
-                          value={draft[key as keyof PickerDraft] as string}
-                          onChange={(event) => onDraftChange({ ...draft, [key]: event.target.value })}
-                          type="number"
-                          inputMode="decimal"
-                          className="mt-1 w-full rounded-md border border-ink/10 bg-surface px-3 py-2 text-sm"
-                        />
-                      </label>
-                    ))}
+                    <ScoreInput
+                      id="compare-hcmut-priority"
+                      label="Điểm ưu tiên thang 30"
+                      hint={`0 - ${activeAdmissionConfig.priority.maxRaw30Scale}`}
+                      value={draft.hcmutPriority}
+                      error={validatePriorityRaw(draft.hcmutPriority, activeAdmissionConfig).error}
+                      onChange={(value) => onDraftChange({ ...draft, hcmutPriority: value })}
+                      compact
+                    />
+                    <ScoreInput
+                      id="compare-hcmut-reward"
+                      label="Thưởng"
+                      value={draft.hcmutReward}
+                      error={validateBonusComponent(draft.hcmutReward).error}
+                      onChange={(value) => onDraftChange({ ...draft, hcmutReward: value })}
+                      compact
+                    />
+                    <ScoreInput
+                      id="compare-hcmut-consideration"
+                      label="Xét thưởng"
+                      value={draft.hcmutConsiderationReward}
+                      error={validateBonusComponent(draft.hcmutConsiderationReward).error}
+                      onChange={(value) => onDraftChange({ ...draft, hcmutConsiderationReward: value })}
+                      compact
+                    />
+                    <ScoreInput
+                      id="compare-hcmut-encouragement"
+                      label="Khuyến khích"
+                      value={draft.hcmutEncouragement}
+                      error={validateBonusComponent(draft.hcmutEncouragement).error}
+                      onChange={(value) => onDraftChange({ ...draft, hcmutEncouragement: value })}
+                      compact
+                    />
                   </div>
                 )}
 
