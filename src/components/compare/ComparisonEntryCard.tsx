@@ -64,16 +64,30 @@ export function ComparisonEntryCard({
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           <ComparisonStatusBadge confidence={summary.evaluation.confidence} />
-          <button type="button" onClick={onEdit} title="Đổi ngành/trường" className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-ink">
+          <button type="button" onClick={onEdit} title="Đổi ngành/trường" aria-label="Đổi ngành/trường" className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-ink">
             <Pencil size={14} aria-hidden="true" />
           </button>
-          <button type="button" onClick={onMoveUp} disabled={!canMoveUp} title="Lên trên" className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-ink disabled:opacity-40">
+          <button
+            type="button"
+            onClick={onMoveUp}
+            disabled={!canMoveUp}
+            title="Lên trên"
+            aria-label="Lên trên"
+            className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-ink disabled:opacity-40"
+          >
             <ArrowUp size={14} aria-hidden="true" />
           </button>
-          <button type="button" onClick={onMoveDown} disabled={!canMoveDown} title="Xuống dưới" className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-ink disabled:opacity-40">
+          <button
+            type="button"
+            onClick={onMoveDown}
+            disabled={!canMoveDown}
+            title="Xuống dưới"
+            aria-label="Xuống dưới"
+            className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-ink disabled:opacity-40"
+          >
             <ArrowDown size={14} aria-hidden="true" />
           </button>
-          <button type="button" onClick={onRemove} title="Xóa khỏi so sánh" className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-danger">
+          <button type="button" onClick={onRemove} title="Xóa khỏi so sánh" aria-label="Xóa khỏi so sánh" className="rounded-md border border-ink/10 p-1.5 text-muted hover:text-danger">
             <Trash2 size={14} aria-hidden="true" />
           </button>
         </div>

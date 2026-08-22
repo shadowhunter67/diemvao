@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Plus, Search, X } from 'lucide-react';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useApplicantProfile } from '../core/applicantProfileContextCore';
 import { summarizeApplicantProfile } from '../core/applicantProfileSummary';
 import { COMMON_SUBJECT_COMBINATIONS } from '../core/subjects';
@@ -160,6 +161,7 @@ function ComparePicker({
   const canSubmit = candidate !== undefined && !duplicate;
   const schools = searchUniversityCatalog(schoolQuery).slice(0, 30);
   const programs = selectedSchool ? searchProgramCatalog(programQuery, selectedSchool.programs).slice(0, 80) : [];
+  const dialogRef = useFocusTrap<HTMLDivElement>(onClose);
 
   function selectSchool(schoolId: string) {
     onDraftChange({ ...EMPTY_DRAFT, schoolId });
@@ -167,7 +169,14 @@ function ComparePicker({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-ink/30 px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="compare-picker-title">
+    <div
+      ref={dialogRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-50 bg-ink/30 px-4 py-6 outline-none"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="compare-picker-title"
+    >
       <div className="mx-auto flex max-h-full max-w-5xl flex-col overflow-hidden rounded-card bg-surface shadow-card">
         <div className="flex items-start justify-between border-b border-ink/10 p-4">
           <div>
@@ -384,6 +393,7 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <div inert={pickerOpen || undefined} aria-hidden={pickerOpen || undefined}>
       <button type="button" onClick={onBackHome} className="text-xs font-medium text-accent underline-offset-2 hover:underline">
         Về trang chủ
       </button>
@@ -462,6 +472,7 @@ export function MultiSchoolComparisonPage({ onBackHome, onOpenSchool }: MultiSch
           })}
         </section>
       )}
+      </div>
 
       {pickerOpen && (
         <ComparePicker
