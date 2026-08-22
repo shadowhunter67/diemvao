@@ -20,6 +20,16 @@ UniScoreVN is evidence-first.
 
 If official sources are missing, stale, ambiguous, or conflicting, UniScoreVN marks the rule or method unsupported instead of estimating.
 
+## Year Handling
+
+Admission rules are year-scoped. A 2026 calculator or eligibility check should not silently reuse 2025 rules unless the official source explicitly says the rule is unchanged and the UI/evidence makes that scope clear.
+
+Historical cutoffs are treated as reference outcomes, not as current-year eligibility thresholds.
+
+## Corrections
+
+Incorrect data reports should include the school, admission year, affected method/program, the official source URL, and the exact value or rule that appears wrong. See [contributing-data.md](contributing-data.md).
+
 ## Public Artifacts
 
 Runtime catalog artifacts are generated from a private source-of-truth pipeline and committed under `src/generated/`. They include the minimum data needed for the public app to build and run, plus public source links where available.
