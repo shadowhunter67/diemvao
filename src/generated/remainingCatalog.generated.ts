@@ -433,6 +433,9 @@ export const remainingCatalogKnowledgeGap = {
   impact: 'exact-final-score-blocking' as const,
 };
 
+const explicitRuntimeSchoolIds = new Set(['huce']);
+const remainingCatalogRuntimeSchools = remainingCatalogSchools.filter((school) => !explicitRuntimeSchoolIds.has(school.id));
+
 function getResearchedAdmissionSource(schoolId: string): ResearchedAdmissionSource | undefined {
   return researchedAdmissionSources[schoolId];
 }
@@ -482,7 +485,7 @@ function evidenceFor(schoolId: string): RuleEvidence[] {
   ];
 }
 
-export const remainingCatalogMethods: AdmissionMethodDescriptor[] = remainingCatalogSchools.map((school) => ({
+export const remainingCatalogMethods: AdmissionMethodDescriptor[] = remainingCatalogRuntimeSchools.map((school) => ({
   id: `${school.id}-catalog-2026`,
   schoolId: school.id,
   name: 'Thông tin tuyển sinh 2026 đang chờ research',
@@ -493,7 +496,7 @@ export const remainingCatalogMethods: AdmissionMethodDescriptor[] = remainingCat
 }));
 
 export const remainingCatalogModules: Record<string, SchoolModule> = Object.fromEntries(
-  remainingCatalogSchools.map((school) => [
+  remainingCatalogRuntimeSchools.map((school) => [
     school.id,
     {
       id: school.id,
@@ -530,7 +533,7 @@ function evaluateCatalogOnlySchool(school: RemainingCatalogSchool): AdmissionEva
   };
 }
 
-export const remainingCatalogComparisonAdapters: readonly SchoolComparisonAdapter[] = remainingCatalogSchools.map((school) => ({
+export const remainingCatalogComparisonAdapters: readonly SchoolComparisonAdapter[] = remainingCatalogRuntimeSchools.map((school) => ({
   schoolId: school.id,
   methodId: `${school.id}-catalog-2026`,
   methodName: 'Thông tin tuyển sinh 2026 đang chờ research',

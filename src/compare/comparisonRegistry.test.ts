@@ -39,6 +39,7 @@ import { hnueAdmissionMethods } from '../schools/hnue/methods';
 import { vinhuniAdmissionMethods } from '../schools/vinhuni/methods';
 import { utcAdmissionMethods } from '../schools/utc/methods';
 import { vnuaAdmissionMethods } from '../schools/vnua/methods';
+import { huceAdmissionMethods } from '../schools/huce/methods';
 import { southernCatalogMethods } from '../schools/southernCatalog';
 import { remainingCatalogMethods } from '../schools/remainingCatalog';
 import { finalCatalogMethods } from '../schools/finalCatalog';
@@ -92,6 +93,7 @@ const methodDescriptorsBySchool: Record<string, readonly { id: string }[]> = {
   ...Object.fromEntries(remainingCatalogMethods.map((method) => [method.schoolId!, [method]])),
   ...Object.fromEntries(finalCatalogMethods.map((method) => [method.schoolId!, [method]])),
   ...Object.fromEntries(collegeCatalogMethods.map((method) => [method.schoolId!, [method]])),
+  huce: huceAdmissionMethods,
 };
 
 /** Pure helper — trả danh sách schoolId bị trùng trong 1 mảng adapter. Test cả trên registry thật
