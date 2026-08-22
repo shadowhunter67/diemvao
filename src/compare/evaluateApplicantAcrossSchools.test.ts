@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import type { ApplicantProfile } from '../core/applicantProfile';
 import { COMMON_SUBJECT_COMBINATIONS } from '../core/subjects';
 import { getEvaluationDisplayStatus } from './evaluationDisplay';
-import { evaluateApplicantAcrossSchools, evaluateComparisonSelections } from './evaluateApplicantAcrossSchools';
+import {
+  COMPARE_SCHOOL_ORDER,
+  evaluateApplicantAcrossSchools,
+  evaluateComparisonSelections,
+} from './evaluateApplicantAcrossSchools';
 import type { UsshEvaluationContext } from '../schools/ussh/evaluate';
 import { hcmusProgramThresholds } from '../schools/hcmus/data/programThresholds';
 import { usshPrograms } from '../schools/ussh/data/programs';
@@ -94,44 +98,11 @@ describe('evaluateApplicantAcrossSchools', () => {
    * Giờ roster mặc định lặp qua đúng `schoolComparisonAdapters` (1 nguồn duy nhất), nên HCMUE tự
    * động xuất hiện — xem `docs/architecture.md` Batch 16.
    */
-  it('renders the canonical 35-school compare roster in product order (registry-driven, no integration drift)', () => {
-    expect(evaluateApplicantAcrossSchools(profile).map((summary) => summary.schoolId)).toEqual([
-      'hcmut',
-      'ueh',
-      'iu',
-      'uel',
-      'hcmus',
-      'ussh',
-      'uhs',
-      'uit',
-      'agu',
-      'hcmue',
-      'hcmute',
-      'tdtu',
-      'huflit',
-      'hutech',
-      'ufm',
-      'iuh',
-      'hcmulaw',
-      'vlu',
-      'ump',
-      'ftu',
-      'ptit',
-      'neu',
-      'hub',
-      'huit',
-      'nttu',
-      'hsu',
-      'uef',
-      'ctu',
-      'tdmu',
-      'hiu',
-      'ou',
-      'sgu',
-      'hnue',
-      'vinhuni',
-      'utc',
-    ]);
+  it('renders the canonical 238-school compare roster in product order (registry-driven, no integration drift)', () => {
+    const roster = evaluateApplicantAcrossSchools(profile).map((summary) => summary.schoolId);
+
+    expect(roster).toEqual(COMPARE_SCHOOL_ORDER);
+    expect(roster).toHaveLength(238);
   });
 
   it('uses real program registries for compare selectors', () => {
