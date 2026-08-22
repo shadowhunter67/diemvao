@@ -234,3 +234,20 @@ Tất cả 103 mục mới có `status: formula-incomplete`, capabilities đều
 trả `confidence: unavailable` và missing requirement `unsupported`. Đây là phủ roster/search/compare,
 không phải phủ calculator.
 
+## Research bổ sung 2026-08-22 — cao đẳng và UX catalog
+
+Audit lại danh mục sau batch cao đẳng: registry hiện có 253 mục search/compare, gồm 243 cơ sở giáo
+dục độc lập và 10 đơn vị nội bộ. Nhóm cơ sở độc lập được reconcile thành 206 đại học/cơ sở hệ đại
+học, 22 học viện, 3 cao đẳng sư phạm/GDMN và 12 cao đẳng giáo dục nghề nghiệp; nhóm độc lập khác = 0.
+
+Nguồn cao đẳng chính thức đang dùng vẫn chỉ đủ cho phase A 15 mục. Cổng GDNN TP.HCM có danh sách
+địa phương chính thức, nhưng phạm vi là TP.HCM và bao gồm cả trung cấp/trung tâm nên không dùng để
+claim danh mục cao đẳng toàn quốc. Lead dữ liệu GDNN toàn quốc (`dataocq.gdnn.gov.vn`/`gdnn.gov.vn`)
+chưa lấy được danh sách parseable trong môi trường chạy. Vì vậy không thêm cao đẳng mới chỉ để tăng
+số lượng; các cao đẳng ngoài 15 mục hiện tại cần nguồn chính thức nhận diện rõ cấp trường và mã/nơi
+quản lý trước khi vào runtime catalog.
+
+Landing Page cũng được đổi từ render toàn bộ danh mục sang search/filter/sort có phân trang 24 mục
+mỗi lượt, ưu tiên hiển thị cơ sở có calculator/eligibility trước catalog-only. CTA catalog-only dùng
+"Chưa có dữ liệu chi tiết" để tránh hiểu nhầm là route bị lỗi hoặc bị khóa.
+

@@ -3,6 +3,7 @@ import { schoolRegistry } from '../schools';
 import {
   countsAsInstitutionEntry,
   countsAsUniversityInstitution,
+  auditInstitutionCatalog,
   deriveInstitutionSupportStatus,
   institutionCoverage,
   summarizeInstitutionCoverage,
@@ -56,6 +57,7 @@ describe('institution coverage statistics', () => {
       academies: 22,
       pedagogicalColleges: 3,
       vocationalColleges: 12,
+      otherIndependentInstitutions: 0,
       internalUnitEntries: 10,
       researched: 35,
       eligibilitySupported: 18,
@@ -64,5 +66,33 @@ describe('institution coverage statistics', () => {
       fullyVerified: 14,
       catalogOnly: 218,
     });
+  });
+
+  it('keeps independent institution categories reconciled', () => {
+    const summary = summarizeInstitutionCoverage();
+    expect(
+      summary.universityInstitutions +
+        summary.academies +
+        summary.pedagogicalColleges +
+        summary.vocationalColleges +
+        summary.otherIndependentInstitutions
+    ).toBe(summary.independentEducationInstitutions);
+  });
+
+  it('audits catalog identity/classification invariants', () => {
+    expect(auditInstitutionCatalog().filter((issue) => issue.severity === 'error')).toEqual([]);
+  });
+
+  it('detects duplicate admission codes and vocational colleges with calculator capability', () => {
+    const base = schoolRegistry.nce;
+    const vocational = schoolRegistry.vcte;
+    const issues = auditInstitutionCatalog([
+      { ...base, id: 'a', admissionCode: 'DUP' },
+      { ...base, id: 'b', admissionCode: 'DUP', name: 'Another name' },
+      { ...vocational, id: 'bad-vocational', capabilities: { ...vocational.capabilities!, exactCalculator: true } },
+    ]);
+
+    expect(issues).toContainEqual(expect.objectContaining({ code: 'DUPLICATE_ADMISSION_CODE', severity: 'error' }));
+    expect(issues).toContainEqual(expect.objectContaining({ code: 'VOCATIONAL_COLLEGE_HAS_UNIVERSITY_CAPABILITY', severity: 'error', schoolId: 'bad-vocational' }));
   });
 });

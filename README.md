@@ -30,22 +30,23 @@ Snapshot hiện tại được tính từ `schoolRegistry` bằng `npm run stats
 
 | KPI | Số lượng |
 |---|---:|
-| Mục trong catalog/search/compare | 253 |
-| Cơ sở giáo dục độc lập trong catalog | 243 |
+| Mục trong danh mục/search/compare | 253 |
+| Cơ sở giáo dục độc lập trong danh mục | 243 |
 | Đơn vị nội bộ/không tính vào KPI cơ sở | 10 |
 | Đại học / cơ sở hệ đại học | 206 |
 | Học viện | 22 |
 | Cao đẳng sư phạm/GDMN | 3 |
 | Cao đẳng giáo dục nghề nghiệp | 12 |
+| Nhóm độc lập khác | 0 |
 | Có dữ liệu tuyển sinh hoặc capability cao hơn | 35 |
 | Chỉ kiểm tra điều kiện/ngưỡng | 18 |
 | Có calculator một phần | 3 |
 | Calculator đã xác minh | 14 |
-| Chỉ có trong catalog | 218 |
+| Chỉ có trong danh mục | 218 |
 
-Catalog coverage != calculator coverage. Con số catalog là độ phủ danh mục/search/compare, không phải 100% calculator. Một số mục trong catalog là school/faculty nội bộ của hệ thống đại học lớn; các mục này vẫn có thể giữ cho navigation hoặc mapping chương trình, nhưng không làm tăng KPI "cơ sở đào tạo tuyển sinh độc lập".
+Catalog coverage != calculator coverage. Con số danh mục là độ phủ search/compare, không phải 100% calculator. Một số mục trong danh mục là school/faculty nội bộ của hệ thống đại học lớn; các mục này vẫn có thể giữ cho navigation hoặc mapping chương trình, nhưng không làm tăng KPI "cơ sở đào tạo tuyển sinh độc lập".
 
-Nguồn nhóm đại học 238 ban đầu là số liệu tổng hợp thứ cấp tính đến 09/2025 ([nguồn](https://veci.edu.vn/nam-2025-ca-nuoc-co-238-co-so-giao-duc-dai-hoc-gan-1-200-co-so-giao-duc-nghe-nghiep/)). Nhóm cao đẳng phase A dùng nguồn chính thức: Cổng tuyển sinh Bộ GD&ĐT về phạm vi tuyển sinh đại học/CĐ ngành Giáo dục Mầm non 2026 và Quyết định 1723/QĐ-TTg trên cổng Chính phủ về 15 trường cao đẳng công lập trực thuộc Bộ GD&ĐT.
+Nguồn nhóm đại học 238 ban đầu là số liệu tổng hợp thứ cấp tính đến 09/2025 ([nguồn](https://veci.edu.vn/nam-2025-ca-nuoc-co-238-co-so-giao-duc-dai-hoc-gan-1-200-co-so-giao-duc-nghe-nghiep/)). Nhóm cao đẳng hiện là phase A gồm 15 mục có nguồn chính thức: Cổng tuyển sinh Bộ GD&ĐT về phạm vi tuyển sinh đại học/CĐ ngành Giáo dục Mầm non 2026 và Quyết định 1723/QĐ-TTg trên cổng Chính phủ về 15 trường cao đẳng công lập trực thuộc Bộ GD&ĐT. UniScoreVN chưa claim đã phủ toàn bộ hệ thống cao đẳng giáo dục nghề nghiệp.
 
 ## Trạng thái hỗ trợ
 

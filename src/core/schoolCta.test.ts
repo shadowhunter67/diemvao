@@ -14,9 +14,9 @@ function makeSchool(overrides: Partial<SchoolModule>): SchoolModule {
 }
 
 describe('deriveSchoolCtaLabel', () => {
-  it('Chưa mở khi không có Page, bất kể capabilities', () => {
+  it('dùng label non-action khi không có Page, bất kể capabilities', () => {
     const school = makeSchool({ capabilities: { admissionInfo: true, programs: true, eligibility: true, cutoffs: true, scoreConversion: true, exactCalculator: true } });
-    expect(deriveSchoolCtaLabel(school)).toBe('Chưa mở');
+    expect(deriveSchoolCtaLabel(school)).toBe('Chưa có dữ liệu chi tiết');
   });
 
   it('Tính điểm khi exactCalculator=true dù cũng có eligibility/scoreConversion', () => {

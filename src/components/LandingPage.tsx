@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { schoolRegistry } from '../schools';
 import { siteConfig } from '../config/site';
-import type { SchoolEntityLevel, SchoolModule, SchoolRegion, SchoolStatus } from '../core/schoolModule';
+import type { SchoolModule, SchoolRegion } from '../core/schoolModule';
 import { useApplicantProfile } from '../core/applicantProfileContextCore';
 import { summarizeApplicantProfile } from '../core/applicantProfileSummary';
 import { deriveSchoolCtaLabel } from '../core/schoolCta';
@@ -9,45 +9,27 @@ import {
   SUPPORT_STATUS_LABELS,
   deriveInstitutionSupportStatus,
   getEntityLevelLabel,
-  getSchoolEntityLevel,
   institutionCoverage,
   type InstitutionSupportStatus,
 } from '../data/institutionCoverage';
 import { SharedProfileEditor } from './SharedProfileEditor';
+import {
+  filterSchoolsForLanding,
+  getStableBadgePaletteIndex,
+  hasActiveLandingFilters,
+  INITIAL_VISIBLE_SCHOOL_COUNT,
+  SUPPORT_TIER_ORDER,
+  VISIBLE_SCHOOL_INCREMENT,
+  type LandingEntityFilter,
+  type LandingSortMode,
+  type OptionalLandingFilter,
+} from './landingCatalog';
 
 interface LandingPageProps {
   onSelectSchool: (schoolId: string) => void;
   onOpenCompare: () => void;
 }
 
-/** Wording hướng tới thí sinh/phụ huynh — tránh thuật ngữ kỹ thuật ("calculator", "formula
- * verified"). */
-const STATUS_TEXT: Record<SchoolStatus, string> = {
-  supported: 'Có thể tính điểm của bạn',
-  researching: 'Đang bổ sung dữ liệu',
-  'formula-incomplete': 'Chưa đủ dữ liệu chính thức để tính điểm',
-};
-
-/** Chấm trạng thái nhỏ trước tên CTA — màu suy trực tiếp từ capability thật (không hard-code theo
- * school ID), cùng nguồn với `deriveSchoolCtaLabel`. */
-function schoolStatusDotClass(school: SchoolModule): string {
-  const supportStatus = deriveInstitutionSupportStatus(school);
-  if (supportStatus === 'verified-calculator') return 'bg-success';
-  if (supportStatus === 'partial-calculator' || supportStatus === 'eligibility-only') return 'bg-warning';
-  return 'bg-ink/20';
-}
-
-/** Bỏ dấu tiếng Việt để so khớp không phân biệt "bách khoa" / "bach khoa". */
-function normalizeForSearch(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/đ/gi, 'd')
-    .toLowerCase();
-}
-
-/** Bảng màu badge viết tắt xoay vòng theo index — chỉ để phân biệt trực quan giữa các thẻ trên
- * cùng 1 hàng, không mang ý nghĩa xếp hạng/trạng thái (trạng thái đã có chấm màu riêng). */
 const BADGE_PALETTE = [
   'bg-accent/10 text-accent',
   'bg-teal-500/10 text-teal-600',
@@ -57,19 +39,7 @@ const BADGE_PALETTE = [
   'bg-emerald-500/10 text-emerald-600',
 ];
 
-type StatusFilter = SchoolStatus | 'all';
-type EntityFilter = 'university' | 'academy' | 'college' | 'college_pedagogy' | 'vocational_college' | 'all';
-
-/** Thứ tự hiển thị chip lọc: "đầy đủ nhất" trước, khớp thứ tự người dùng quan tâm khi chọn trường. */
-const STATUS_FILTER_ORDER: SchoolStatus[] = ['supported', 'researching', 'formula-incomplete'];
-
-/** Mức tính điểm THẬT SỰ derive từ `capabilities` (không phải `status`, vốn còn phụ thuộc có Page
- * hay chưa — xem `schoolModule.ts`) — cùng nguồn với `schoolStatusDotClass`. */
 type CapabilityTier = InstitutionSupportStatus;
-
-function deriveCapabilityTier(school: SchoolModule): CapabilityTier {
-  return deriveInstitutionSupportStatus(school);
-}
 
 const TIER_LABELS: Record<CapabilityTier, string> = {
   'verified-calculator': SUPPORT_STATUS_LABELS['verified-calculator'],
@@ -80,28 +50,27 @@ const TIER_LABELS: Record<CapabilityTier, string> = {
 };
 
 const REGION_LABELS: Record<SchoolRegion, string> = { hcm: 'TP.HCM', hanoi: 'Hà Nội', other: 'Khu vực khác' };
-const ENTITY_FILTER_LABELS: Record<Exclude<EntityFilter, 'all'>, string> = {
+
+const ENTITY_FILTER_LABELS: Record<Exclude<LandingEntityFilter, 'all'>, string> = {
   university: 'Đại học',
   academy: 'Học viện',
   college: 'Cao đẳng',
   college_pedagogy: 'CĐ sư phạm/GDMN',
   vocational_college: 'CĐ nghề',
 };
-const UNIVERSITY_FILTER_LEVELS: readonly SchoolEntityLevel[] = ['institution', 'university_system', 'member_university', 'other_degree_awarding_institution'];
 
-function matchesEntityFilter(school: SchoolModule, filter: EntityFilter): boolean {
-  const entityLevel = getSchoolEntityLevel(school);
-  if (filter === 'all') return true;
-  if (filter === 'university') return UNIVERSITY_FILTER_LEVELS.includes(entityLevel);
-  if (filter === 'academy') return entityLevel === 'academy';
-  if (filter === 'college') return entityLevel === 'college_pedagogy' || entityLevel === 'vocational_college';
-  return entityLevel === filter;
+const SORT_LABELS: Record<LandingSortMode, string> = {
+  useful: 'Hữu ích nhất',
+  az: 'Tên A-Z',
+};
+
+function schoolStatusDotClass(school: SchoolModule): string {
+  const supportStatus = deriveInstitutionSupportStatus(school);
+  if (supportStatus === 'verified-calculator') return 'bg-success';
+  if (supportStatus === 'partial-calculator' || supportStatus === 'eligibility-only' || supportStatus === 'researched') return 'bg-warning';
+  return 'bg-ink/20';
 }
 
-type OptionalFilter<T extends string> = T | 'all';
-
-/** Select nhỏ dùng chung cho các bộ lọc phụ (khu vực/mức tính điểm) — trường nào chưa set field
- * tương ứng thì luôn bị loại khỏi mọi lựa chọn khác "Tất cả" (không đoán mặc định). */
 function FilterSelect<T extends string>({
   label,
   value,
@@ -109,8 +78,8 @@ function FilterSelect<T extends string>({
   options,
 }: {
   label: string;
-  value: OptionalFilter<T>;
-  onChange: (value: OptionalFilter<T>) => void;
+  value: OptionalLandingFilter<T>;
+  onChange: (value: OptionalLandingFilter<T>) => void;
   options: { value: T; label: string }[];
 }) {
   return (
@@ -118,7 +87,7 @@ function FilterSelect<T extends string>({
       <span className="shrink-0">{label}</span>
       <select
         value={value}
-        onChange={(event) => onChange(event.target.value as OptionalFilter<T>)}
+        onChange={(event) => onChange(event.target.value as OptionalLandingFilter<T>)}
         className="rounded-md border border-ink/10 bg-surface px-2 py-1 text-xs text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
       >
         <option value="all">Tất cả</option>
@@ -134,25 +103,44 @@ function FilterSelect<T extends string>({
 
 export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps) {
   const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [regionFilter, setRegionFilter] = useState<OptionalFilter<SchoolRegion>>('all');
-  const [tierFilter, setTierFilter] = useState<OptionalFilter<CapabilityTier>>('all');
-  const [entityFilter, setEntityFilter] = useState<EntityFilter>('all');
-  const schools = useMemo(
-    () => Object.values(schoolRegistry).sort((a, b) => a.shortName.localeCompare(b.shortName, 'vi')),
-    []
-  );
-  const statusCounts = useMemo(() => {
-    const counts: Record<SchoolStatus, number> = { supported: 0, researching: 0, 'formula-incomplete': 0 };
-    for (const school of schools) counts[school.status] += 1;
+  const [regionFilter, setRegionFilter] = useState<OptionalLandingFilter<SchoolRegion>>('all');
+  const [tierFilter, setTierFilter] = useState<OptionalLandingFilter<CapabilityTier>>('all');
+  const [entityFilter, setEntityFilter] = useState<LandingEntityFilter>('all');
+  const [sortMode, setSortMode] = useState<LandingSortMode>('useful');
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_SCHOOL_COUNT);
+  const schools = useMemo(() => Object.values(schoolRegistry), []);
+  const filters = useMemo(() => ({ query, entityFilter, regionFilter, tierFilter, sortMode }), [query, entityFilter, regionFilter, tierFilter, sortMode]);
+  const filteredSchools = useMemo(() => filterSchoolsForLanding(schools, filters), [schools, filters]);
+  const visibleSchools = filteredSchools.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredSchools.length;
+  const filtersActive = hasActiveLandingFilters(filters);
+  const collegeCount = institutionCoverage.pedagogicalColleges + institutionCoverage.vocationalColleges;
+  const tierCounts = useMemo(() => {
+    const counts: Record<CapabilityTier, number> = {
+      'verified-calculator': 0,
+      'partial-calculator': 0,
+      'eligibility-only': 0,
+      researched: 0,
+      'catalog-only': 0,
+    };
+    for (const school of schools) counts[deriveInstitutionSupportStatus(school)] += 1;
     return counts;
   }, [schools]);
 
-  // Batch 6, workstream O/P — cho user thấy rõ họ đang có "hồ sơ điểm dùng chung" (đã nhập ở 1
-  // trường, có thể dùng lại ở trường khác) + cách xóa nếu muốn. Không build dashboard lớn — chỉ 1
-  // dòng summary cực ngắn, im lặng hoàn toàn nếu profile rỗng (không hint giả).
   const { profile, updateProfile, updateVactTotal, clearProfile } = useApplicantProfile();
   const profileSummary = summarizeApplicantProfile(profile);
+
+  useEffect(() => {
+    setVisibleCount(INITIAL_VISIBLE_SCHOOL_COUNT);
+  }, [query, entityFilter, regionFilter, tierFilter, sortMode]);
+
+  function resetFilters() {
+    setQuery('');
+    setEntityFilter('all');
+    setRegionFilter('all');
+    setTierFilter('all');
+    setSortMode('useful');
+  }
 
   function handleClearProfile() {
     if (typeof window !== 'undefined' && !window.confirm('Xóa toàn bộ hồ sơ điểm dùng chung đã lưu? Hành động này không thể hoàn tác.')) {
@@ -161,37 +149,21 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
     clearProfile();
   }
 
-  const normalizedQuery = normalizeForSearch(query.trim());
-  const filteredSchools = schools
-    .filter(
-      (school) =>
-        normalizedQuery === '' ||
-        normalizeForSearch(school.shortName).includes(normalizedQuery) ||
-        normalizeForSearch(school.name).includes(normalizedQuery) ||
-        normalizeForSearch(school.admissionCode ?? '').includes(normalizedQuery) ||
-        (school.aliases ?? []).some((alias) => normalizeForSearch(alias).includes(normalizedQuery))
-    )
-    .filter((school) => statusFilter === 'all' || school.status === statusFilter)
-    .filter((school) => matchesEntityFilter(school, entityFilter))
-    .filter((school) => regionFilter === 'all' || school.region === regionFilter)
-    .filter((school) => tierFilter === 'all' || deriveCapabilityTier(school) === tierFilter);
-
   return (
-    <div className="py-10 sm:py-14">
+    <div className="py-8 sm:py-12">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-ink sm:text-4xl">{siteConfig.name}</h1>
         <p className="mt-2 text-base text-muted sm:text-lg">{siteConfig.tagline}</p>
         <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-          Đại học · Học viện · Cao đẳng. Nhập điểm một lần, rồi xem từng cơ sở áp dụng quy tắc riêng:
-          nơi nào tính được chính xác, nơi nào mới tính được một phần, và nguồn nào đang được dùng.
+          Đại học · Học viện · Cao đẳng. Nhập điểm một lần, so sánh theo quy tắc tuyển sinh riêng của từng cơ sở. Công thức chỉ được tính khi có đủ nguồn chính thức.
         </p>
       </div>
 
-      <div className="mx-auto mt-8 max-w-2xl rounded-card border border-accent/20 bg-accent/5 px-4 py-3 text-sm">
+      <div className="mx-auto mt-7 max-w-2xl rounded-card border border-accent/20 bg-accent/5 px-4 py-3 text-sm">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-ink">
             <span className="font-medium">Hồ sơ điểm dùng chung.</span>{' '}
-            <span className="text-muted">Nhập ở đây, rồi {siteConfig.name} áp cho từng cơ sở — thiếu gì sẽ báo khi so sánh.</span>
+            <span className="text-muted">Nhập ở đây, rồi {siteConfig.name} áp cho từng cơ sở; thiếu gì sẽ báo khi so sánh.</span>
           </p>
           {profileSummary.hasData && (
             <button
@@ -222,71 +194,76 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
           <button
             type="button"
             onClick={onOpenCompare}
-            className="mt-3 rounded-md border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20"
+            className="mt-3 rounded-md border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
           >
-            Xem hồ sơ ở tất cả trường
+            So sánh với hồ sơ này
           </button>
         )}
       </div>
 
-      <div className="mx-auto mt-8 max-w-5xl">
-        <section className="mb-6 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4" aria-label="Thống kê độ phủ dữ liệu">
+      <div className="mx-auto mt-7 max-w-5xl">
+        <section className="mb-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4" aria-label="Thống kê độ phủ dữ liệu">
           <div className="rounded-card border border-ink/10 bg-surface p-3">
-            <p className="text-xs text-muted">Tổng catalog</p>
+            <p className="text-xs text-muted">Cơ sở & đơn vị</p>
             <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.totalCatalogEntries}</p>
           </div>
           <div className="rounded-card border border-ink/10 bg-surface p-3">
-            <p className="text-xs text-muted">Đại học/hệ ĐH</p>
-            <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.universityInstitutions}</p>
+            <p className="text-xs text-muted">Cơ sở độc lập</p>
+            <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.independentEducationInstitutions}</p>
           </div>
           <div className="rounded-card border border-ink/10 bg-surface p-3">
-            <p className="text-xs text-muted">Cao đẳng</p>
-            <p className="mt-1 text-lg font-semibold text-ink">
-              {institutionCoverage.pedagogicalColleges + institutionCoverage.vocationalColleges}
-            </p>
+            <p className="text-xs text-muted">Có dữ liệu xét tuyển</p>
+            <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.researched}</p>
           </div>
           <div className="rounded-card border border-ink/10 bg-surface p-3">
-            <p className="text-xs text-muted">Calculator xác minh</p>
+            <p className="text-xs text-muted">Đã xác minh</p>
             <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.fullyVerified}</p>
           </div>
         </section>
-        <h2 className="text-sm font-semibold text-ink">Chọn trường để bắt đầu</h2>
+        <p className="mb-6 text-center text-xs text-muted">
+          {institutionCoverage.universityInstitutions} đại học · {institutionCoverage.academies} học viện · {collegeCount} cao đẳng
+          <span className="hidden sm:inline"> · </span>
+          <span className="block sm:inline">
+            {institutionCoverage.independentEducationInstitutions} cơ sở độc lập + {institutionCoverage.internalUnitEntries} đơn vị nội bộ = {institutionCoverage.totalCatalogEntries} mục danh mục
+          </span>
+        </p>
 
+        <h2 className="text-sm font-semibold text-ink">Chọn cơ sở để bắt đầu</h2>
         <div className="mt-3 max-w-2xl">
           <label htmlFor="school-search" className="sr-only">
-            Tìm trường theo tên
+            Tìm cơ sở theo tên, mã trường hoặc tên viết tắt
           </label>
           <input
             id="school-search"
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Tìm trường theo tên, ví dụ: Bách Khoa, UEH, Kinh tế..."
+            placeholder="Tìm theo tên, mã trường hoặc tên viết tắt..."
             className="w-full rounded-card border border-ink/10 bg-surface px-4 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
           />
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Lọc theo trạng thái">
+        <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Lọc theo mức hỗ trợ">
           <button
             type="button"
-            onClick={() => setStatusFilter('all')}
-            aria-pressed={statusFilter === 'all'}
+            onClick={() => setTierFilter('all')}
+            aria-pressed={tierFilter === 'all'}
             className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-              statusFilter === 'all'
+              tierFilter === 'all'
                 ? 'border-accent bg-accent/10 text-accent'
                 : 'border-ink/10 bg-surface text-muted hover:border-ink/20'
             }`}
           >
             Tất cả ({schools.length})
           </button>
-          {STATUS_FILTER_ORDER.map((status) => (
+          {SUPPORT_TIER_ORDER.map((tier) => (
             <button
-              key={status}
+              key={tier}
               type="button"
-              onClick={() => setStatusFilter(status)}
-              aria-pressed={statusFilter === status}
+              onClick={() => setTierFilter(tier)}
+              aria-pressed={tierFilter === tier}
               className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                statusFilter === status
+                tierFilter === tier
                   ? 'border-accent bg-accent/10 text-accent'
                   : 'border-ink/10 bg-surface text-muted hover:border-ink/20'
               }`}
@@ -294,10 +271,10 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
               <span
                 aria-hidden="true"
                 className={`h-1.5 w-1.5 rounded-full ${
-                  status === 'supported' ? 'bg-success' : status === 'researching' ? 'bg-warning' : 'bg-ink/20'
+                  tier === 'verified-calculator' ? 'bg-success' : tier === 'catalog-only' ? 'bg-ink/20' : 'bg-warning'
                 }`}
               />
-              {STATUS_TEXT[status]} ({statusCounts[status]})
+              {TIER_LABELS[tier]} ({tierCounts[tier]})
             </button>
           ))}
         </div>
@@ -307,7 +284,7 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
             label="Loại"
             value={entityFilter}
             onChange={setEntityFilter}
-            options={(Object.entries(ENTITY_FILTER_LABELS) as [Exclude<EntityFilter, 'all'>, string][]).map(([value, label]) => ({
+            options={(Object.entries(ENTITY_FILTER_LABELS) as [Exclude<LandingEntityFilter, 'all'>, string][]).map(([value, label]) => ({
               value,
               label,
             }))}
@@ -321,35 +298,64 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
               label,
             }))}
           />
-          <FilterSelect
-            label="Mức tính điểm"
-            value={tierFilter}
-            onChange={setTierFilter}
-            options={(Object.entries(TIER_LABELS) as [CapabilityTier, string][]).map(([value, label]) => ({
-              value,
-              label,
-            }))}
-          />
+          <label className="flex items-center gap-1.5 text-xs text-muted">
+            <span className="shrink-0">Sắp xếp</span>
+            <select
+              value={sortMode}
+              onChange={(event) => setSortMode(event.target.value as LandingSortMode)}
+              className="rounded-md border border-ink/10 bg-surface px-2 py-1 text-xs text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+            >
+              {(Object.entries(SORT_LABELS) as [LandingSortMode, string][]).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {filtersActive && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="rounded-md border border-ink/10 bg-surface px-2.5 py-1 text-xs font-medium text-muted transition hover:border-danger/30 hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+            >
+              Xóa bộ lọc
+            </button>
+          )}
+        </div>
+
+        <div className="mt-4 text-xs text-muted" aria-live="polite">
+          {filteredSchools.length} kết quả
+          {filteredSchools.length > 0 ? ` · Đang hiển thị ${visibleSchools.length}` : ''}
         </div>
 
         {filteredSchools.length === 0 ? (
-          <p className="mt-4 rounded-card border border-ink/10 bg-surface p-4 text-center text-sm text-muted">
-            {query.trim() === ''
-              ? 'Không có trường nào khớp bộ lọc đang chọn.'
-              : `Không tìm thấy trường phù hợp với "${query.trim()}".`}
-          </p>
+          <div className="mt-4 rounded-card border border-ink/10 bg-surface p-5 text-center text-sm text-muted">
+            <p>Không tìm thấy cơ sở phù hợp.</p>
+            <p className="mt-1 text-xs">Thử tên khác, mã trường hoặc bỏ bớt bộ lọc.</p>
+            {filtersActive && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="mt-3 rounded-md border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20"
+              >
+                Xóa bộ lọc
+              </button>
+            )}
+          </div>
         ) : (
-          <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredSchools.map((school, index) => {
+          <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {visibleSchools.map((school) => {
               const isClickable = school.Page !== undefined;
               const buttonLabel = deriveSchoolCtaLabel(school);
-              const badgeColor = BADGE_PALETTE[index % BADGE_PALETTE.length];
+              const supportStatus = deriveInstitutionSupportStatus(school);
+              const isCatalogOnly = supportStatus === 'catalog-only';
+              const badgeColor = BADGE_PALETTE[getStableBadgePaletteIndex(school.id, BADGE_PALETTE.length)];
               return (
-                <li key={school.id} className="flex flex-col rounded-card border border-ink/10 bg-surface p-4 shadow-card">
+                <li key={school.id} className={`flex flex-col rounded-card border border-ink/10 bg-surface shadow-card ${isCatalogOnly ? 'p-3' : 'p-4'}`}>
                   <div className="flex items-start gap-3">
                     <div
                       aria-hidden="true"
-                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[11px] font-bold leading-none ${badgeColor}`}
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold leading-none ${badgeColor}`}
                     >
                       {school.shortName.slice(0, 5)}
                     </div>
@@ -360,14 +366,14 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
                     </div>
                   </div>
 
-                  <p className="mt-3 flex-1 text-xs leading-relaxed text-muted">
-                    {school.about ?? school.summary ?? STATUS_TEXT[school.status]}
+                  <p className="mt-2 line-clamp-2 flex-1 text-xs leading-relaxed text-muted">
+                    {school.about ?? school.summary ?? TIER_LABELS[supportStatus]}
                   </p>
 
                   <div className="mt-3 flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5 text-[11px] text-muted">
                       <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${schoolStatusDotClass(school)}`} />
-                      {SUPPORT_STATUS_LABELS[deriveInstitutionSupportStatus(school)]}
+                      {TIER_LABELS[supportStatus]}
                     </span>
                     {isClickable ? (
                       <button
@@ -378,8 +384,8 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
                         {buttonLabel}
                       </button>
                     ) : (
-                      <span className="shrink-0 rounded-md border border-ink/10 px-3 py-1.5 text-xs font-medium text-muted opacity-70">
-                        Chưa mở
+                      <span className="shrink-0 text-right text-xs font-medium text-muted opacity-80">
+                        Chưa có dữ liệu chi tiết
                       </span>
                     )}
                   </div>
@@ -389,15 +395,27 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
           </ul>
         )}
 
-        <p className="mt-6 text-center text-xs leading-relaxed text-muted">
-          Xem chi tiết research công thức từng trường tại{' '}
+        {hasMore && (
+          <div className="mt-5 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setVisibleCount((current) => Math.min(current + VISIBLE_SCHOOL_INCREMENT, filteredSchools.length))}
+              className="rounded-md border border-accent/30 bg-accent/10 px-4 py-2 text-sm font-medium text-accent transition hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+            >
+              Xem thêm {Math.min(VISIBLE_SCHOOL_INCREMENT, filteredSchools.length - visibleSchools.length)}
+            </button>
+          </div>
+        )}
+
+        <p className="mt-5 text-center text-xs leading-relaxed text-muted">
+          Xem nguồn & phương pháp dữ liệu tuyển sinh tại{' '}
           <a
             href="https://github.com/shadowhunter67/uniscorevn/blob/main/docs/admission-research-2026.md"
             target="_blank"
             rel="noopener noreferrer"
             className="underline underline-offset-2"
           >
-            docs/admission-research-2026.md
+            tài liệu dữ liệu
           </a>
           .
         </p>

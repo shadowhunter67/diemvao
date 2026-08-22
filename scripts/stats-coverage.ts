@@ -14,6 +14,7 @@ console.log(`University / university-level:       ${institutionCoverage.universi
 console.log(`Academies:                           ${institutionCoverage.academies}`);
 console.log(`Pedagogical colleges:                ${institutionCoverage.pedagogicalColleges}`);
 console.log(`Vocational colleges:                 ${institutionCoverage.vocationalColleges}`);
+console.log(`Other independent types:             ${institutionCoverage.otherIndependentInstitutions}`);
 console.log('');
 console.log('Calculator coverage');
 console.log('-------------------');
