@@ -124,6 +124,7 @@ describe('schoolRegistry', () => {
       'utc',
       'vinhuni',
       'vlu',
+      'vnua',
     ];
     const catalogIds = [...southernCatalogSchools, ...remainingCatalogSchools, ...finalCatalogSchools, ...collegeCatalogSchools].map((school) => school.id);
     expect(ids).toEqual([...coreIds, ...catalogIds].sort());

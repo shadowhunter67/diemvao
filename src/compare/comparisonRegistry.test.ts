@@ -38,6 +38,7 @@ import { sguAdmissionMethods } from '../schools/sgu/methods';
 import { hnueAdmissionMethods } from '../schools/hnue/methods';
 import { vinhuniAdmissionMethods } from '../schools/vinhuni/methods';
 import { utcAdmissionMethods } from '../schools/utc/methods';
+import { vnuaAdmissionMethods } from '../schools/vnua/methods';
 import { southernCatalogMethods } from '../schools/southernCatalog';
 import { remainingCatalogMethods } from '../schools/remainingCatalog';
 import { finalCatalogMethods } from '../schools/finalCatalog';
@@ -86,6 +87,7 @@ const methodDescriptorsBySchool: Record<string, readonly { id: string }[]> = {
   hnue: hnueAdmissionMethods,
   vinhuni: vinhuniAdmissionMethods,
   utc: utcAdmissionMethods,
+  vnua: vnuaAdmissionMethods,
   ...Object.fromEntries(southernCatalogMethods.map((method) => [method.schoolId!, [method]])),
   ...Object.fromEntries(remainingCatalogMethods.map((method) => [method.schoolId!, [method]])),
   ...Object.fromEntries(finalCatalogMethods.map((method) => [method.schoolId!, [method]])),
