@@ -29,6 +29,12 @@ import { uefComparisonAdapter } from '../schools/uef/comparison';
 import { ctuComparisonAdapter } from '../schools/ctu/comparison';
 import { tdmuComparisonAdapter } from '../schools/tdmu/comparison';
 import { hiuComparisonAdapter } from '../schools/hiu/comparison';
+import { ouComparisonAdapter } from '../schools/ou/comparison';
+import { sguComparisonAdapter } from '../schools/sgu/comparison';
+import { hnueComparisonAdapter } from '../schools/hnue/comparison';
+import { vinhuniComparisonAdapter } from '../schools/vinhuni/comparison';
+import { utcComparisonAdapter } from '../schools/utc/comparison';
+import { southernCatalogComparisonAdapters } from '../schools/southernCatalog';
 
 /**
  * Nguồn sự thật DUY NHẤT cho thứ tự + danh sách trường tham gia `/compare` — orchestration
@@ -73,6 +79,12 @@ export const schoolComparisonAdapters: readonly SchoolComparisonAdapter[] = [
   ctuComparisonAdapter,
   tdmuComparisonAdapter,
   hiuComparisonAdapter,
+  ouComparisonAdapter,
+  sguComparisonAdapter,
+  hnueComparisonAdapter,
+  vinhuniComparisonAdapter,
+  utcComparisonAdapter,
+  ...southernCatalogComparisonAdapters,
 ];
 
 export const schoolComparisonAdapterRegistry: Readonly<Record<string, SchoolComparisonAdapter>> = Object.fromEntries(
@@ -81,4 +93,3 @@ export const schoolComparisonAdapterRegistry: Readonly<Record<string, SchoolComp
 
 /** Thứ tự hiển thị `/compare` — derive từ chính registry (không phải hằng số song song). */
 export const COMPARE_SCHOOL_ORDER: readonly string[] = schoolComparisonAdapters.map((adapter) => adapter.schoolId);
-

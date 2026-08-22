@@ -25,22 +25,23 @@ Mỗi công thức đều gắn nguồn dữ liệu chính thức cụ thể. Ph
 ## Tiến độ tích hợp trường đại học toàn quốc
 
 ```
-███░░░░░░░░░░░░░░░░░░░░░░░░░░  30 / 238 (~13%)
+████████░░░░░░░░░░░░░░░░░░░░░  60 / 238 (~25%)
 ```
 
 Mẫu số 238 là số cơ sở giáo dục đại học cả nước theo báo cáo Bộ GD&ĐT, tính đến 09/2025 ([nguồn](https://veci.edu.vn/nam-2025-ca-nuoc-co-238-co-so-giao-duc-dai-hoc-gan-1-200-co-so-giao-duc-nghe-nghiep/)) — số liệu tổng hợp thứ cấp, có thể lệch nhẹ so với con số mới nhất, không tính 20 trường cao đẳng sư phạm riêng.
 
 **Chưa bao gồm cao đẳng.** Thống kê công khai chỉ có "~1.163 cơ sở giáo dục nghề nghiệp" gộp chung cao đẳng/trung cấp/trung tâm, không tách được số trường cao đẳng cụ thể để đặt mẫu số đáng tin cậy — xem `docs/vietnam-schools-directory.md` mục 5 (danh sách cao đẳng tự biết là chưa đầy đủ).
 
-## Trường đang hỗ trợ (30)
+## Trường đang hỗ trợ (60)
 
 | Trường | Trạng thái |
 |---|---|
 | HCMUT, UEH, UEL, HCMUS, USSH, IU, TDTU, HUFLIT, UMP, UFM, IUH, FTU | ✅ Tính điểm chính xác |
 | HUTECH, HCMULAW | ✅ Chính xác một phần phương thức, phần còn lại đang bổ sung |
-| UIT, UHS, AGU, HCMUE, HCMUTE, VLU, PTIT, NEU, HUB, HUIT, NTTU, HSU, UEF, CTU, TDMU, HIU | 🟡 Kiểm tra điều kiện/ngưỡng, chưa có calculator chính xác |
+| UIT, UHS, AGU, HCMUE, HCMUTE, VLU, PTIT, NEU, HUB, HUIT, NTTU, HSU, UEF, CTU, TDMU, HIU, OU, SGU, HNUE, VinhUni, UTC | 🟡 Kiểm tra điều kiện/ngưỡng, chưa có calculator chính xác |
+| GDU, STU, PNTU, BDU, LHU, NLU, UAH, UTH, VAA, HCMUNRE, CTUMP, CTUET, NCTU, TDU, TVU, DThU, TGU, VNKGU, BLU, DNU, BVU, MKU, TTU, DLA, PVU | ⚪ Có trong roster miền Nam, chưa đủ nguồn chính thức để tính |
 
-"Chính xác" nghĩa là công thức, ngưỡng, điểm cộng và điểm ưu tiên đều có nguồn chính thức xác minh trong phạm vi đã công bố — một số trường chỉ chính xác trong phạm vi cụ thể (ví dụ thí sinh không có thành tích cộng điểm). Chi tiết từng trường, nguồn dữ liệu, và giới hạn hiện tại xem [docs/admission-research-2026.md](docs/admission-research-2026.md).
+"Chính xác" nghĩa là công thức, ngưỡng, điểm cộng và điểm ưu tiên đều có nguồn chính thức xác minh trong phạm vi đã công bố — một số trường chỉ chính xác trong phạm vi cụ thể (ví dụ thí sinh không có thành tích cộng điểm). Nhóm roster miền Nam đã được nối vào registry/search/compare ở trạng thái `formula-incomplete`; UniscoreVN sẽ không kết luận đủ điều kiện hoặc tính điểm cho các trường này cho đến khi có nguồn chính thức. Chi tiết từng trường, nguồn dữ liệu, và giới hạn hiện tại xem [docs/admission-research-2026.md](docs/admission-research-2026.md).
 
 ## Bắt đầu
 
@@ -71,4 +72,3 @@ Deploy qua Vercel (framework preset: Vite), domain canonical `uniscorevn.vercel.
 - [docs/admission-research-2026.md](docs/admission-research-2026.md) — research công thức từng trường
 - [docs/data-maintainer-guide.md](docs/data-maintainer-guide.md) — quy trình thêm/cập nhật dữ liệu tuyển sinh
 - [docs/release-checklist.md](docs/release-checklist.md) — quy trình release
-

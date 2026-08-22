@@ -175,3 +175,36 @@ Thực hiện lại workflow 12 bước cho 3 trường Tier 1 ngoài nhóm đã
 - **PTIT (Học viện Công nghệ Bưu chính Viễn thông)** — nguồn chính thức `tuyensinh.ptit.edu.vn`, thông báo ngày 03/04/2026. Inventory: 5 phương thức; module hiện chỉ dùng Phương thức 3 ĐGNL/ĐGTD trong nước. Ngưỡng verified: TSA≥50, HSA≥75, V-ACT≥600, SPT≥15. Công thức nguồn nêu `ĐXT = điểm ĐGNL/ĐGTD + điểm cộng + điểm ưu tiên`, nhưng chính văn bản ghi điểm xét tuyển ở phần C là trước quy đổi tương đương theo Bộ GD&ĐT; chưa tìm được bảng/công thức quy đổi tương đương final-score riêng PTIT. Implement `schools/ptit/` eligibility/raw-formula checker, `exactCalculator:false`.
 - **NEU (Đại học Kinh tế Quốc dân)** — nguồn chính thức `neu.edu.vn`, Thông báo 1613/TB-ĐHKTQD ngày 03/07/2026 và PDF thông tin tuyển sinh 2026. Inventory hiện dùng phần ngưỡng + bảng quy đổi tương đương. Ngưỡng ĐBCL: A00/A01/D01/D07 đều 22/30, áp dụng cho thi TN THPT và phương thức kết hợp TN THPT với chứng chỉ tiếng Anh quốc tế. Bảng quy đổi tương đương verified theo khoảng: THPT 22-24 ↔ V-ACT 700-752; 24-26 ↔ 752-882; 26-28 ↔ 882-1004; 28-30 ↔ 1004-1200 (cùng HSA/SAT/TSA trong PDF). PDF chỉ công bố khoảng và trỏ thí sinh đến AI tool để tra cứu chi tiết, nên không suy diễn hàm nội suy trong khoảng. Implement `schools/neu/` band checker, `exactCalculator:false`.
 
+## Research bổ sung 2026-08-22 — OU/SGU/HNUE/VinhUni/UTC
+
+Thêm 5 module threshold-only theo yêu cầu mở rộng +5 trường. Nguyên tắc batch này: chỉ claim phần
+đã đọc được từ nguồn chính thức; bảng ngành/phụ lục lớn chưa nhập thì giữ `KnowledgeGap` để Claude
+hoặc maintainer tiếp tục xử lý, không suy diễn thành calculator chính xác.
+
+- **OU (Trường Đại học Mở TP.HCM)** — nguồn chính thức `tuyensinh.ou.edu.vn`, thông báo ngưỡng đầu
+  vào 10/07/2026 và thông báo quy tắc quy đổi tương đương cùng ngày. Đọc được quy tắc nguồn xét
+  tuyển tối thiểu 15/30 và phụ lục điểm sàn theo mã xét tuyển (nhiều chương trình 16-17/30, lĩnh
+  vực pháp luật có quy định riêng). Chưa nhập bảng điểm sàn từng mã, bảng quy đổi V-SAT/ĐGNL/học
+  bạ/SAT và điểm cộng/ưu tiên. Implement `schools/ou/`, evaluator chỉ loại chắc hồ sơ dưới 15/30.
+- **SGU (Trường Đại học Sài Gòn)** — nguồn chính thức `tuyensinh.sgu.edu.vn`, thông báo "Ngưỡng đầu
+  vào, quy tắc quy đổi tương đương..." ngày 10/07/2026 và thông tin tuyển sinh chính thức ngày
+  02/06/2026. Xác minh ngưỡng theo ngành/chương trình khoảng 16-23/30 (cao nhất nhóm sư phạm).
+  Chưa nhập bảng 47 ngành, phụ lục quy đổi chứng chỉ/V-SAT/ĐGNL, bảng điểm cộng và điểm chuẩn 2026
+  dạng ảnh/file. Implement `schools/sgu/`, evaluator chỉ loại chắc hồ sơ dưới 16/30.
+- **HNUE (Trường Đại học Sư phạm Hà Nội)** — nguồn chính thức `tuyensinh.hnue.edu.vn/thong-bao/667`,
+  ngưỡng đầu vào 2026 theo ngành/chương trình. Đọc được nhiều ngưỡng 18-22/30 và các nhánh năng
+  khiếu có điều kiện phụ theo 1 hoặc 2 môn văn hóa. Chưa nhập bảng ngành đầy đủ, điều kiện phụ cho
+  ngành năng khiếu và quy đổi PT2/SPT2026. Implement `schools/hnue/`, evaluator chỉ loại chắc hồ sơ
+  dưới 18/30.
+- **VinhUni (Trường Đại học Vinh)** — nguồn chính thức `tuyensinh.vinhuni.edu.vn`, thông báo ngưỡng
+  đầu vào + quy tắc quy đổi 09/07/2026 và thông báo điều chỉnh 27/06/2026. Đọc được điều kiện
+  phương thức 100: đạt ngưỡng ngành/chương trình, không có môn thi nào từ 1,0 trở xuống; nguồn xét
+  tuyển phổ thông tối thiểu 15/30. Chưa nhập bảng ngành, học bạ, quy đổi tương đương, điều kiện
+  riêng nhóm ngôn ngữ/sức khỏe/pháp luật và phương thức năng khiếu. Implement `schools/vinhuni/`.
+- **UTC (Trường Đại học Giao thông vận tải)** — nguồn chính thức `tuyensinh.utc.edu.vn`, thông báo
+  ngưỡng đầu vào 07/07/2026. Đọc được công thức tổng điểm THPT có nhánh Toán x2 và nhánh riêng
+  Ngôn ngữ Anh, bảng ngưỡng theo cơ sở Hà Nội/Phân hiệu TP.HCM (nhiều ngành 17-18/30, một số ngành
+  19-21/30) và các cột HSA/TSA/ĐGNL. Chưa nhập bảng ngành/cơ sở đầy đủ, context Toán x2/ngành
+  Ngôn ngữ Anh và bảng quy đổi HSA/TSA/ĐGNL. Implement `schools/utc/`, evaluator chỉ loại chắc hồ
+  sơ dưới 17/30.
+

@@ -59,6 +59,17 @@ import { tdmuAdmissionMethods } from '../schools/tdmu/methods';
 import { tdmuThptExamThresholdEvidence, tdmuTranscriptThresholdEvidence, tdmuVactThresholdEvidence } from '../schools/tdmu/evidence';
 import { hiuAdmissionMethods } from '../schools/hiu/methods';
 import { hiuThptExamThresholdEvidence, hiuVactThresholdEvidence } from '../schools/hiu/evidence';
+import { ouAdmissionMethods } from '../schools/ou/methods';
+import { ouThptExamThresholdEvidence } from '../schools/ou/evidence';
+import { sguAdmissionMethods } from '../schools/sgu/methods';
+import { sguThptExamThresholdEvidence } from '../schools/sgu/evidence';
+import { hnueAdmissionMethods } from '../schools/hnue/methods';
+import { hnueThptExamThresholdEvidence } from '../schools/hnue/evidence';
+import { vinhuniAdmissionMethods } from '../schools/vinhuni/methods';
+import { vinhuniThptExamThresholdEvidence } from '../schools/vinhuni/evidence';
+import { utcAdmissionMethods } from '../schools/utc/methods';
+import { utcThptExamThresholdEvidence } from '../schools/utc/evidence';
+import { southernCatalogMethods } from '../schools/southernCatalog';
 
 /**
  * Pure data-assembly cho `npm run audit:data` (CLI script) VÀ test provenance
@@ -147,6 +158,11 @@ export function verifiedRuntimeEvidence(): RuleEvidence[] {
     ...tdmuVactThresholdEvidence.evidence,
     ...hiuThptExamThresholdEvidence.evidence,
     ...hiuVactThresholdEvidence.evidence,
+    ...ouThptExamThresholdEvidence.evidence,
+    ...sguThptExamThresholdEvidence.evidence,
+    ...hnueThptExamThresholdEvidence.evidence,
+    ...vinhuniThptExamThresholdEvidence.evidence,
+    ...utcThptExamThresholdEvidence.evidence,
   ];
 }
 
@@ -184,6 +200,12 @@ export const allAdmissionMethods: AdmissionMethodDescriptor[] = [
   ...ctuAdmissionMethods,
   ...tdmuAdmissionMethods,
   ...hiuAdmissionMethods,
+  ...ouAdmissionMethods,
+  ...sguAdmissionMethods,
+  ...hnueAdmissionMethods,
+  ...vinhuniAdmissionMethods,
+  ...utcAdmissionMethods,
+  ...southernCatalogMethods,
 ];
 
 export const allMethodKnowledgeGaps: Array<KnowledgeGap & { schoolId?: string; methodId?: string }> = [
@@ -213,5 +235,10 @@ export const allMethodKnowledgeGaps: Array<KnowledgeGap & { schoolId?: string; m
   ...methodGaps(ctuAdmissionMethods),
   ...methodGaps(tdmuAdmissionMethods),
   ...methodGaps(hiuAdmissionMethods),
+  ...methodGaps(ouAdmissionMethods),
+  ...methodGaps(sguAdmissionMethods),
+  ...methodGaps(hnueAdmissionMethods),
+  ...methodGaps(vinhuniAdmissionMethods),
+  ...methodGaps(utcAdmissionMethods),
+  ...methodGaps(southernCatalogMethods),
 ];
-

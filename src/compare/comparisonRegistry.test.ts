@@ -33,6 +33,12 @@ import { uefAdmissionMethods } from '../schools/uef/methods';
 import { ctuAdmissionMethods } from '../schools/ctu/methods';
 import { tdmuAdmissionMethods } from '../schools/tdmu/methods';
 import { hiuAdmissionMethods } from '../schools/hiu/methods';
+import { ouAdmissionMethods } from '../schools/ou/methods';
+import { sguAdmissionMethods } from '../schools/sgu/methods';
+import { hnueAdmissionMethods } from '../schools/hnue/methods';
+import { vinhuniAdmissionMethods } from '../schools/vinhuni/methods';
+import { utcAdmissionMethods } from '../schools/utc/methods';
+import { southernCatalogMethods } from '../schools/southernCatalog';
 
 /**
  * Khóa architectural invariant của compare orchestration — CI phải bắt được kiểu bug "trường đã
@@ -72,6 +78,12 @@ const methodDescriptorsBySchool: Record<string, readonly { id: string }[]> = {
   ctu: ctuAdmissionMethods,
   tdmu: tdmuAdmissionMethods,
   hiu: hiuAdmissionMethods,
+  ou: ouAdmissionMethods,
+  sgu: sguAdmissionMethods,
+  hnue: hnueAdmissionMethods,
+  vinhuni: vinhuniAdmissionMethods,
+  utc: utcAdmissionMethods,
+  ...Object.fromEntries(southernCatalogMethods.map((method) => [method.schoolId!, [method]])),
 };
 
 /** Pure helper — trả danh sách schoolId bị trùng trong 1 mảng adapter. Test cả trên registry thật
@@ -166,4 +178,3 @@ describe('comparisonRegistry invariants', () => {
     expect(evaluateComparisonSelections({}, [{ id: 'only', schoolId: 'ghost-school' }])).toEqual([]);
   });
 });
-

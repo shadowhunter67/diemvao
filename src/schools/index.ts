@@ -32,8 +32,14 @@ import { uefModule } from './uef';
 import { ctuModule } from './ctu';
 import { tdmuModule } from './tdmu';
 import { hiuModule } from './hiu';
+import { ouModule } from './ou';
+import { sguModule } from './sgu';
+import { hnueModule } from './hnue';
+import { vinhuniModule } from './vinhuni';
+import { utcModule } from './utc';
 import { vluModule } from './vlu';
 import { hcmuteModule } from './hcmute';
+import { southernCatalogModules } from './southernCatalog';
 
 // 16 trường có Page — chỉ import metadata nhẹ ở đây, KHÔNG import Page.
 import { hcmutMeta } from './hcmut/meta';
@@ -91,6 +97,11 @@ export const schoolRegistry: Record<string, SchoolModule> = {
   ctu: ctuModule,
   tdmu: tdmuModule,
   hiu: hiuModule,
+  ou: ouModule,
+  sgu: sguModule,
+  hnue: hnueModule,
+  vinhuni: vinhuniModule,
+  utc: utcModule,
   vlu: vluModule,
   hcmute: hcmuteModule,
   hcmut: { ...hcmutMeta, Page: hcmutPage },
@@ -111,4 +122,5 @@ export const schoolRegistry: Record<string, SchoolModule> = {
   iuh: { ...iuhMeta, Page: iuhPage },
   hcmulaw: { ...hcmulawMeta, Page: hcmulawPage },
   ump: { ...umpMeta, Page: umpPage },
+  ...southernCatalogModules,
 };

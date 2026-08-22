@@ -29,6 +29,11 @@ import { uefSources } from './uef/sources';
 import { ctuSources } from './ctu/sources';
 import { tdmuSources } from './tdmu/sources';
 import { hiuSources } from './hiu/sources';
+import { ouSources } from './ou/sources';
+import { sguSources } from './sgu/sources';
+import { hnueSources } from './hnue/sources';
+import { vinhuniSources } from './vinhuni/sources';
+import { utcSources } from './utc/sources';
 
 function withSchoolId(schoolId: string, sources: Omit<AdmissionSource, 'schoolId'>[]): AdmissionSource[] {
   return sources.map((source) => ({ ...source, schoolId }));
@@ -64,6 +69,11 @@ export const uefSourceRegistry: AdmissionSource[] = withSchoolId('uef', uefSourc
 export const ctuSourceRegistry: AdmissionSource[] = withSchoolId('ctu', ctuSources);
 export const tdmuSourceRegistry: AdmissionSource[] = withSchoolId('tdmu', tdmuSources);
 export const hiuSourceRegistry: AdmissionSource[] = withSchoolId('hiu', hiuSources);
+export const ouSourceRegistry: AdmissionSource[] = withSchoolId('ou', ouSources);
+export const sguSourceRegistry: AdmissionSource[] = withSchoolId('sgu', sguSources);
+export const hnueSourceRegistry: AdmissionSource[] = withSchoolId('hnue', hnueSources);
+export const vinhuniSourceRegistry: AdmissionSource[] = withSchoolId('vinhuni', vinhuniSources);
+export const utcSourceRegistry: AdmissionSource[] = withSchoolId('utc', utcSources);
 
 export const schoolSourceRegistries: Record<string, AdmissionSource[]> = {
   hcmut: hcmutSourceRegistry,
@@ -96,6 +106,11 @@ export const schoolSourceRegistries: Record<string, AdmissionSource[]> = {
   ctu: ctuSourceRegistry,
   tdmu: tdmuSourceRegistry,
   hiu: hiuSourceRegistry,
+  ou: ouSourceRegistry,
+  sgu: sguSourceRegistry,
+  hnue: hnueSourceRegistry,
+  vinhuni: vinhuniSourceRegistry,
+  utc: utcSourceRegistry,
 };
 
 export const allAdmissionSources: AdmissionSource[] = [
@@ -129,5 +144,9 @@ export const allAdmissionSources: AdmissionSource[] = [
   ...ctuSourceRegistry,
   ...tdmuSourceRegistry,
   ...hiuSourceRegistry,
+  ...ouSourceRegistry,
+  ...sguSourceRegistry,
+  ...hnueSourceRegistry,
+  ...vinhuniSourceRegistry,
+  ...utcSourceRegistry,
 ];
-

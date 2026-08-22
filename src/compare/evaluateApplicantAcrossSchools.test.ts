@@ -94,7 +94,7 @@ describe('evaluateApplicantAcrossSchools', () => {
    * Giờ roster mặc định lặp qua đúng `schoolComparisonAdapters` (1 nguồn duy nhất), nên HCMUE tự
    * động xuất hiện — xem `docs/architecture.md` Batch 16.
    */
-  it('renders the canonical 19-school compare roster in product order (incl. HCMUE/HCMUTE/TDTU/HUFLIT/HUTECH/UFM/IUH/HCMULAW/VLU/UMP, fixed integration drift)', () => {
+  it('renders the canonical 35-school compare roster in product order (registry-driven, no integration drift)', () => {
     expect(evaluateApplicantAcrossSchools(profile).map((summary) => summary.schoolId)).toEqual([
       'hcmut',
       'ueh',
@@ -126,6 +126,11 @@ describe('evaluateApplicantAcrossSchools', () => {
       'ctu',
       'tdmu',
       'hiu',
+      'ou',
+      'sgu',
+      'hnue',
+      'vinhuni',
+      'utc',
     ]);
   });
 
