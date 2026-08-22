@@ -433,7 +433,7 @@ export const remainingCatalogKnowledgeGap = {
   impact: 'exact-final-score-blocking' as const,
 };
 
-const explicitRuntimeSchoolIds = new Set(['huce']);
+const explicitRuntimeSchoolIds = new Set(['huce', 'dav']);
 const remainingCatalogRuntimeSchools = remainingCatalogSchools.filter((school) => !explicitRuntimeSchoolIds.has(school.id));
 
 function getResearchedAdmissionSource(schoolId: string): ResearchedAdmissionSource | undefined {
