@@ -41,6 +41,7 @@ import { vluModule } from './vlu';
 import { hcmuteModule } from './hcmute';
 import { southernCatalogModules } from './southernCatalog';
 import { remainingCatalogModules } from './remainingCatalog';
+import { finalCatalogModules } from './finalCatalog';
 
 // 16 trường có Page — chỉ import metadata nhẹ ở đây, KHÔNG import Page.
 import { hcmutMeta } from './hcmut/meta';
@@ -125,4 +126,5 @@ export const schoolRegistry: Record<string, SchoolModule> = {
   ump: { ...umpMeta, Page: umpPage },
   ...southernCatalogModules,
   ...remainingCatalogModules,
+  ...finalCatalogModules,
 };

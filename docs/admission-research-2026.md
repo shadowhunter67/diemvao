@@ -222,3 +222,15 @@ miền Nam catalog-only trong `southernCatalog.ts`, và 75 trường/cụm trư�
 `remainingCatalog.ts`. Mẫu số 238 vẫn giữ như README: thống kê cơ sở giáo dục đại học, chưa bao gồm
 cao đẳng và chưa claim là đã đủ mọi phân hiệu/đơn vị đặc thù.
 
+## Roster catalog bổ sung 2026-08-22 — đủ mốc 238/238
+
+Thêm `schools/finalCatalog.ts` với 103 mục catalog-only còn thiếu để registry đạt đúng mẫu số README
+238/238. Nguồn đối chiếu danh mục ở mức nhận diện tên trường/cụm trường: Cổng tuyển sinh Bộ GD&ĐT
+(`tuyensinh.moet.gov.vn/ts/`, tra cứu cơ sở đào tạo) và trang danh sách tổng hợp các trường đại học,
+học viện, cao đẳng tại Việt Nam (Wikipedia mirror đã fetch được trong môi trường chạy). Batch này
+chỉ dùng nguồn để xác nhận sự tồn tại/tên gọi phổ biến, KHÔNG dùng để claim công thức tuyển sinh.
+
+Tất cả 103 mục mới có `status: formula-incomplete`, capabilities đều false, evaluator `/compare`
+trả `confidence: unavailable` và missing requirement `unsupported`. Đây là phủ roster/search/compare,
+không phải phủ calculator.
+
