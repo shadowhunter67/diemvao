@@ -171,13 +171,6 @@ const researchedAdmissionSources: Record<string, ResearchedAdmissionSource> = {
     checkedAt: '2026-08-22',
     note: 'Official 2026 portal lists admission information, thresholds, and first-round cutoffs; method conversion and program scope need extraction.',
   },
-  vnua: {
-    sourceId: 'vnua-admission-2026',
-    title: 'VNUA undergraduate admission 2026',
-    url: 'https://vnua.edu.vn/tuyen-sinh/tuyen-sinh-dai-hoc/p',
-    checkedAt: '2026-08-22',
-    note: 'Official 2026 admission page lists admission announcement, thresholds, conversion rules, and cutoffs; exact eligibility/calculator needs normalization of method-specific conditions and conversion rule.',
-  },
   dav: {
     sourceId: 'dav-admission-2026',
     title: 'DAV undergraduate admission information 2026',
@@ -377,7 +370,6 @@ export const remainingCatalogSchools: readonly RemainingCatalogSchool[] = [
   { id: 'haui', shortName: 'HaUI', name: 'Trường Đại học Công nghiệp Hà Nội', location: 'Hà Nội', ownership: 'public', region: 'hanoi' },
   { id: 'aof', shortName: 'AOF', name: 'Học viện Tài chính', location: 'Hà Nội', ownership: 'public', region: 'hanoi' },
   { id: 'bav', shortName: 'BAV', name: 'Học viện Ngân hàng', location: 'Hà Nội', ownership: 'public', region: 'hanoi' },
-  { id: 'vnua', shortName: 'VNUA', name: 'Học viện Nông nghiệp Việt Nam', location: 'Hà Nội', ownership: 'public', region: 'hanoi' },
   { id: 'dav', shortName: 'DAV', name: 'Học viện Ngoại giao', location: 'Hà Nội', ownership: 'public', region: 'hanoi' },
   { id: 'ajc', shortName: 'AJC', name: 'Học viện Báo chí và Tuyên truyền', location: 'Hà Nội', ownership: 'public', region: 'hanoi' },
   { id: 'hlu', shortName: 'HLU', name: 'Trường Đại học Luật Hà Nội', location: 'Hà Nội', ownership: 'public', region: 'hanoi' },

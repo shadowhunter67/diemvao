@@ -39,6 +39,7 @@ import { vinhuniModule } from './vinhuni';
 import { utcModule } from './utc';
 import { vluModule } from './vlu';
 import { hcmuteModule } from './hcmute';
+import { vnuaModule } from './vnua';
 import { southernCatalogModules } from './southernCatalog';
 import { remainingCatalogModules } from './remainingCatalog';
 import { finalCatalogModules } from './finalCatalog';
@@ -107,6 +108,7 @@ export const schoolRegistry: Record<string, SchoolModule> = {
   utc: utcModule,
   vlu: vluModule,
   hcmute: hcmuteModule,
+  vnua: vnuaModule,
   hcmut: { ...hcmutMeta, Page: hcmutPage },
   uit: { ...uitMeta, Page: uitPage },
   uel: { ...uelMeta, Page: uelPage },
