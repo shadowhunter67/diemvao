@@ -12,6 +12,7 @@ import type { AdmissionEvaluation } from '../core/admissionEvaluation';
 import type { AdmissionMethodDescriptor } from '../core/admissionMethod';
 import type { ApplicantProfile } from '../core/applicantProfile';
 import type { SchoolModule } from '../core/schoolModule';
+import type { RuleEvidence } from '../core/evidence';
 import type { SchoolComparisonAdapter, SchoolComparisonResult } from '../compare/schoolComparisonAdapter';
 
 interface RemainingCatalogSchool {
@@ -21,6 +22,15 @@ interface RemainingCatalogSchool {
   location: string;
   ownership: SchoolModule['ownership'];
   region: SchoolModule['region'];
+}
+
+interface ResearchedAdmissionSource {
+  title: string;
+  url: string;
+  sourceId: string;
+  checkedAt: string;
+  publishedAt?: string;
+  note: string;
 }
 
 const unsupportedCapabilities = {
@@ -39,6 +49,107 @@ const catalogOnlyCapabilities = {
   scoreConversion: false,
   exactCalculator: false,
 } satisfies NonNullable<SchoolModule['capabilities']>;
+
+const researchedCatalogCapabilities = {
+  admissionInfo: true,
+  programs: true,
+  eligibility: false,
+  cutoffs: false,
+  scoreConversion: false,
+  exactCalculator: false,
+} satisfies NonNullable<SchoolModule['capabilities']>;
+
+const researchedAdmissionSources: Record<string, ResearchedAdmissionSource> = {
+  vnuuet: {
+    sourceId: 'vnuuet-admission-2026',
+    title: 'VNU-UET admission portal and 2026 admission information',
+    url: 'https://uet.vnu.edu.vn/tuyen-sinh',
+    publishedAt: '2026-04-01',
+    checkedAt: '2026-08-22',
+    note: 'Official 2026 admission information lists direct/priority admission, THPT, HSA, and SAT; exact evaluator needs threshold/conversion normalization.',
+  },
+  vnueb: {
+    sourceId: 'vnueb-admission-2026',
+    title: 'VNU-UEB undergraduate admission portal 2026',
+    url: 'https://tuyensinhdaihoc.ueb.edu.vn/',
+    checkedAt: '2026-08-22',
+    note: 'Official portal has 2026 undergraduate admission and intake flow; exact method/program tables need extraction before runtime eligibility.',
+  },
+  vnuhus: {
+    sourceId: 'vnuhus-admission-2026',
+    title: 'VNU-HUS undergraduate admission 2026',
+    url: 'https://tuyensinh.hus.vnu.edu.vn/',
+    checkedAt: '2026-08-22',
+    note: 'Official 2026 page identifies 28 programs and 6 methods; thresholds/conversions require structured extraction.',
+  },
+  vnussh: {
+    sourceId: 'vnussh-admission-2026',
+    title: 'VNU-USSH undergraduate admission 2026',
+    url: 'https://www.ussh.vnu.edu.vn/vi/news/dao-tao/thong-tin-tuyen-sinh-dai-hoc-chinh-quy-nam-2026-24126.html',
+    publishedAt: '2026-05-31',
+    checkedAt: '2026-08-22',
+    note: 'Official 2026 admission article is available; method/program details need normalization before executable support.',
+  },
+  vnuvju: {
+    sourceId: 'vnuvju-admission-2026',
+    title: 'VJU undergraduate admission 2026',
+    url: 'https://vju.vnu.edu.vn/ttts2026/',
+    checkedAt: '2026-08-22',
+    note: 'Official 2026 page lists programs, HSA/SAT/THPT/interview methods, language conditions, and certificate conversion; needs extraction to decide eligibility/partial scope.',
+  },
+  hust: {
+    sourceId: 'hust-admission-2026',
+    title: 'HUST undergraduate admission 2026',
+    url: 'https://ts.hust.edu.vn/tin-tuc/thong-tin-tuyen-sinh-dai-hoc-chinh-quy-nam-2026',
+    publishedAt: '2026-02-25',
+    checkedAt: '2026-08-22',
+    note: 'Official 2026 page lists 3 core methods and 68 programs; not upgraded beyond researched until TSA/THPT/XTTN formula and thresholds are normalized.',
+  },
+  tmu: {
+    sourceId: 'tmu-admission-2026',
+    title: 'TMU undergraduate admission 2026',
+    url: 'https://tmu.edu.vn/tin-tuc/thong-tin-tuyen-sinh-dai-hoc-chinh-quy-2026-27910',
+    publishedAt: '2026-03-27',
+    checkedAt: '2026-08-22',
+    note: 'Official 2026 page lists 5800 seats, 51 programs, and 5 admission methods; scoring details need structured normalization.',
+  },
+  haui: {
+    sourceId: 'haui-admission-2026',
+    title: 'HaUI undergraduate admission information 2026',
+    url: 'https://www.haui.edu.vn/vn/tin-tuc/thong-tin-tuyen-sinh-trinh-do-dai-hoc-nam-2026/67454',
+    publishedAt: '2026-03-14',
+    checkedAt: '2026-08-22',
+    note: 'Official 2026 decision/page includes methods and conditions; threshold/conversion rules need extraction before eligibility or partial support.',
+  },
+  aof: {
+    sourceId: 'aof-admission-2026',
+    title: 'AOF admission portal 2026',
+    url: 'https://xettuyen.hvtc.edu.vn/Home/Index',
+    checkedAt: '2026-08-22',
+    note: 'Official 2026 admission portal lists methods for Hanoi, HCMC, and Hung Yen; campus/program scope and formulas need normalization.',
+  },
+  bav: {
+    sourceId: 'bav-admission-2026',
+    title: 'Banking Academy undergraduate admission 2026',
+    url: 'https://isba.hvnh.net/thong-tin-tuyen-sinh',
+    checkedAt: '2026-08-22',
+    note: 'Official 2026 page states four methods and formula skeleton score = input + bonus + priority; exact components still need extraction.',
+  },
+  hanu: {
+    sourceId: 'hanu-admission-2026',
+    title: 'HANU regular undergraduate admission 2026',
+    url: 'https://hanu.edu.vn/a/254574/Thong-tin-tuyen-sinh-dai-hoc-nam-2026-Hinh-thuc-dao-tao-Chinh-quy',
+    checkedAt: '2026-08-22',
+    note: 'Official 2026 admission page is available; detailed program/method table requires extraction before executable support.',
+  },
+  hou: {
+    sourceId: 'hou-admission-2026',
+    title: 'HOU admission portal 2026',
+    url: 'https://tuyensinh.hou.edu.vn/',
+    checkedAt: '2026-08-22',
+    note: 'Official portal lists 2026 admission information, quality thresholds, and first-round cutoffs; normalization required before eligibility/cutoff comparison.',
+  },
+};
 
 export const remainingCatalogSchools: readonly RemainingCatalogSchool[] = [
   { id: 'vnuuet', shortName: 'VNU-UET', name: 'Trường Đại học Công nghệ - ĐHQG Hà Nội', location: 'Hà Nội', ownership: 'public', region: 'hanoi' },
@@ -125,6 +236,55 @@ export const remainingCatalogKnowledgeGap = {
   impact: 'exact-final-score-blocking' as const,
 };
 
+function getResearchedAdmissionSource(schoolId: string): ResearchedAdmissionSource | undefined {
+  return researchedAdmissionSources[schoolId];
+}
+
+function capabilitiesFor(schoolId: string): NonNullable<SchoolModule['capabilities']> {
+  return getResearchedAdmissionSource(schoolId) ? researchedCatalogCapabilities : catalogOnlyCapabilities;
+}
+
+function summaryFor(school: RemainingCatalogSchool): string {
+  const source = getResearchedAdmissionSource(school.id);
+  if (!source) {
+    return 'Đã đưa vào roster toàn quốc theo backlog; cần research nguồn tuyển sinh chính thức trước khi tính điều kiện hoặc điểm.';
+  }
+  return `Da xac minh nguon tuyen sinh chinh thuc 2026 (${source.title}); chua nang len eligibility/calculator vi con thieu normalized formula, threshold, conversion hoac program-scope rules.`;
+}
+
+function catalogSourcesFor(schoolId: string): SchoolModule['catalogSources'] | undefined {
+  const source = getResearchedAdmissionSource(schoolId);
+  if (!source) return undefined;
+  return [
+    {
+      title: source.title,
+      url: source.url,
+      type: 'official-institution',
+      checkedAt: source.checkedAt,
+    },
+  ];
+}
+
+function evidenceFor(schoolId: string): RuleEvidence[] {
+  const source = getResearchedAdmissionSource(schoolId);
+  if (!source) return [];
+  return [
+    {
+      sourceId: source.sourceId,
+      sourceUrl: source.url,
+      sourceTitle: source.title,
+      sourceType: 'official-school',
+      verification: 'official-source-available',
+      effectiveYear: 2026,
+      publishedAt: source.publishedAt,
+      criticality: 'informational',
+      verifiedAt: source.checkedAt,
+      lastReviewedAt: source.checkedAt,
+      note: source.note,
+    },
+  ];
+}
+
 export const remainingCatalogMethods: AdmissionMethodDescriptor[] = remainingCatalogSchools.map((school) => ({
   id: `${school.id}-catalog-2026`,
   schoolId: school.id,
@@ -148,8 +308,9 @@ export const remainingCatalogModules: Record<string, SchoolModule> = Object.from
       ownership: school.ownership,
       region: school.region,
       vnuhcm: false,
-      summary: 'Đã đưa vào roster toàn quốc theo backlog; cần research nguồn tuyển sinh chính thức trước khi tính điều kiện hoặc điểm.',
-      capabilities: catalogOnlyCapabilities,
+      summary: summaryFor(school),
+      capabilities: capabilitiesFor(school.id),
+      catalogSources: catalogSourcesFor(school.id),
     },
   ])
 );
@@ -168,7 +329,7 @@ function evaluateCatalogOnlySchool(school: RemainingCatalogSchool): AdmissionEva
     missingRules: [remainingCatalogKnowledgeGap.label],
     missingRequirements: [{ kind: 'unsupported', code: remainingCatalogKnowledgeGap.id, label: remainingCatalogKnowledgeGap.label }],
     explanation: [],
-    evidence: [],
+    evidence: evidenceFor(school.id),
   };
 }
 

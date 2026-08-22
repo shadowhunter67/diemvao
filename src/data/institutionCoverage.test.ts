@@ -59,23 +59,25 @@ describe('institution coverage statistics', () => {
       vocationalColleges: 26,
       otherIndependentInstitutions: 0,
       internalUnitEntries: 10,
-      researched: 35,
-      admissionDataAvailable: 35,
+      researched: 47,
+      admissionDataAvailable: 47,
       eligibilitySupported: 18,
       calculatorSupported: 17,
       partialCalculator: 3,
       fullyVerified: 14,
-      catalogOnly: 232,
+      catalogOnly: 220,
     });
   });
 
   it('documents researched as admission-data-or-better semantics', () => {
     const summary = summarizeInstitutionCoverage();
+    const researchedOnly = summary.admissionDataAvailable - summary.eligibilitySupported - summary.partialCalculator - summary.fullyVerified;
 
     expect(summary.researched).toBe(summary.admissionDataAvailable);
-    expect(summary.admissionDataAvailable).toBe(
-      summary.eligibilitySupported + summary.partialCalculator + summary.fullyVerified
-    );
+    expect(researchedOnly).toBe(12);
+    for (const schoolId of ['vnuuet', 'vnueb', 'vnuhus', 'vnussh', 'vnuvju', 'hust', 'tmu', 'haui', 'aof', 'bav', 'hanu', 'hou']) {
+      expect(deriveInstitutionSupportStatus(schoolRegistry[schoolId]), schoolId).toBe('researched');
+    }
   });
 
   it('requires catalog source metadata for college identity entries', () => {
