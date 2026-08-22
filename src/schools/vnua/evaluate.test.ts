@@ -16,13 +16,41 @@ describe('VNUA THPT baseline eligibility 2026', () => {
     expect(result.evidence).toContainEqual(expect.objectContaining({ sourceId: 'vnua-threshold-notice-2026' }));
   });
 
-  it('keeps profiles above the baseline unresolved until group thresholds are imported', () => {
+  it('keeps profiles above the baseline unresolved until a program group is selected', () => {
     const profile: ApplicantProfile = { thpt: { scores: { math: 8, physics: 7, chemistry: 6.5 } } };
 
     const result = evaluateVnuaThptExamAdmission(profile, a00Context);
 
     expect(result.eligibility?.status).toBe('unknown');
-    expect(result.missingRules).toContain('VNUA group-specific 2026 threshold table is image-rendered and has not been reviewed into structured program/group data.');
+    expect(result.missingRequirements).toContainEqual(expect.objectContaining({ kind: 'school-context', code: 'vnua-program-group' }));
+  });
+
+  it('marks profiles below a selected numeric group threshold as ineligible', () => {
+    const profile: ApplicantProfile = { thpt: { scores: { math: 7, physics: 6.5, chemistry: 6 } } };
+
+    const result = evaluateVnuaThptExamAdmission(profile, { ...a00Context, programGroupId: 'HVN18' });
+
+    expect(result.eligibility?.status).toBe('ineligible');
+    expect(result.eligibility?.reasons.join(' ')).toContain('20/30');
+  });
+
+  it('marks profiles meeting a selected numeric group threshold as eligible', () => {
+    const profile: ApplicantProfile = { thpt: { scores: { math: 7, physics: 7, chemistry: 6 } } };
+
+    const result = evaluateVnuaThptExamAdmission(profile, { ...a00Context, programGroupId: 'HVN18' });
+
+    expect(result.confidence).toBe('partial');
+    expect(result.eligibility?.status).toBe('eligible');
+    expect(result.score).toBeUndefined();
+  });
+
+  it('keeps ministry-governed groups unresolved', () => {
+    const profile: ApplicantProfile = { thpt: { scores: { math: 8, physics: 7, chemistry: 6.5 } } };
+
+    const result = evaluateVnuaThptExamAdmission(profile, { ...a00Context, programGroupId: 'HVN13' });
+
+    expect(result.eligibility?.status).toBe('unknown');
+    expect(result.missingRequirements).toContainEqual(expect.objectContaining({ kind: 'official-rule', code: 'vnua-ministry-governed-group-threshold' }));
   });
 
   it('requires a selected subject combination', () => {
@@ -45,9 +73,9 @@ describe('VNUA THPT baseline eligibility 2026', () => {
 
   it('routes through generic evaluateSchool and evaluateSchools adapters', () => {
     const profile: ApplicantProfile = { thpt: { scores: { math: 5, physics: 4.75, chemistry: 5 } } };
-    const context = { vnua: a00Context };
+    const context = { vnua: { ...a00Context, programGroupId: 'HVN18' as const } };
 
-    expect(evaluateSchool(profile, 'vnua', { context: a00Context }).status).toBe('ineligible');
+    expect(evaluateSchool(profile, 'vnua', { context: { ...a00Context, programGroupId: 'HVN18' } }).status).toBe('ineligible');
     expect(evaluateSchools(profile, ['vnua'], context)[0].status).toBe('ineligible');
   });
 });

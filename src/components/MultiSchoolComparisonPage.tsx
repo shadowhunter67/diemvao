@@ -44,7 +44,12 @@ interface MultiSchoolComparisonPageProps {
 
 function loadInitialSelections(): ComparisonSelection[] {
   if (typeof window === 'undefined') return [];
-  const sharedSelections = parseComparisonSelectionsFromUrl(new URLSearchParams(window.location.search).get('s'));
+  const params = new URLSearchParams(window.location.search);
+  const sharedSelections = parseComparisonSelectionsFromUrl(params.get('s'));
+  const focusedSchoolId = params.get('school');
+  if (sharedSelections.length === 0 && focusedSchoolId && getUniversityCatalogEntry(focusedSchoolId)) {
+    return [{ id: 'focused-school', schoolId: focusedSchoolId }];
+  }
   return sharedSelections.length > 0 ? sharedSelections : loadStoredComparisonSelections();
 }
 

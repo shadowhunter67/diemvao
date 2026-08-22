@@ -1,7 +1,11 @@
 import type { SchoolModule } from './schoolModule';
 
-// CTA labels are capability-first. A school can be actionable without a detail Page
-// when its calculator/eligibility logic is available through /compare.
+export type SchoolCtaAction =
+  | { kind: 'school'; schoolId: string }
+  | { kind: 'info'; schoolId: string }
+  | { kind: 'compare'; schoolId?: string }
+  | { kind: 'none' };
+
 export function deriveSchoolCtaLabel(school: SchoolModule): string {
   const c = school.capabilities;
   if (!c) return school.status === 'supported' ? 'Tính điểm' : 'Xem thông tin';
@@ -14,8 +18,16 @@ export function deriveSchoolCtaLabel(school: SchoolModule): string {
   return 'Chưa có dữ liệu chi tiết';
 }
 
-export function hasSchoolCtaAction(school: SchoolModule): boolean {
-  if (school.Page) return true;
+export function deriveSchoolCtaAction(school: SchoolModule): SchoolCtaAction {
+  if (school.Page) return { kind: 'school', schoolId: school.id };
   const c = school.capabilities;
-  return Boolean(c?.exactCalculator || c?.partialCalculator || c?.scoreConversion || c?.eligibility);
+  if (c?.exactCalculator || c?.partialCalculator || c?.scoreConversion || c?.eligibility) {
+    return { kind: 'school', schoolId: school.id };
+  }
+  if (c?.admissionInfo) return { kind: 'info', schoolId: school.id };
+  return { kind: 'none' };
+}
+
+export function hasSchoolCtaAction(school: SchoolModule): boolean {
+  return deriveSchoolCtaAction(school).kind !== 'none';
 }
