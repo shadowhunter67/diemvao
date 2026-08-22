@@ -7,6 +7,8 @@ import {
   evaluateApplicantAcrossSchools,
   evaluateComparisonSelections,
 } from './evaluateApplicantAcrossSchools';
+import { evaluateSchool } from '../evaluation/schoolEvaluation';
+import { applyScenarioPatch, evaluateScenario } from '../evaluation/scenarioSimulation';
 import type { UsshEvaluationContext } from '../schools/ussh/evaluate';
 import { hcmusProgramThresholds } from '../schools/hcmus/data/programThresholds';
 import { usshPrograms } from '../schools/ussh/data/programs';
@@ -50,6 +52,7 @@ function completeContexts() {
     uhs: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'uhs-7720101' },
     iu: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, programId: 'iu-7340101' },
     agu: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramCode: '7480201' },
+    hcmue: { subjectContext: { combinationId: 'A01', subjects: a01.subjects }, selectedProgramId: 'hcmue-7480201' },
   };
 }
 
@@ -113,6 +116,64 @@ describe('evaluateApplicantAcrossSchools', () => {
     expect(nce.evaluation.score).toBeUndefined();
     expect(nce.evaluation.eligibility?.status).toBe('unknown');
     expect(nce.evaluation.missingRequirements).toContainEqual(expect.objectContaining({ kind: 'unsupported' }));
+  });
+
+  it('generic evaluateSchool maps representative statuses without copying school formulas', () => {
+    expect(evaluateSchool(profile, 'hcmut', { context: completeContexts().hcmut }).status).toBe('calculated');
+    expect(evaluateSchool(profile, 'ussh', { context: { ...completeContexts().ussh, hasBonusAchievement: true } }).status).toBe('partial');
+    expect(evaluateSchool(profile, 'hcmue', { context: completeContexts().hcmue }).status).toBe('eligible');
+    expect(evaluateSchool(profile, 'hcmut').status).toBe('missing-input');
+    expect(evaluateSchool(profile, 'nce').status).toBe('unsupported');
+  });
+
+  it('generic evaluateSchool stays consistent with compare summaries for the same profile and context', () => {
+    const contexts = completeContexts();
+    const bySchool = Object.fromEntries(evaluateApplicantAcrossSchools(profile, contexts).map((summary) => [summary.schoolId, summary]));
+
+    for (const schoolId of ['hcmut', 'ueh', 'iu', 'uel', 'hcmus', 'ussh', 'hcmue']) {
+      const generic = evaluateSchool(profile, schoolId, { context: (contexts as Record<string, unknown>)[schoolId] });
+      expect(generic.evaluation).toEqual(bySchool[schoolId].evaluation);
+      expect(generic.comparison?.cutoffComparisons).toEqual(bySchool[schoolId].cutoffComparisons);
+    }
+  });
+
+  it('scenario patches clone the base profile and support direct THPT, V-ACT, and IELTS changes', () => {
+    const base: ApplicantProfile = {
+      thpt: { scores: { math: 8, physics: 8, english: 8 } },
+      exams: { vact: { total: 980 } },
+      certificates: { ielts: 6.5 },
+    };
+    const patched = applyScenarioPatch(base, { thpt: { math: 8.5 }, vactTotal: 1030, certificates: { ielts: 7 } });
+
+    expect(base.thpt?.scores.math).toBe(8);
+    expect(base.exams?.vact?.total).toBe(980);
+    expect(base.certificates?.ielts).toBe(6.5);
+    expect(patched.thpt?.scores.math).toBe(8.5);
+    expect(patched.exams?.vact?.total).toBe(1030);
+    expect(patched.certificates?.ielts).toBe(7);
+  });
+
+  it('scenario evaluation reports score deltas, status transitions, and unsupported schools safely', () => {
+    const contexts = completeContexts();
+    const results = Object.fromEntries(
+      evaluateScenario(profile, { thpt: { math: 9.3 }, vactTotal: 1030 }, { schools: ['hcmut', 'hcmue', 'nce'], contexts }).map((result) => [
+        result.schoolId,
+        result,
+      ])
+    );
+
+    expect(results.hcmut.before.status).toBe('calculated');
+    expect(results.hcmut.after.status).toBe('calculated');
+    expect(results.hcmut.delta).toBeDefined();
+    expect(results.hcmue.before.status).toBe('eligible');
+    expect(results.hcmue.statusChanged).toBe(false);
+    expect(results.nce.before.status).toBe('unsupported');
+    expect(results.nce.after.status).toBe('unsupported');
+
+    const transition = evaluateScenario({}, { thpt: { math: 8.8, physics: 8.4, english: 9 }, vactTotal: 980 }, { schools: ['hcmue'], contexts });
+    expect(transition[0].before.status).toBe('missing-input');
+    expect(transition[0].after.status).toBe('eligible');
+    expect(transition[0].statusChanged).toBe(true);
   });
 
   it('uses real program registries for compare selectors', () => {

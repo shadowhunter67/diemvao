@@ -15,6 +15,7 @@ import type { UhsEvaluationContext } from '../schools/uhs/evaluate';
 import type { IuEvaluationContext } from '../schools/iu/evaluate';
 import type { AguEvaluationContext } from '../schools/agu/evaluate';
 import type { HcmueEvaluationContext } from '../schools/hcmue/evaluate';
+import { evaluateSchool } from '../evaluation/schoolEvaluation';
 
 export interface SchoolEvaluationSummary {
   selectionId?: string;
@@ -77,9 +78,10 @@ export function evaluateApplicantAcrossSchools(
   contexts: MultiSchoolEvaluationContext = {}
 ): SchoolEvaluationSummary[] {
   const contextsByschoolId = contexts as Record<string, unknown>;
-  return schoolComparisonAdapters.map((adapter) =>
-    summarize(adapter, adapter.evaluate(profile, contextsByschoolId[adapter.schoolId] ?? {}))
-  );
+  return schoolComparisonAdapters.map((adapter) => {
+    const result = evaluateSchool(profile, adapter.schoolId, { context: contextsByschoolId[adapter.schoolId] ?? {} });
+    return summarize(adapter, result.comparison ?? adapter.evaluate(profile, contextsByschoolId[adapter.schoolId] ?? {}));
+  });
 }
 
 /**
@@ -93,7 +95,7 @@ export function evaluateComparisonSelections(profile: ApplicantProfile, selectio
     const adapter = schoolComparisonAdapterRegistry[selection.schoolId];
     if (!adapter) return [];
     const context = adapter.buildContext(selection);
-    const result = adapter.evaluate(profile, context);
-    return [withSelection(summarize(adapter, result), selection.id)];
+    const result = evaluateSchool(profile, selection.schoolId, { context, programId: selection.programId });
+    return [withSelection(summarize(adapter, result.comparison ?? adapter.evaluate(profile, context)), selection.id)];
   });
 }
