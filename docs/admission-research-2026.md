@@ -251,3 +251,50 @@ Landing Page cũng được đổi từ render toàn bộ danh mục sang search
 mỗi lượt, ưu tiên hiển thị cơ sở có calculator/eligibility trước catalog-only. CTA catalog-only dùng
 "Chưa có dữ liệu chi tiết" để tránh hiểu nhầm là route bị lỗi hoặc bị khóa.
 
+## Research bổ sung 2026-08-22 — cao đẳng phase B và semantics coverage
+
+Audit semantics `institutionCoverage.researched`: field này đang là alias lịch sử của "admission data
+available or better", được derive từ `deriveInstitutionSupportStatus(school) !== 'catalog-only'`.
+Nó bao gồm `admissionInfo`/`programs`, `eligibility-only`, `partial-calculator` và
+`verified-calculator`; không bao gồm identity-only catalog. Để tránh hiểu nhầm, code thêm alias
+`admissionDataAvailable` và stats/landing dùng wording "Có dữ liệu tuyển sinh" /
+"Calculator xác minh".
+
+Mở rộng catalog cao đẳng theo lát dữ liệu có nguồn chính thức rõ, không claim toàn quốc:
+
+- **Đà Nẵng**: dùng trang Sở GD&ĐT TP Đà Nẵng "Danh sách cơ sở giáo dục nghề nghiệp đến
+  08/4/2025" làm nguồn địa phương, rồi cross-check bằng website/cổng chính thức từng trường khi có.
+  Thêm DNC (Trường Cao đẳng Đà Nẵng, có ghi nhận sáp nhập Trường CĐ Văn hóa Nghệ thuật Đà Nẵng vào
+  Trường CĐ nghề Đà Nẵng và đổi tên theo nguồn UBND TP Đà Nẵng), DVTC, COC và CFI.
+- **TP.HCM**: dùng hệ thống quản lý thông tin GDNN TP.HCM (`gdnn.tphcm.gov.vn`) làm nguồn địa phương.
+  Thêm TDC, HOTEC, HCE-CĐ, NSPC và TTC. Các entry này đều catalog-only; chưa nhập đề án tuyển sinh
+  2026, ngành, ngưỡng hoặc calculator.
+
+Sau phase B, snapshot derive từ `schoolRegistry`:
+
+```text
+262 mục trong danh mục/search/compare
+252 cơ sở giáo dục độc lập
+10 đơn vị nội bộ
+
+206 đại học / cơ sở hệ đại học
+22 học viện
+3 cao đẳng sư phạm/GDMN
+21 cao đẳng giáo dục nghề nghiệp
+
+14 calculator đã xác minh
+3 calculator một phần
+18 chỉ kiểm tra điều kiện/ngưỡng
+227 catalog-only
+```
+
+Entries bị loại/không thêm trong phase này:
+
+- Không thêm Trường Cao đẳng Văn hóa Nghệ thuật Đà Nẵng như active independent entity vì nguồn UBND
+  TP Đà Nẵng ghi đã sáp nhập vào Trường Cao đẳng nghề Đà Nẵng và đổi tên thành Trường Cao đẳng Đà
+  Nẵng.
+- Không dùng danh mục GDNN toàn quốc từ `dataocq.gdnn.gov.vn` vì chưa lấy được danh sách parseable
+  trong môi trường chạy.
+- Không thêm các trường chỉ xuất hiện trong nguồn tổng hợp/secondary nếu chưa có nguồn cơ quan quản
+  lý hoặc website chính thức xác nhận entity hiện hành.
+

@@ -12,7 +12,7 @@ import { collegeCatalogSchools } from '../schools/collegeCatalog';
 
 describe('institution coverage statistics', () => {
   it('separates catalog coverage from institution KPI coverage', () => {
-    expect(institutionCoverage.totalCatalogEntries).toBe(253);
+    expect(institutionCoverage.totalCatalogEntries).toBe(262);
     expect(institutionCoverage.institutionEntries).toBeLessThan(institutionCoverage.totalCatalogEntries);
     expect(institutionCoverage.internalUnitEntries).toBe(10);
     expect(institutionCoverage.institutionEntries + institutionCoverage.internalUnitEntries).toBe(institutionCoverage.totalCatalogEntries);
@@ -50,22 +50,40 @@ describe('institution coverage statistics', () => {
 
   it('derives stable public KPI counts from the registry', () => {
     expect(summarizeInstitutionCoverage()).toEqual({
-      totalCatalogEntries: 253,
-      institutionEntries: 243,
-      independentEducationInstitutions: 243,
+      totalCatalogEntries: 262,
+      institutionEntries: 252,
+      independentEducationInstitutions: 252,
       universityInstitutions: 206,
       academies: 22,
       pedagogicalColleges: 3,
-      vocationalColleges: 12,
+      vocationalColleges: 21,
       otherIndependentInstitutions: 0,
       internalUnitEntries: 10,
       researched: 35,
+      admissionDataAvailable: 35,
       eligibilitySupported: 18,
       calculatorSupported: 17,
       partialCalculator: 3,
       fullyVerified: 14,
-      catalogOnly: 218,
+      catalogOnly: 227,
     });
+  });
+
+  it('documents researched as admission-data-or-better semantics', () => {
+    const summary = summarizeInstitutionCoverage();
+
+    expect(summary.researched).toBe(summary.admissionDataAvailable);
+    expect(summary.admissionDataAvailable).toBe(
+      summary.eligibilitySupported + summary.partialCalculator + summary.fullyVerified
+    );
+  });
+
+  it('requires catalog source metadata for college identity entries', () => {
+    for (const college of collegeCatalogSchools) {
+      const school = schoolRegistry[college.id];
+
+      expect(school.catalogSources?.length, `${college.id} should have catalogSources`).toBeGreaterThan(0);
+    }
   });
 
   it('keeps independent institution categories reconciled', () => {

@@ -19,6 +19,7 @@ export interface InstitutionCoverage {
   otherIndependentInstitutions: number;
   internalUnitEntries: number;
   researched: number;
+  admissionDataAvailable: number;
   eligibilitySupported: number;
   calculatorSupported: number;
   partialCalculator: number;
@@ -69,6 +70,7 @@ export function summarizeInstitutionCoverage(schools: readonly SchoolModule[] = 
   const pedagogicalColleges = schools.filter((school) => getSchoolEntityLevel(school) === 'college_pedagogy').length;
   const vocationalColleges = schools.filter((school) => getSchoolEntityLevel(school) === 'vocational_college').length;
   const independentEducationInstitutions = schools.filter(countsAsInstitutionEntry).length;
+  const admissionDataAvailable = statuses.filter((status) => status !== 'catalog-only').length;
   return {
     totalCatalogEntries: schools.length,
     institutionEntries: independentEducationInstitutions,
@@ -79,7 +81,8 @@ export function summarizeInstitutionCoverage(schools: readonly SchoolModule[] = 
     vocationalColleges,
     otherIndependentInstitutions: independentEducationInstitutions - universityInstitutions - academies - pedagogicalColleges - vocationalColleges,
     internalUnitEntries: schools.filter((school) => !countsAsInstitutionEntry(school)).length,
-    researched: statuses.filter((status) => status !== 'catalog-only').length,
+    researched: admissionDataAvailable,
+    admissionDataAvailable,
     eligibilitySupported: statuses.filter((status) => status === 'eligibility-only').length,
     calculatorSupported: statuses.filter((status) => status === 'partial-calculator' || status === 'verified-calculator').length,
     partialCalculator: statuses.filter((status) => status === 'partial-calculator').length,
@@ -179,6 +182,15 @@ export function auditInstitutionCatalog(schools: readonly SchoolModule[] = Objec
     if (!school.region) {
       issues.push({ severity: 'warning', code: 'UNKNOWN_REGION', schoolId: school.id, message: `${school.id} has no region metadata.` });
     }
+
+    if (isCollege && (!school.catalogSources || school.catalogSources.length === 0)) {
+      issues.push({
+        severity: 'warning',
+        code: 'COLLEGE_MISSING_CATALOG_SOURCE',
+        schoolId: school.id,
+        message: `${school.id} is a college entry but has no catalog identity source metadata.`,
+      });
+    }
   }
 
   return issues;
@@ -189,7 +201,7 @@ export const SUPPORT_STATUS_LABELS: Record<InstitutionSupportStatus, string> = {
   researched: 'Đang bổ sung dữ liệu',
   'eligibility-only': 'Chỉ kiểm tra điều kiện',
   'partial-calculator': 'Tính được một phần',
-  'verified-calculator': 'Đã xác minh',
+  'verified-calculator': 'Calculator xác minh',
 };
 
 export function getEntityLevelLabel(school: SchoolModule): string {

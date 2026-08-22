@@ -18,8 +18,8 @@ console.log(`Other independent types:             ${institutionCoverage.otherInd
 console.log('');
 console.log('Calculator coverage');
 console.log('-------------------');
-console.log(`Researched or better:                ${institutionCoverage.researched}`);
-console.log(`Verified:                            ${institutionCoverage.fullyVerified}`);
+console.log(`Admission data available:            ${institutionCoverage.admissionDataAvailable}`);
+console.log(`Verified calculators:                ${institutionCoverage.fullyVerified}`);
 console.log(`Partial:                             ${institutionCoverage.partialCalculator}`);
 console.log(`Eligibility only:                    ${institutionCoverage.eligibilitySupported}`);
 console.log(`Catalog only:                        ${institutionCoverage.catalogOnly}`);

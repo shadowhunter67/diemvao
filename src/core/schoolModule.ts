@@ -41,6 +41,22 @@ export type SchoolEntityLevel =
 
 export type EducationLevel = 'university' | 'college';
 
+export type CatalogSourceType =
+  | 'official-ministry'
+  | 'official-local-authority'
+  | 'official-institution'
+  | 'official-document'
+  | 'secondary'
+  | 'archived';
+
+export interface CatalogSource {
+  title: string;
+  url: string;
+  type: CatalogSourceType;
+  authority?: string;
+  checkedAt?: string;
+}
+
 /**
  * Mô tả capability thật ở mức chi tiết hơn `status` — một trường có thể có info/cutoff/
  * eligibility mà KHÔNG có exact calculator (như UIT, UEL), khác hẳn `status: 'researching'`
@@ -91,10 +107,12 @@ export interface SchoolModule {
    * lọc theo tiêu chí tương ứng (không mặc định vào nhóm nào). */
   ownership?: SchoolOwnership;
   region?: SchoolRegion;
+  province?: string;
   entityLevel?: SchoolEntityLevel;
   educationLevels?: readonly EducationLevel[];
   admissionCode?: string;
   aliases?: readonly string[];
+  catalogSources?: readonly CatalogSource[];
   /** True nếu là 1 trong 8 trường thành viên ĐHQG-HCM (HCMUT/UIT/UEL/HCMUS/USSH/UHS/IU/AGU). */
   vnuhcm?: boolean;
   /**

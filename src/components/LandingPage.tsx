@@ -212,11 +212,11 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
             <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.independentEducationInstitutions}</p>
           </div>
           <div className="rounded-card border border-ink/10 bg-surface p-3">
-            <p className="text-xs text-muted">Có dữ liệu xét tuyển</p>
-            <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.researched}</p>
+            <p className="text-xs text-muted">Có dữ liệu tuyển sinh</p>
+            <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.admissionDataAvailable}</p>
           </div>
           <div className="rounded-card border border-ink/10 bg-surface p-3">
-            <p className="text-xs text-muted">Đã xác minh</p>
+            <p className="text-xs text-muted">Calculator xác minh</p>
             <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.fullyVerified}</p>
           </div>
         </section>

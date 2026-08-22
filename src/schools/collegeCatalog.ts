@@ -9,10 +9,12 @@ interface CollegeCatalogSchool {
   shortName: string;
   name: string;
   location: string;
+  province?: string;
   ownership: SchoolModule['ownership'];
   region: SchoolModule['region'];
   entityLevel: 'college_pedagogy' | 'vocational_college';
   aliases?: readonly string[];
+  catalogSources?: SchoolModule['catalogSources'];
 }
 
 const unsupportedCapabilities = {
@@ -45,7 +47,43 @@ export const collegeCatalogSources = [
     url: 'https://chinhphu.vn/?classid=2&docid=214915&pageid=27160',
     type: 'official',
   },
+  {
+    id: 'danang-gdnn-list-2025',
+    title: 'Danh sách cơ sở giáo dục nghề nghiệp đến 08/4/2025 - Sở GD&ĐT TP Đà Nẵng',
+    url: 'https://www.danang.edu.vn/thong-bao/danh-sach-co-so-giao-duc-nghe-nghiep-den-0842025/ctmb/5/506',
+    type: 'official',
+  },
+  {
+    id: 'hcmc-gdnn-directory',
+    title: 'Hệ thống quản lý thông tin giáo dục nghề nghiệp TP.HCM',
+    url: 'https://gdnn.tphcm.gov.vn/',
+    type: 'official',
+  },
 ] as const;
+
+const MOET_PUBLIC_UNIT_SOURCE: NonNullable<CollegeCatalogSchool['catalogSources']>[number] = {
+  title: 'Quyết định 1723/QĐ-TTg ban hành danh sách đơn vị sự nghiệp công lập trực thuộc Bộ GD&ĐT',
+  url: 'https://chinhphu.vn/?classid=2&docid=214915&pageid=27160',
+  type: 'official-document',
+  authority: 'Chính phủ',
+  checkedAt: '2026-08-22',
+};
+
+const DANANG_GDNN_SOURCE: NonNullable<CollegeCatalogSchool['catalogSources']>[number] = {
+  title: 'Danh sách cơ sở giáo dục nghề nghiệp đến 08/4/2025',
+  url: 'https://www.danang.edu.vn/thong-bao/danh-sach-co-so-giao-duc-nghe-nghiep-den-0842025/ctmb/5/506',
+  type: 'official-local-authority',
+  authority: 'Sở GD&ĐT TP Đà Nẵng',
+  checkedAt: '2026-08-22',
+};
+
+const HCMC_GDNN_SOURCE: NonNullable<CollegeCatalogSchool['catalogSources']>[number] = {
+  title: 'Hệ thống quản lý thông tin giáo dục nghề nghiệp TP.HCM',
+  url: 'https://gdnn.tphcm.gov.vn/',
+  type: 'official-local-authority',
+  authority: 'Sở GD&ĐT TP.HCM',
+  checkedAt: '2026-08-22',
+};
 
 export const collegeCatalogSchools: readonly CollegeCatalogSchool[] = [
   {
@@ -188,6 +226,218 @@ export const collegeCatalogSchools: readonly CollegeCatalogSchool[] = [
     region: 'hanoi',
     entityLevel: 'vocational_college',
   },
+  {
+    id: 'danangcollege',
+    shortName: 'DNC',
+    name: 'Trường Cao đẳng Đà Nẵng',
+    location: 'Đà Nẵng',
+    province: 'Đà Nẵng',
+    ownership: 'public',
+    region: 'other',
+    entityLevel: 'vocational_college',
+    aliases: ['Danang College', 'DANAVTC', 'Trường Cao đẳng nghề Đà Nẵng'],
+    catalogSources: [
+      DANANG_GDNN_SOURCE,
+      {
+        title: 'Trường Cao đẳng Đà Nẵng - Cổng thông tin điện tử TP Đà Nẵng',
+        url: 'https://danang.gov.vn/vi/w/truong-cao-dang-nghe-da-nang-i',
+        type: 'official-local-authority',
+        authority: 'UBND TP Đà Nẵng',
+        checkedAt: '2026-08-22',
+      },
+      {
+        title: 'Trường Cao đẳng Đà Nẵng',
+        url: 'https://dnc.edu.vn/',
+        type: 'official-institution',
+        checkedAt: '2026-08-22',
+      },
+    ],
+  },
+  {
+    id: 'dvtc',
+    shortName: 'DVTC',
+    name: 'Trường Cao đẳng Du lịch Đà Nẵng',
+    location: 'Đà Nẵng',
+    province: 'Đà Nẵng',
+    ownership: 'public',
+    region: 'other',
+    entityLevel: 'vocational_college',
+    aliases: ['Danang Vocational Tourism College', 'Cao đẳng nghề Du lịch Đà Nẵng'],
+    catalogSources: [
+      DANANG_GDNN_SOURCE,
+      {
+        title: 'Trường Cao đẳng Du lịch Đà Nẵng',
+        url: 'https://bvhttdl.gov.vn/truong-cao-dang-nghe-du-lich-da-nang-9906.htm',
+        type: 'official-ministry',
+        authority: 'Bộ Văn hóa, Thể thao và Du lịch',
+        checkedAt: '2026-08-22',
+      },
+    ],
+  },
+  {
+    id: 'cdtm',
+    shortName: 'COC',
+    name: 'Trường Cao đẳng Thương mại',
+    location: 'Đà Nẵng',
+    province: 'Đà Nẵng',
+    ownership: 'public',
+    region: 'other',
+    entityLevel: 'vocational_college',
+    aliases: ['College of Commerce', 'CĐ Thương mại'],
+    catalogSources: [
+      DANANG_GDNN_SOURCE,
+      {
+        title: 'Giới thiệu chung - Trường Cao đẳng Thương mại',
+        url: 'https://cdtm.edu.vn/gioi-thieu/gioi-thieu-chung',
+        type: 'official-institution',
+        checkedAt: '2026-08-22',
+      },
+      {
+        title: 'Trường Cao đẳng Thương mại Đà Nẵng',
+        url: 'https://moit.gov.vn/don-vi-su-nghiep/khoi-truong/truong-cao-dang-thuong-mai',
+        type: 'official-ministry',
+        authority: 'Bộ Công Thương',
+        checkedAt: '2026-08-22',
+      },
+    ],
+  },
+  {
+    id: 'cfi',
+    shortName: 'CFI',
+    name: 'Trường Cao đẳng Lương thực - Thực phẩm',
+    location: 'Đà Nẵng',
+    province: 'Đà Nẵng',
+    ownership: 'public',
+    region: 'other',
+    entityLevel: 'vocational_college',
+    aliases: ['College of Food Industry', 'CĐ Lương thực - Thực phẩm'],
+    catalogSources: [
+      DANANG_GDNN_SOURCE,
+      {
+        title: 'Trường Cao đẳng Lương thực - Thực phẩm',
+        url: 'https://www.cfi.edu.vn/',
+        type: 'official-institution',
+        checkedAt: '2026-08-22',
+      },
+    ],
+  },
+  {
+    id: 'tdc',
+    shortName: 'TDC',
+    name: 'Trường Cao đẳng Công nghệ Thủ Đức',
+    location: 'TP.HCM',
+    province: 'TP.HCM',
+    ownership: 'public',
+    region: 'hcm',
+    entityLevel: 'vocational_college',
+    aliases: ['Thu Duc College of Technology'],
+    catalogSources: [
+      HCMC_GDNN_SOURCE,
+      {
+        title: 'Trường Cao đẳng Công nghệ Thủ Đức',
+        url: 'https://gdnn.tphcm.gov.vn/truong-cao-dang-cong-nghe-thu-duc',
+        type: 'official-local-authority',
+        authority: 'Sở GD&ĐT TP.HCM',
+        checkedAt: '2026-08-22',
+      },
+    ],
+  },
+  {
+    id: 'hotec',
+    shortName: 'HOTEC',
+    name: 'Trường Cao đẳng Kinh tế - Kỹ thuật Thành phố Hồ Chí Minh',
+    location: 'TP.HCM',
+    province: 'TP.HCM',
+    ownership: 'public',
+    region: 'hcm',
+    entityLevel: 'vocational_college',
+    aliases: ['Trường Cao đẳng Kinh tế Kỹ thuật TP.HCM'],
+    catalogSources: [
+      HCMC_GDNN_SOURCE,
+      {
+        title: 'Trường Cao đẳng Kinh tế Kỹ thuật TP.HCM',
+        url: 'https://gdnn.tphcm.gov.vn/truong-cao-dang-kinh-te-ky-thuat-tphcm',
+        type: 'official-local-authority',
+        authority: 'Sở GD&ĐT TP.HCM',
+        checkedAt: '2026-08-22',
+      },
+      {
+        title: 'Trường Cao đẳng Kinh tế Kỹ thuật Thành phố Hồ Chí Minh',
+        url: 'https://ktkthcm.edu.vn/',
+        type: 'official-institution',
+        checkedAt: '2026-08-22',
+      },
+    ],
+  },
+  {
+    id: 'hce-college',
+    shortName: 'HCE-CĐ',
+    name: 'Trường Cao đẳng Kinh tế Thành phố Hồ Chí Minh',
+    location: 'TP.HCM',
+    province: 'TP.HCM',
+    ownership: 'public',
+    region: 'hcm',
+    entityLevel: 'vocational_college',
+    aliases: ['HCE', 'Cao đẳng Kinh tế TP.HCM'],
+    catalogSources: [
+      HCMC_GDNN_SOURCE,
+      {
+        title: 'Trường Cao đẳng Kinh tế Thành phố Hồ Chí Minh',
+        url: 'https://gdnn.tphcm.gov.vn/truong-cao-dang-kinh-te-thanh-pho-ho-chi-minh',
+        type: 'official-local-authority',
+        authority: 'Sở GD&ĐT TP.HCM',
+        checkedAt: '2026-08-22',
+      },
+      {
+        title: 'Trường Cao đẳng Kinh tế Thành phố Hồ Chí Minh',
+        url: 'https://tuyensinh-kthcm.edu.vn/',
+        type: 'official-institution',
+        checkedAt: '2026-08-22',
+      },
+    ],
+  },
+  {
+    id: 'sgpoly',
+    shortName: 'NSPC',
+    name: 'Trường Cao đẳng Bách khoa Nam Sài Gòn',
+    location: 'TP.HCM',
+    province: 'TP.HCM',
+    ownership: 'public',
+    region: 'hcm',
+    entityLevel: 'vocational_college',
+    aliases: ['Nam Sai Gon Polytechnic College', 'Cao đẳng Bách khoa Nam Sài Gòn'],
+    catalogSources: [
+      HCMC_GDNN_SOURCE,
+      {
+        title: 'Danh mục cơ sở GDNN TP.HCM - Trường Cao đẳng Kinh tế Thành phố Hồ Chí Minh',
+        url: 'https://gdnn.tphcm.gov.vn/truong-cao-dang-kinh-te-thanh-pho-ho-chi-minh',
+        type: 'official-local-authority',
+        authority: 'Sở GD&ĐT TP.HCM',
+        checkedAt: '2026-08-22',
+      },
+    ],
+  },
+  {
+    id: 'ttc-hcm',
+    shortName: 'TTC',
+    name: 'Trường Cao đẳng Thủ Thiêm Thành phố Hồ Chí Minh',
+    location: 'TP.HCM',
+    province: 'TP.HCM',
+    ownership: 'public',
+    region: 'hcm',
+    entityLevel: 'vocational_college',
+    aliases: ['Trường Cao đẳng Thủ Thiêm TP.HCM'],
+    catalogSources: [
+      HCMC_GDNN_SOURCE,
+      {
+        title: 'Danh mục cơ sở GDNN TP.HCM - Trường Cao đẳng Kinh tế Thành phố Hồ Chí Minh',
+        url: 'https://gdnn.tphcm.gov.vn/truong-cao-dang-kinh-te-thanh-pho-ho-chi-minh',
+        type: 'official-local-authority',
+        authority: 'Sở GD&ĐT TP.HCM',
+        checkedAt: '2026-08-22',
+      },
+    ],
+  },
 ];
 
 export const collegeCatalogKnowledgeGap = {
@@ -219,9 +469,15 @@ export const collegeCatalogModules: Record<string, SchoolModule> = Object.fromEn
       status: 'formula-incomplete',
       ownership: school.ownership,
       region: school.region,
+      province: school.province ?? school.location,
       entityLevel: school.entityLevel,
       educationLevels: ['college'],
       aliases: school.aliases,
+      catalogSources:
+        school.catalogSources ??
+        (school.entityLevel === 'college_pedagogy' || ['vcte', 'dungquatcollege', 'hvct', 'cic1', 'hcmcc', 'ncc', 'cuwc', 'vietxo1', 'lilama2', 'cmc-college', 'ccst', 'hctb'].includes(school.id)
+          ? [MOET_PUBLIC_UNIT_SOURCE]
+          : undefined),
       vnuhcm: false,
       summary:
         school.entityLevel === 'college_pedagogy'
