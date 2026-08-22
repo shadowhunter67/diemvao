@@ -59,13 +59,13 @@ describe('institution coverage statistics', () => {
       vocationalColleges: 26,
       otherIndependentInstitutions: 0,
       internalUnitEntries: 10,
-      researched: 47,
-      admissionDataAvailable: 47,
+      researched: 62,
+      admissionDataAvailable: 62,
       eligibilitySupported: 18,
       calculatorSupported: 17,
       partialCalculator: 3,
       fullyVerified: 14,
-      catalogOnly: 220,
+      catalogOnly: 205,
     });
   });
 
@@ -74,8 +74,11 @@ describe('institution coverage statistics', () => {
     const researchedOnly = summary.admissionDataAvailable - summary.eligibilitySupported - summary.partialCalculator - summary.fullyVerified;
 
     expect(summary.researched).toBe(summary.admissionDataAvailable);
-    expect(researchedOnly).toBe(12);
-    for (const schoolId of ['vnuuet', 'vnueb', 'vnuhus', 'vnussh', 'vnuvju', 'hust', 'tmu', 'haui', 'aof', 'bav', 'hanu', 'hou']) {
+    expect(researchedOnly).toBe(27);
+    for (const schoolId of [
+      'vnuuet', 'vnueb', 'vnuhus', 'vnussh', 'vnuvju', 'hust', 'tmu', 'haui', 'aof', 'bav', 'hanu', 'hou',
+      'vnuulis', 'huce', 'humg', 'vnua', 'dav', 'hlu', 'hdu', 'vmu', 'ntu', 'dlu', 'qnu', 'ttn', 'hueu', 'hce', 'hul',
+    ]) {
       expect(deriveInstitutionSupportStatus(schoolRegistry[schoolId]), schoolId).toBe('researched');
     }
   });

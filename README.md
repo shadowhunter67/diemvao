@@ -40,11 +40,11 @@ Snapshot hiện tại được tính từ `schoolRegistry` bằng `npm run stats
 | Cao đẳng sư phạm/GDMN | 3 |
 | Cao đẳng giáo dục nghề nghiệp | 26 |
 | Nhóm độc lập khác | 0 |
-| Có dữ liệu tuyển sinh hoặc capability cao hơn | 35 |
+| Có dữ liệu tuyển sinh hoặc capability cao hơn | 62 |
 | Chỉ kiểm tra điều kiện/ngưỡng | 18 |
 | Có calculator một phần | 3 |
 | Calculator đã xác minh | 14 |
-| Chỉ có trong danh mục | 232 |
+| Chỉ có trong danh mục | 205 |
 
 Catalog coverage != calculator coverage. Con số danh mục là độ phủ search/compare, không phải 100% calculator. Một số mục trong danh mục là school/faculty nội bộ của hệ thống đại học lớn; các mục này vẫn có thể giữ cho navigation hoặc mapping chương trình, nhưng không làm tăng KPI "cơ sở đào tạo tuyển sinh độc lập".
 
