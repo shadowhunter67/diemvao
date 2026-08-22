@@ -7,6 +7,7 @@ import { uelCutoffs } from '../src/schools/uel/data/cutoffs.ts';
 import { uitCutoffs } from '../src/schools/uit/data/cutoffs.ts';
 import { iuCutoffs2026 } from '../src/schools/iu/data/cutoffs.ts';
 import { allAdmissionSources } from '../src/schools/sourceRegistry.ts';
+import { institutionCoverage } from '../src/data/institutionCoverage.ts';
 
 const SCHOOLS = [
   'hcmut',
@@ -112,6 +113,13 @@ console.log('\nSummary');
 console.log(`  errors: ${counts.errors}`);
 console.log(`  warnings: ${counts.warnings}`);
 console.log(`  info: ${counts.info}`);
+console.log(`  catalog entries: ${institutionCoverage.totalCatalogEntries}`);
+console.log(`  institution KPI entries: ${institutionCoverage.institutionEntries}`);
+console.log(`  internal/non-KPI entries: ${institutionCoverage.internalUnitEntries}`);
+console.log(`  verified calculators: ${institutionCoverage.fullyVerified}`);
+console.log(`  partial calculators: ${institutionCoverage.partialCalculator}`);
+console.log(`  eligibility only: ${institutionCoverage.eligibilitySupported}`);
+console.log(`  catalog only: ${institutionCoverage.catalogOnly}`);
 if (!schoolFilter || schoolFilter === 'hcmut') {
   console.log(`  HCMUT exact rule references: ${hcmutEvidence().length}/${hcmutEvidence().length}`);
 }

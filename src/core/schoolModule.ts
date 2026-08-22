@@ -22,6 +22,23 @@ export type SchoolOwnership = 'public' | 'private';
 export type SchoolRegion = 'hcm' | 'hanoi' | 'other';
 
 /**
+ * Cấp tổ chức của entry trong catalog. Mặc định là `institution` để không phá vỡ dữ liệu cũ; các
+ * school/faculty nội bộ vẫn có thể xuất hiện cho navigation/search nhưng không được tính vào KPI
+ * "cơ sở đào tạo tuyển sinh độc lập".
+ */
+export type SchoolEntityLevel =
+  | 'institution'
+  | 'university_system'
+  | 'member_university'
+  | 'school'
+  | 'faculty'
+  | 'academy'
+  | 'campus'
+  | 'program_group'
+  | 'college_pedagogy'
+  | 'other_degree_awarding_institution';
+
+/**
  * Mô tả capability thật ở mức chi tiết hơn `status` — một trường có thể có info/cutoff/
  * eligibility mà KHÔNG có exact calculator (như UIT, UEL), khác hẳn `status: 'researching'`
  * dùng chung cho cả trường "researching mới chỉ có định danh" lẫn "researching đã có info/
@@ -71,6 +88,7 @@ export interface SchoolModule {
    * lọc theo tiêu chí tương ứng (không mặc định vào nhóm nào). */
   ownership?: SchoolOwnership;
   region?: SchoolRegion;
+  entityLevel?: SchoolEntityLevel;
   /** True nếu là 1 trong 8 trường thành viên ĐHQG-HCM (HCMUT/UIT/UEL/HCMUS/USSH/UHS/IU/AGU). */
   vnuhcm?: boolean;
   /**

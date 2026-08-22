@@ -4,13 +4,13 @@ Công cụ tính & so sánh điểm xét tuyển đại học Việt Nam — nh�
 
 **[uniscorevn.vercel.app](https://uniscorevn.vercel.app)** · [GitHub](https://github.com/shadowhunter67/uniscorevn) · [Báo lỗi & góp ý](https://github.com/shadowhunter67/uniscorevn/issues)
 
-> UniscoreVN là công cụ độc lập, không thuộc trường đại học nào. Kết quả chỉ mang tính tham khảo, không đảm bảo trúng tuyển.
+> UniscoreVN là công cụ độc lập, không thuộc Bộ GD&ĐT hay bất kỳ cơ sở đào tạo nào. Kết quả chỉ mang tính tham khảo; người dùng phải đối chiếu đề án và thông báo tuyển sinh chính thức.
 
 ## Giới thiệu
 
-UniscoreVN tính điểm xét tuyển theo đúng công thức từng trường, đặt mục tiêu điểm số, mô phỏng kịch bản, và so sánh với điểm chuẩn tham khảo — chạy hoàn toàn trên trình duyệt, không backend, không cần đăng nhập.
+UniscoreVN là công cụ tính, so sánh và mô phỏng điểm xét tuyển đại học Việt Nam — chạy hoàn toàn trên trình duyệt, không backend, không cần đăng nhập.
 
-Mỗi công thức đều gắn nguồn dữ liệu chính thức cụ thể. Phần nào chưa đủ nguồn được ghi rõ là "chưa tính được" thay vì đoán số.
+Mỗi công thức được triển khai theo quy định tuyển sinh của từng cơ sở đào tạo và gắn nguồn chính thức. Trường hoặc phương thức chưa đủ dữ liệu sẽ được đánh dấu chưa hỗ trợ thay vì ước đoán.
 
 ## Tính năng
 
@@ -22,23 +22,34 @@ Mỗi công thức đều gắn nguồn dữ liệu chính thức cụ thể. Ph
 - Nhập điểm một lần, dùng lại cho nhiều trường; chia sẻ kết quả qua URL, không cần tài khoản
 - Tự lưu điểm đã nhập trên trình duyệt (không gửi lên server)
 
-## Tiến độ tích hợp trường đại học toàn quốc
+## Phạm vi và độ phủ
 
-```
-██████████████████████████████  238 / 238 (100%)
-```
+UniscoreVN tập trung vào các cơ sở có tuyển sinh trình độ đại học tại Việt Nam mà người dùng cần tính, so sánh hoặc mô phỏng điểm xét tuyển. Cao đẳng nghề và trung cấp không nằm trong phạm vi chính. Các đơn vị tuyển sinh cao đẳng Giáo dục Mầm non/cao đẳng sư phạm có thể được quản lý như một nhóm riêng khi có nguồn chính thức đủ rõ.
 
-Mẫu số 238 là số cơ sở giáo dục đại học cả nước theo báo cáo Bộ GD&ĐT, tính đến 09/2025 ([nguồn](https://veci.edu.vn/nam-2025-ca-nuoc-co-238-co-so-giao-duc-dai-hoc-gan-1-200-co-so-giao-duc-nghe-nghiep/)) — số liệu tổng hợp thứ cấp, có thể lệch nhẹ so với con số mới nhất, không tính 20 trường cao đẳng sư phạm riêng.
+Snapshot hiện tại được tính từ `schoolRegistry` bằng `npm run stats:coverage`:
 
-**Chưa bao gồm cao đẳng.** Thống kê công khai chỉ có "~1.163 cơ sở giáo dục nghề nghiệp" gộp chung cao đẳng/trung cấp/trung tâm, không tách được số trường cao đẳng cụ thể để đặt mẫu số đáng tin cậy — xem `docs/vietnam-schools-directory.md` mục 5 (danh sách cao đẳng tự biết là chưa đầy đủ).
+| KPI | Số lượng |
+|---|---:|
+| Mục trong catalog/search/compare | 238 |
+| Cơ sở được tính vào KPI tuyển sinh độc lập | 228 |
+| Đơn vị nội bộ/không tính vào KPI cơ sở | 10 |
+| Có dữ liệu tuyển sinh hoặc capability cao hơn | 35 |
+| Chỉ kiểm tra điều kiện/ngưỡng | 18 |
+| Có calculator một phần | 3 |
+| Calculator đã xác minh | 14 |
+| Chỉ có trong catalog | 203 |
 
-## Trường đang hỗ trợ (238)
+Con số `238` là độ phủ danh mục/search/compare, không phải 100% calculator. Một số mục trong catalog là school/faculty nội bộ của hệ thống đại học lớn; các mục này vẫn có thể giữ cho navigation hoặc mapping chương trình, nhưng không làm tăng KPI "cơ sở đào tạo tuyển sinh độc lập".
+
+Nguồn mẫu số 238 hiện là số liệu tổng hợp thứ cấp tính đến 09/2025 ([nguồn](https://veci.edu.vn/nam-2025-ca-nuoc-co-238-co-so-giao-duc-dai-hoc-gan-1-200-co-so-giao-duc-nghe-nghiep/)); cần tiếp tục đối chiếu với cổng tuyển sinh Bộ GD&ĐT và website chính thức của từng cơ sở khi nâng từ catalog-only lên calculator.
+
+## Trạng thái hỗ trợ
 
 | Trường | Trạng thái |
 |---|---|
-| HCMUT, UEH, UEL, HCMUS, USSH, IU, TDTU, HUFLIT, UMP, UFM, IUH, FTU | ✅ Tính điểm chính xác |
-| HUTECH, HCMULAW | ✅ Chính xác một phần phương thức, phần còn lại đang bổ sung |
-| UIT, UHS, AGU, HCMUE, HCMUTE, VLU, PTIT, NEU, HUB, HUIT, NTTU, HSU, UEF, CTU, TDMU, HIU, OU, SGU, HNUE, VinhUni, UTC | 🟡 Kiểm tra điều kiện/ngưỡng, chưa có calculator chính xác |
+| HCMUT, UEH, UEL, HCMUS, USSH, IU, TDTU, HUFLIT, UMP, UFM, IUH, FTU, HUTECH, HCMULAW | ✅ Calculator đã xác minh trong phạm vi đã công bố |
+| UHS, HCMUTE, NEU | 🟡 Calculator một phần hoặc quy đổi/logic hỗ trợ, chưa đủ toàn bộ phương thức |
+| UIT, AGU, HCMUE, VLU, PTIT, HUB, HUIT, NTTU, HSU, UEF, CTU, TDMU, HIU, OU, SGU, HNUE, VinhUni, UTC | 🟡 Kiểm tra điều kiện/ngưỡng, chưa có calculator chính xác |
 | GDU, STU, PNTU, BDU, LHU, NLU, UAH, UTH, VAA, HCMUNRE, CTUMP, CTUET, NCTU, TDU, TVU, DThU, TGU, VNKGU, BLU, DNU, BVU, MKU, TTU, DLA, PVU | ⚪ Có trong roster miền Nam, chưa đủ nguồn chính thức để tính |
 | VNU-UET, VNU-UEB, VNU-HUS, VNU-USSH, VNU-ULIS, VNU-UED, VNU-UMP, VJU, VNU-LS, VNU-HSB, VNU-IS, HUST, TMU, HUCE, HUMG, HOU, HANU, HaUI, AOF, BAV, VNUA, DAV, AJC, HLU, HMU, HUP, TLU, VNUF, TLU-HN, FPTU, HUBT, DNU-HN, Phenikaa, TNU, DHP, VMU, HPMU, HDU, HTU, HALOU, TQU, HVU, HueU, HUSC, HCE, HUL, HUAF, HUED, HUMP, HUFL, HAT, UDN, DUT, DUE-UDN, UED-UDN, UFLS-UDN, UTE-UDN, VKU, DTU, UDA, NTU, DLU, QNU, TTN, QNamU, QBU, PDU, PYU, UKH, MUCE, BMTU, DUMTP, PCTU, YDLU, UPT | ⚪ Có trong roster toàn quốc, chưa đủ nguồn chính thức để tính |
 | VNU-SIS, TNUS, TUEBA, TNUT, TUAF, TNUE, TUMP, TNU-IS, TNUFL, SoICT, SMS-HUST, SME-HUST, SCLS, SEEE, SEM-HUST, NEU-CoB, NCEPA, NCT-NEU, NAEM, UAD, NUAE, HUPES, HCMUPES, VGU, HPU2, VNAM, VNAD, HUC, VNUFA, SKDA, HCMCONS, SKDAHCM, HCMUFA, USH, VHS, HAM, UPES1, DSU, UTT, HAU, HNMU, HCA, UHD, NAUE, VMU-Vinh, HLUV, TBU, TUCST, CMCU, UTM, HDIU, HBU, NTU-HN, FBU, ThanhDo, VinUni, DHV, UMT, BHU, EAUT, CVAUni, LTVUni, TVUni, KBU, MDU, VTTU, EIU, AIU, QTU, TBDU, PXU, FUV, RMITVN, BUV, APD, NAPA, GASS, USTH, VWA, VYA, TUU, HUNRE, ULSA, MPA, MAL, MSA, ACTVN, MTA, AADAA, VMMU, NDA, OCP, TQT, SIGO, AOC, CCO, PSA, PPA, FPFU, PSU-CAND, PPU-CAND, BGA, VNA-Navy | ⚪ Có trong roster 238, chưa đủ nguồn chính thức để tính |

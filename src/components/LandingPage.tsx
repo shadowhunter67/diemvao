@@ -5,6 +5,7 @@ import type { SchoolModule, SchoolRegion, SchoolStatus } from '../core/schoolMod
 import { useApplicantProfile } from '../core/applicantProfileContextCore';
 import { summarizeApplicantProfile } from '../core/applicantProfileSummary';
 import { deriveSchoolCtaLabel } from '../core/schoolCta';
+import { SUPPORT_STATUS_LABELS, deriveInstitutionSupportStatus, institutionCoverage, type InstitutionSupportStatus } from '../data/institutionCoverage';
 import { SharedProfileEditor } from './SharedProfileEditor';
 
 interface LandingPageProps {
@@ -23,9 +24,9 @@ const STATUS_TEXT: Record<SchoolStatus, string> = {
 /** Chấm trạng thái nhỏ trước tên CTA — màu suy trực tiếp từ capability thật (không hard-code theo
  * school ID), cùng nguồn với `deriveSchoolCtaLabel`. */
 function schoolStatusDotClass(school: SchoolModule): string {
-  const c = school.capabilities;
-  if (c?.exactCalculator) return 'bg-success';
-  if (c?.partialCalculator || c?.scoreConversion || c?.eligibility) return 'bg-warning';
+  const supportStatus = deriveInstitutionSupportStatus(school);
+  if (supportStatus === 'verified-calculator') return 'bg-success';
+  if (supportStatus === 'partial-calculator' || supportStatus === 'eligibility-only') return 'bg-warning';
   return 'bg-ink/20';
 }
 
@@ -55,21 +56,19 @@ type StatusFilter = SchoolStatus | 'all';
 const STATUS_FILTER_ORDER: SchoolStatus[] = ['supported', 'researching', 'formula-incomplete'];
 
 /** Mức tính điểm THẬT SỰ derive từ `capabilities` (không phải `status`, vốn còn phụ thuộc có Page
- * hay chưa — xem `schoolModule.ts`) — cùng nguồn với `schoolStatusDotClass`. Trường chưa set
- * `capabilities` (identity-only) rơi vào 'info'. */
-type CapabilityTier = 'exact' | 'partial' | 'info';
+ * hay chưa — xem `schoolModule.ts`) — cùng nguồn với `schoolStatusDotClass`. */
+type CapabilityTier = InstitutionSupportStatus;
 
 function deriveCapabilityTier(school: SchoolModule): CapabilityTier {
-  const c = school.capabilities;
-  if (c?.exactCalculator) return 'exact';
-  if (c?.partialCalculator || c?.scoreConversion || c?.eligibility) return 'partial';
-  return 'info';
+  return deriveInstitutionSupportStatus(school);
 }
 
 const TIER_LABELS: Record<CapabilityTier, string> = {
-  exact: 'Có công thức chính xác',
-  partial: 'Tính được một phần',
-  info: 'Chỉ có thông tin',
+  'verified-calculator': SUPPORT_STATUS_LABELS['verified-calculator'],
+  'partial-calculator': SUPPORT_STATUS_LABELS['partial-calculator'],
+  'eligibility-only': SUPPORT_STATUS_LABELS['eligibility-only'],
+  researched: SUPPORT_STATUS_LABELS.researched,
+  'catalog-only': SUPPORT_STATUS_LABELS['catalog-only'],
 };
 
 const REGION_LABELS: Record<SchoolRegion, string> = { hcm: 'TP.HCM', hanoi: 'Hà Nội', other: 'Khu vực khác' };
@@ -202,6 +201,24 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
       </div>
 
       <div className="mx-auto mt-8 max-w-5xl">
+        <section className="mb-6 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4" aria-label="Thống kê độ phủ dữ liệu">
+          <div className="rounded-card border border-ink/10 bg-surface p-3">
+            <p className="text-xs text-muted">Danh mục</p>
+            <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.totalCatalogEntries}</p>
+          </div>
+          <div className="rounded-card border border-ink/10 bg-surface p-3">
+            <p className="text-xs text-muted">Cơ sở tính KPI</p>
+            <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.institutionEntries}</p>
+          </div>
+          <div className="rounded-card border border-ink/10 bg-surface p-3">
+            <p className="text-xs text-muted">Calculator đã xác minh</p>
+            <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.fullyVerified}</p>
+          </div>
+          <div className="rounded-card border border-ink/10 bg-surface p-3">
+            <p className="text-xs text-muted">Chỉ có trong catalog</p>
+            <p className="mt-1 text-lg font-semibold text-ink">{institutionCoverage.catalogOnly}</p>
+          </div>
+        </section>
         <h2 className="text-sm font-semibold text-ink">Chọn trường để bắt đầu</h2>
 
         <div className="mt-3 max-w-2xl">
@@ -309,7 +326,7 @@ export function LandingPage({ onSelectSchool, onOpenCompare }: LandingPageProps)
                   <div className="mt-3 flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5 text-[11px] text-muted">
                       <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${schoolStatusDotClass(school)}`} />
-                      {STATUS_TEXT[school.status]}
+                      {SUPPORT_STATUS_LABELS[deriveInstitutionSupportStatus(school)]}
                     </span>
                     {isClickable ? (
                       <button

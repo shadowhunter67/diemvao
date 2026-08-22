@@ -11,6 +11,7 @@ interface FinalCatalogSchool {
   location: string;
   ownership: SchoolModule['ownership'];
   region: SchoolModule['region'];
+  entityLevel?: SchoolModule['entityLevel'];
 }
 
 const unsupportedCapabilities = {
@@ -136,6 +137,26 @@ export const finalCatalogSchools: readonly FinalCatalogSchool[] = [
   { id: 'navalacademy', shortName: 'VNA-Navy', name: 'Học viện Hải quân', location: 'Khánh Hòa', ownership: 'public', region: 'other' },
 ];
 
+const finalCatalogInternalUnitIds = new Set([
+  'tnuis',
+  'soict',
+  'sms',
+  'sme',
+  'scls',
+  'seee',
+  'semhust',
+  'neucob',
+  'ncepa',
+  'nctneu',
+]);
+
+function resolveFinalCatalogEntityLevel(school: FinalCatalogSchool): SchoolModule['entityLevel'] {
+  if (finalCatalogInternalUnitIds.has(school.id)) return school.id === 'tnuis' ? 'faculty' : 'school';
+  if (school.name.startsWith('Học viện')) return 'academy';
+  if (school.name.startsWith('Đại học')) return 'university_system';
+  return school.entityLevel ?? 'institution';
+}
+
 export const finalCatalogKnowledgeGap = {
   id: 'final-catalog-official-admission-rules',
   label: 'Chưa research đủ nguồn tuyển sinh chính thức 2026 cho trường này.',
@@ -165,6 +186,7 @@ export const finalCatalogModules: Record<string, SchoolModule> = Object.fromEntr
       status: 'formula-incomplete',
       ownership: school.ownership,
       region: school.region,
+      entityLevel: resolveFinalCatalogEntityLevel(school),
       vnuhcm: false,
       summary: 'Đã đưa vào roster 238 theo catalog toàn quốc; cần research nguồn tuyển sinh chính thức trước khi tính điều kiện hoặc điểm.',
       capabilities: catalogOnlyCapabilities,
