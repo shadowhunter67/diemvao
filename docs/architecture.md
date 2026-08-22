@@ -124,6 +124,31 @@ school adapters/evaluators, `ApplicantProfile` factual profile, `AdmissionEvalua
 provenance/audit workflow rather than expanding core abstractions unless a verified rule truly
 requires it.
 
+## Batch 19 (2026-08-22) — production-readiness P2: router architecture review
+
+Đánh giá `src/hooks/useRoute.ts` (hand-rolled, không dùng router lib) sau khi P1 tách 16 trường có
+`Page` thành `React.lazy()` — kết luận: **giữ nguyên, không thêm thư viện router**.
+
+- **Lazy route loading**: hoạt động độc lập với cơ chế routing — `App.tsx` tự bọc `<Suspense>` quanh
+  `<Page />`, `React.lazy()` không cần router lib hỗ trợ gì thêm.
+- **Matching**: chỉ có 3 dạng route phẳng (`/`, `/compare`, `/<schoolId>` tra `schoolRegistry`),
+  không có nested route/dynamic segment ngoài 1 lookup registry đơn giản — một router lib
+  (react-router...) sẽ thêm ~40-50kB dependency (đè ngược lại nỗ lực giảm bundle của P1) để giải
+  quyết vấn đề matching không hề tồn tại ở đây.
+- **404**: pathname không khớp `schoolRegistry` fallback về landing page — đây là hành vi sản phẩm
+  cố ý (registry tra cứu theo id, không phải "trang không tồn tại" theo nghĩa thông thường), không
+  phải lỗ hổng cần router lib xử lý.
+- **URL state**: query string cho share link (`dg_v`, `s`) đọc trực tiếp từ `window.location.search`
+  tại thời điểm mount — không đụng vào cơ chế điều hướng, không có xung đột với router hiện tại.
+- **Back/forward**: `popstate` listener đồng bộ `pathname` — đã hoạt động đúng (verify bằng browser
+  thật ở batch P1, xem lịch sử smoke test).
+- **Direct route reload**: xử lý ở tầng hosting (`vercel.json` rewrite mọi path về `index.html`),
+  không phải trách nhiệm của router phía client.
+
+Không tìm thấy vấn đề cụ thể mà một router lib giải quyết tốt hơn hand-rolled hiện tại; theo đúng
+nguyên tắc "chỉ thêm lib nếu giảm rõ complexity/giải quyết vấn đề cụ thể", không đổi gì ở
+`useRoute.ts`/`App.tsx` ngoài phạm vi đã làm ở P1.
+
 ## Batch 15 (2026-08-13) — source registry traceability
 
 Rule provenance now resolves through one canonical school source registry before it reaches UI evidence rendering:
